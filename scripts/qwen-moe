@@ -1,0 +1,57 @@
+#!/bin/bash
+# Launch Qwen3.5-35B-A3B (MoE, 3B active) via llama.cpp
+
+MODEL="unsloth/Qwen3.5-35B-A3B-GGUF:UD-IQ3_XXS"
+CTX_SIZE=32768
+KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
+
+MODE="${1:-server}"
+shift 2>/dev/null
+
+case "$MODE" in
+  chat)
+    exec llama-cli \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --conversation \
+      --chat-template-kwargs '{"enable_thinking":true}' \
+      $KV_CACHE \
+      --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.0 \
+      "$@"
+    ;;
+  chat-think)
+    exec llama-cli \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --conversation \
+      --chat-template-kwargs '{"enable_thinking":true}' \
+      $KV_CACHE \
+      --temp 1.0 --top-p 0.95 --top-k 20 --min-p 0.0 \
+      --presence-penalty 1.5 \
+      "$@"
+    ;;
+  server)
+    PORT="${1:-8080}"
+    shift 2>/dev/null
+    echo "Starting Qwen3.5-35B-A3B MoE on http://localhost:$PORT"
+    exec llama-server \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --jinja \
+      --chat-template-kwargs '{"enable_thinking":true}' \
+      --alias "qwen3.5-35b-a3b" \
+      --port "$PORT" \
+      $KV_CACHE \
+      --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.0 \
+      "$@"
+    ;;
+  *)
+    echo "Usage: $(basename "$0") [chat|chat-think|server] [port] [extra flags...]"
+    echo ""
+    echo "Modes:"
+    echo "  server       OpenAI-compatible API (default, port 8080)"
+    echo "  chat         Interactive CLI with thinking (coding params)"
+    echo "  chat-think   Interactive CLI with thinking (creative params)"
+    exit 1
+    ;;
+esac
