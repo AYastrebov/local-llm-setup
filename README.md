@@ -16,6 +16,8 @@ Developed and tested on Fedora 43 with an AMD Radeon RX 9060 XT (16 GB VRAM, RDN
 ├── configs/
 │   ├── pi-dev/models.json                 # pi.dev coding agent model config
 │   └── zshrc-snippet.sh                   # Shell environment (PATH, aliases)
+├── docs/
+│   └── qwen3.5-model-config.md           # Qwen3.5 sampling params, VRAM, quants
 └── skills/
     └── llama-build/                       # Claude Code skill for building llama.cpp
         ├── SKILL.md                       # Skill definition (multi-platform)
