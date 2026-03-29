@@ -107,7 +107,7 @@ From [Unsloth Qwen3.5 docs](https://unsloth.ai/docs/models/qwen3.5):
 | Coding (chat) | 0.6 | 0.95 | 20 | 0.0 | — |
 | Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 | 1.5 |
 
-Context window: 32768 tokens (model supports up to 256K). KV cache is quantized to q8_0 (from default f16) to fit 32K context in 16 GB VRAM with ~1 GB headroom. No meaningful quality loss from q8_0 KV cache quantization.
+Context window: 65536 tokens (model supports up to 256K). KV cache is quantized to q4_0 (from default f16) to fit 64K context in 16 GB VRAM (~13 GB model + ~2 GB KV cache, ~1 GB headroom). Negligible quality impact for coding/chat/reasoning.
 
 ## pi.dev Configuration
 
@@ -130,14 +130,14 @@ Config file: `~/.pi/agent/models.json`
           "id": "qwen3.5-9b",
           "name": "Qwen3.5 9B (Unsloth Q8_K_XL)",
           "reasoning": true,
-          "contextWindow": 32768,
+          "contextWindow": 65536,
           "maxTokens": 8192
         },
         {
           "id": "qwen3.5-35b-a3b",
           "name": "Qwen3.5 35B-A3B MoE (Unsloth IQ3_XXS)",
           "reasoning": true,
-          "contextWindow": 32768,
+          "contextWindow": 65536,
           "maxTokens": 8192
         }
       ]

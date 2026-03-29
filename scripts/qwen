@@ -2,8 +2,8 @@
 # Launch Qwen3.5-9B via llama.cpp
 
 MODEL="unsloth/Qwen3.5-9B-GGUF:UD-Q8_K_XL"
-CTX_SIZE=32768
-KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
+CTX_SIZE=65536
+KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
 
 MODE="${1:-server}"
 shift 2>/dev/null
