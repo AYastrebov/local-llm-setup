@@ -7,7 +7,7 @@
 #   qwen-coder server       → start server explicitly
 #   qwen-coder server 8001  → start server on custom port
 
-MODEL="unsloth/Qwen3-Coder-Next-GGUF:UD-Q3_K_XL"
+MODEL="unsloth/Qwen3-Coder-Next-GGUF:UD-Q4_K_S"
 CTX_SIZE=65536
 KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
 SAMPLING="--temp 1.0 --top-p 0.95 --min-p 0.01 --top-k 40"

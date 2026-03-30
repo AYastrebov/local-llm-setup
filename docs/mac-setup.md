@@ -38,9 +38,12 @@ Specialized coding model. **Does NOT support thinking mode** — non-thinking on
 
 | Quant | Size | Fits 64GB Mac? | Notes |
 |-------|------|----------------|-------|
-| UD-Q3_K_XL | 34 GB | Yes (recommended) | Sweet spot for 64GB |
-| UD-Q4_K_XL | 46 GB | Tight | May OOM with 65K context |
-| UD-IQ3_XXS | 28 GB | Yes | Lower quality, more headroom |
+| UD-Q4_K_S | 46 GB | Yes (recommended) | Best quality that fits with KV cache quant |
+| UD-Q3_K_XL | 34 GB | Yes | More headroom, slightly lower quality |
+| UD-Q4_K_XL | 49.6 GB | No | OOMs with 65K context |
+| UD-IQ3_XXS | 28 GB | Yes | Lower quality, most headroom |
+
+> **Note:** Q4_K_S requires KV cache quantization (`q4_0`) and single parallel slot (`-np 1`) to fit. ~1.8 GB free after model + KV cache.
 
 **Sampling parameters** (per [Unsloth docs](https://unsloth.ai/docs/models/qwen3-coder-next)):
 
@@ -85,7 +88,7 @@ qwen-moe chat-think     # interactive CLI (creative params)
 | | Mac (M2 Max, 64GB) | Fedora (RX 9060 XT, 16GB VRAM) |
 |---|---|---|
 | GPU backend | Metal | HIP/ROCm |
-| Qwen3-Coder-Next quant | Q3_K_XL (34 GB) | N/A |
+| Qwen3-Coder-Next quant | Q4_K_S (46 GB) | N/A |
 | Qwen3.5-35B-A3B quant | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
 | KV cache quantization | q4_0 (saves memory for 65K ctx) | q4_0 |
 | Build flags | `-DGGML_METAL=ON -DGGML_NATIVE=ON` | `-DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON` |
@@ -98,12 +101,11 @@ Copy `configs/pi-dev/models-mac.json` to `~/.pi/agent/models.json`, then start a
 
 ## Performance (observed)
 
-**Qwen3-Coder-Next Q3_K_XL on M2 Max:**
+**Qwen3-Coder-Next Q4_K_S on M2 Max:**
 
 | Metric | Value |
 |--------|-------|
-| Prompt processing (cold) | ~438 t/s |
-| Prompt processing (cached) | ~120-220 t/s |
-| Generation speed | 32-38 t/s |
-| GPU memory used | ~35 GB |
-| GPU memory free | ~14 GB |
+| GPU memory used | ~47 GB |
+| GPU memory free | ~2 GB |
+
+> Performance data for Q4_K_S is preliminary. Generation speed is comparable to Q3_K_XL (~32-38 t/s) as MoE active parameters are the same.

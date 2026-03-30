@@ -50,6 +50,7 @@ All modes use the same parameters — there are no separate thinking/instruct pr
 | UD-Q6_K_XL | 73.1 GB | ~80 GB | 6.0 |
 | UD-Q5_K_XL | 59.5 GB | ~68 GB | 5.0 |
 | UD-Q4_K_XL | 49.6 GB | ~56 GB | 4.0 |
+| UD-Q4_K_S | 46.1 GB | ~48 GB | 3.86 |
 | UD-Q3_K_XL | 36.3 GB | ~44 GB | 3.64 |
 | UD-IQ3_XXS | 28.5 GB | ~36 GB | 2.86 |
 | UD-Q2_K_XL | 26.8 GB | ~34 GB | 2.5 |
@@ -62,7 +63,7 @@ Rule of thumb: leave ~8–15 GB free for KV cache, compute buffers, and OS overh
 
 | Platform | Memory | Recommended quant |
 |----------|--------|-------------------|
-| Mac M2 Max (64 GB) | 64 GB unified | UD-Q3_K_XL (34 GB) |
+| Mac M2 Max (64 GB) | 64 GB unified | UD-Q4_K_S (46 GB) — with KV cache quant |
 | Mac M4 Pro (48 GB) | 48 GB unified | UD-IQ3_XXS (28 GB) |
 | Mac M4 Max (128 GB) | 128 GB unified | UD-Q6_K_XL (73 GB) |
 | Linux 24 GB VRAM | 24 GB discrete | UD-IQ2_XXS (23 GB) — tight |
@@ -76,7 +77,9 @@ For large context windows (32K+), quantize the KV cache to reduce memory:
 --cache-type-k q4_0 --cache-type-v q4_0    # ~75% smaller KV cache
 ```
 
-This allows 65K context with the Q3_K_XL quant on a 64 GB Mac. Negligible quality impact for coding tasks.
+This allows 65K context with the Q4_K_S quant on a 64 GB Mac. Negligible quality impact for coding tasks.
+
+> **Important for Q4_K_S on 64 GB:** Use single parallel slot (`-np 1`) to minimize memory overhead. The model + KV cache uses ~47.2 GB of the ~49 GB GPU budget, leaving only ~1.8 GB free.
 
 ## llama.cpp Commands
 
@@ -84,13 +87,15 @@ This allows 65K context with the Q3_K_XL quant on a 64 GB Mac. Negligible qualit
 
 ```bash
 # Interactive chat
-llama-cli -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q3_K_XL \
-    --ctx-size 16384 \
+llama-cli -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q4_K_S \
+    --ctx-size 65536 \
+    --cache-type-k q4_0 --cache-type-v q4_0 \
     --temp 1.0 --top-p 0.95 --min-p 0.01 --top-k 40
 
 # OpenAI-compatible server
-llama-server -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q3_K_XL \
-    --jinja --ctx-size 16384 --port 8080 \
+llama-server -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q4_K_S \
+    --jinja --ctx-size 65536 --port 8080 \
+    --cache-type-k q4_0 --cache-type-v q4_0 \
     --temp 1.0 --top-p 0.95 --min-p 0.01 --top-k 40
 ```
 
@@ -98,12 +103,12 @@ llama-server -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q3_K_XL \
 
 ```bash
 llama-cli \
-    --model path/to/Qwen3-Coder-Next-UD-Q3_K_XL.gguf \
+    --model path/to/Qwen3-Coder-Next-UD-Q4_K_S.gguf \
     --seed 3407 \
     --temp 1.0 --top-p 0.95 --min-p 0.01 --top-k 40
 
 llama-server \
-    --model path/to/Qwen3-Coder-Next-UD-Q3_K_XL.gguf \
+    --model path/to/Qwen3-Coder-Next-UD-Q4_K_S.gguf \
     --alias "unsloth/Qwen3-Coder-Next" \
     --seed 3407 --port 8001 \
     --temp 1.0 --top-p 0.95 --min-p 0.01 --top-k 40
@@ -128,6 +133,7 @@ llama-server \
 
 Unsloth Dynamic 2.0 ("UD-") quants upcast important layers to 8 or 16-bit for better accuracy at the same average bit width:
 
+- UD-Q4_K_S provides near-Q4_K_XL quality in a smaller package — good balance for memory-constrained systems
 - UD-Q4_K_XL outperforms standard Q4_K_M on mixed benchmark suites
 - UD-IQ3_XXS "comes close to BF16 performance" — viable minimum for coding
 - UD-Q3_K_XL provides better quality and faster inference than UD-IQ3_XXS (standard K-quant vs I-quant)
@@ -141,6 +147,6 @@ Unsloth Dynamic 2.0 ("UD-") quants upcast important layers to 8 or 16-bit for be
 
 ## Troubleshooting
 
-- **OOM on Mac:** Reduce context (`--ctx-size 8192`) or use a smaller quant. The Q4_K_XL (49.6 GB) is too tight for 64 GB Macs with 65K context.
+- **OOM on Mac:** Reduce context (`--ctx-size 8192`) or use a smaller quant. The Q4_K_XL (49.6 GB) is too tight for 64 GB Macs with 65K context. Q4_K_S (46.1 GB) works with KV cache quant and `-np 1`.
 - **Slow first request:** Model warmup is normal. Subsequent requests use cached context.
 - **No thinking blocks:** This is expected. The model does not support thinking mode. Use Qwen3.5 if you need reasoning.

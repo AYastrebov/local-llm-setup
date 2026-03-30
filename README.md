@@ -49,7 +49,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 | Model | Mac (64GB) | Fedora (16GB VRAM) |
 |-------|------------|-------------------|
-| Qwen3-Coder-Next | Q3_K_XL (34 GB) | — |
+| Qwen3-Coder-Next | Q4_K_S (46 GB) | — |
 | Qwen3.5-35B-A3B | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
 | Qwen3.5-9B | — | Q8_K_XL (~13 GB) |
 
