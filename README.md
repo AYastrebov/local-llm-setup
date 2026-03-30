@@ -6,14 +6,13 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 | Platform | Hardware | Guide |
 |----------|----------|-------|
-| **Fedora** | Intel i5-14600K, RX 9060 XT (16GB), 32GB RAM | [FEDORA_SETUP.md](FEDORA_SETUP.md) |
+| **Fedora** | Intel i5-14600K, RX 9060 XT (16GB), 32GB RAM | [docs/fedora-setup.md](docs/fedora-setup.md) |
 | **macOS** | Apple M2 Max, 64GB unified memory | [docs/mac-setup.md](docs/mac-setup.md) |
 
 ## What's included
 
 ```
 .
-├── FEDORA_SETUP.md                        # Fedora setup guide (RX 9060 XT)
 ├── scripts/
 │   ├── build-llama.sh                     # Build llama.cpp with HIP/ROCm + rocWMMA
 │   ├── qwen                               # Launcher: Qwen3.5 9B dense
@@ -25,6 +24,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 │   │   └── models-mac.json               # pi.dev config (macOS)
 │   └── zshrc-snippet.sh                   # Shell environment (PATH, aliases)
 ├── docs/
+│   ├── fedora-setup.md                    # Fedora setup guide (RX 9060 XT)
 │   ├── mac-setup.md                       # macOS Apple Silicon setup guide
 │   └── qwen3.5-model-config.md           # Qwen3.5 sampling params, VRAM, quants
 └── skills/
