@@ -26,7 +26,8 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 ├── docs/
 │   ├── fedora-setup.md                    # Fedora setup guide (RX 9060 XT)
 │   ├── mac-setup.md                       # macOS Apple Silicon setup guide
-│   └── qwen3.5-model-config.md           # Qwen3.5 sampling params, VRAM, quants
+│   ├── qwen3-coder-next-model-config.md   # Qwen3-Coder-Next: params, quants, benchmarks
+│   └── qwen3.5-model-config.md            # Qwen3.5 family: params, quants, thinking mode
 └── skills/
     └── llama-build/                       # Claude Code skill for building llama.cpp
         ├── SKILL.md                       # Skill definition (multi-platform)
@@ -36,11 +37,13 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 ## Models
 
-| Model | Type | Active params | Use case | Thinking? |
-|-------|------|---------------|----------|-----------|
-| [Qwen3-Coder-Next](https://unsloth.ai/docs/models/qwen3-coder-next) | 80B MoE | 3B | Coding | No |
-| [Qwen3.5-35B-A3B](https://unsloth.ai/docs/models/qwen3.5) | 35B MoE | 3B | General + reasoning | Yes |
-| [Qwen3.5-9B](https://unsloth.ai/docs/models/qwen3.5) | 9B dense | 9B | General (fast) | Yes (opt-in) |
+| Model | Type | Active params | Use case | Thinking? | Config reference |
+|-------|------|---------------|----------|-----------|-----------------|
+| [Qwen3-Coder-Next](https://unsloth.ai/docs/models/qwen3-coder-next) | 80B MoE | 3B | Coding | **No** | [docs/qwen3-coder-next-model-config.md](docs/qwen3-coder-next-model-config.md) |
+| [Qwen3.5-35B-A3B](https://unsloth.ai/docs/models/qwen3.5) | 35B MoE | 3B | General + reasoning | Yes | [docs/qwen3.5-model-config.md](docs/qwen3.5-model-config.md) |
+| [Qwen3.5-9B](https://unsloth.ai/docs/models/qwen3.5) | 9B dense | 9B | General (fast) | Yes (opt-in) | [docs/qwen3.5-model-config.md](docs/qwen3.5-model-config.md) |
+
+> **Important:** Qwen3-Coder-Next and Qwen3.5 are different model families with different sampling parameters. Do not mix them — see the model config docs for correct settings.
 
 ### Quantization per platform
 
@@ -49,6 +52,14 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 | Qwen3-Coder-Next | Q3_K_XL (34 GB) | — |
 | Qwen3.5-35B-A3B | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
 | Qwen3.5-9B | — | Q8_K_XL (~13 GB) |
+
+### Sampling parameters (quick reference)
+
+| Model | temp | top-p | top-k | min-p |
+|-------|------|-------|-------|-------|
+| Qwen3-Coder-Next | 1.0 | 0.95 | 40 | 0.01 |
+| Qwen3.5 (coding/thinking) | 0.6 | 0.95 | 20 | 0.0 |
+| Qwen3.5 (creative/thinking) | 1.0 | 0.95 | 20 | 0.0 |
 
 ## Quick start (Fedora)
 
@@ -104,7 +115,8 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 3. **Run**:
    ```bash
    qwen-coder          # Qwen3-Coder-Next server on port 8080
-   qwen-moe chat       # Qwen3.5-35B-A3B interactive chat
+   qwen-coder chat     # Qwen3-Coder-Next interactive chat
+   qwen-moe chat       # Qwen3.5-35B-A3B interactive chat with thinking
    ```
 
 See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info, performance data, and model selection.
