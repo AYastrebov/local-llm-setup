@@ -1,0 +1,124 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // ==========================================
+  // ⚙️ GLOBAL SETTINGS
+  // ==========================================
+  "small_model": "openai/gpt-5.4-mini",
+  "snapshot": false,
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 8000
+  },
+
+  // ==========================================
+  // 🧠 PROVIDERS & MODELS
+  // ==========================================
+  "provider": {
+    "local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local llama.cpp",
+      "options": {
+        "baseURL": "http://127.0.0.1:8080/v1"
+      },
+      "models": {
+        "Qwen3-Coder-Next-GGUF": {
+          "name": "Qwen3-Coder-Next 80B MoE (Local)",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        },
+        "qwen3.5-35b-a3b": {
+          "name": "Qwen3.5 35B-A3B MoE (Local)",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+
+  // ==========================================
+  // 🔌 MODEL CONTEXT PROTOCOL (MCP) SERVERS
+  // ==========================================
+  "mcp": {
+    "jetbrains": {
+      "type": "remote",
+      "url": "http://127.0.0.1:64342/sse",
+      "enabled": false
+    },
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "enabled": false
+    }
+  },
+
+  // ==========================================
+  // 🛡️ SECURITY & PERMISSIONS
+  // ==========================================
+  "permission": {
+    "read": "allow",
+    "write": "ask",
+    "bash": {
+      "./gradlew*": "allow",
+      "git *": "allow",
+      "*": "ask"
+    }
+  },
+
+  // ==========================================
+  // 🤖 AGENT PROFILES
+  // ==========================================
+  "agent": {
+    "plan": {
+      "description": "Architectural design and planning. Use for high-level decisions, system design, and implementation strategies before coding begins.",
+      "mode": "primary",
+      "model": "openai/gpt-5.4",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny"
+      }
+    },
+    "build": {
+      "description": "Heavy-duty implementation. Use for large-scale code changes, refactors, and feature development.",
+      "mode": "primary",
+      "default": true,
+      "model": "openai/gpt-5.3-codex",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "write": "allow"
+      }
+    },
+    "local-coder": {
+      "description": "Local Qwen3-Coder-Next for coding tasks. Runs offline on M2 Max. No thinking mode. Start with: qwen-coder",
+      "mode": "primary",
+      "model": "local/Qwen3-Coder-Next-GGUF",
+      "temperature": 1.0,
+      "steps": 15,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "webfetch": "deny",
+        "websearch": "deny"
+      }
+    },
+    "local-moe": {
+      "description": "Local Qwen3.5-35B-A3B for general reasoning with thinking. Runs offline on M2 Max. Start with: qwen-moe",
+      "mode": "primary",
+      "model": "local/qwen3.5-35b-a3b",
+      "temperature": 0.6,
+      "steps": 15,
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "webfetch": "deny",
+        "websearch": "deny"
+      }
+    }
+  }
+}
