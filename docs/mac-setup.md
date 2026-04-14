@@ -32,6 +32,30 @@ export PATH="$HOME/llama.cpp/build/bin:$PATH"
 
 ## Models
 
+### Gemma 4 26B-A4B (26B MoE, 3.8B active)
+
+Google's multimodal model with thinking/reasoning support.
+
+| Quant | Size | Fits 64GB Mac? | Notes |
+|-------|------|----------------|-------|
+| UD-Q8_K_XL | 28 GB | Yes (recommended) | Near-lossless quality, 21 GB headroom |
+| UD-Q6_K_XL | 23 GB | Yes | Great quality, even more headroom |
+| UD-Q4_K_XL | 17 GB | Yes | Good quality, max context headroom |
+
+**Sampling parameters** (per [Unsloth docs](https://unsloth.ai/docs/models/gemma-4)):
+
+| Parameter | Value |
+|-----------|-------|
+| Temperature | 1.0 |
+| Top-P | 0.95 |
+| Top-K | 64 |
+
+**Launch:**
+```bash
+gemma-moe              # server on port 8080
+gemma-moe chat         # interactive CLI (thinking enabled)
+```
+
 ### Qwen3-Coder-Next (80B MoE, 3B active)
 
 Specialized coding model. **Does NOT support thinking mode** — non-thinking only.
@@ -88,16 +112,21 @@ qwen-moe chat-think     # interactive CLI (creative params)
 | | Mac (M2 Max, 64GB) | Fedora (RX 9060 XT, 16GB VRAM) |
 |---|---|---|
 | GPU backend | Metal | HIP/ROCm |
+| Gemma 4 26B-A4B quant | Q8_K_XL (28 GB) | N/A |
 | Qwen3-Coder-Next quant | Q4_K_S (46 GB) | N/A |
 | Qwen3.5-35B-A3B quant | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
-| KV cache quantization | q4_0 (saves memory for 65K ctx) | q4_0 |
+| KV cache quantization | q4_0 (for Qwen3-Coder-Next) | q4_0 |
 | Build flags | `-DGGML_METAL=ON -DGGML_NATIVE=ON` | `-DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON` |
 
 The Mac's larger unified memory allows higher quantization levels for better quality output.
 
-## pi.dev integration
+## Coding agent integration
 
-Copy `configs/pi-dev/models-mac.json` to `~/.pi/agent/models.json`, then start a server and select the model in pi.dev via `/model`.
+Copy configs to their respective locations:
+- pi.dev: `configs/pi-dev/models-mac.json` → `~/.pi/agent/models.json`
+- opencode: `configs/opencode/opencode-mac.jsonc` → `~/.config/opencode/opencode.jsonc`
+
+Start a server and select the model in the agent UI.
 
 ## Performance (observed)
 
@@ -108,4 +137,4 @@ Copy `configs/pi-dev/models-mac.json` to `~/.pi/agent/models.json`, then start a
 | GPU memory used | ~47 GB |
 | GPU memory free | ~2 GB |
 
-> Performance data for Q4_K_S is preliminary. Generation speed is comparable to Q3_K_XL (~32-38 t/s) as MoE active parameters are the same.
+> Generation speed is ~32-38 t/s for MoE models (3-4B active params) on M2 Max.

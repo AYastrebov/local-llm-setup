@@ -1,0 +1,49 @@
+#!/bin/bash
+# Launch Gemma 4 26B-A4B (MoE, 3.8B active) via llama.cpp
+# Supports thinking mode. Mac version uses Q8_K_XL (64GB unified memory).
+# Usage:
+#   gemma-moe              → start server (default, port 8080)
+#   gemma-moe chat         → interactive CLI chat (thinking enabled)
+#   gemma-moe server       → start server explicitly
+#   gemma-moe server 8001  → start server on custom port
+
+MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL"
+CTX_SIZE=65536
+SAMPLING="--temp 1.0 --top-p 0.95 --top-k 64"
+
+MODE="${1:-server}"
+shift 2>/dev/null
+
+case "$MODE" in
+  chat)
+    exec llama-cli \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --conversation \
+      --chat-template-kwargs '{"enable_thinking":true}' \
+      $SAMPLING \
+      "$@"
+    ;;
+  server)
+    PORT="${1:-8080}"
+    shift 2>/dev/null
+    echo "Starting Gemma 4 26B-A4B MoE on http://localhost:$PORT"
+    exec llama-server \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --jinja \
+      --chat-template-kwargs '{"enable_thinking":true}' \
+      --alias "gemma-4-26b-a4b" \
+      --port "$PORT" \
+      $SAMPLING \
+      "$@"
+    ;;
+  *)
+    echo "Usage: gemma-moe [chat|server] [port] [extra llama.cpp flags...]"
+    echo ""
+    echo "  gemma-moe              Start server on port 8080"
+    echo "  gemma-moe chat         Interactive CLI chat (thinking enabled)"
+    echo "  gemma-moe server 8001  Server on custom port"
+    exit 1
+    ;;
+esac

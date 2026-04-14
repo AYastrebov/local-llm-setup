@@ -17,15 +17,19 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 │   ├── build-llama.sh                     # Build llama.cpp with HIP/ROCm + rocWMMA
 │   ├── qwen                               # Launcher: Qwen3.5 9B dense
 │   ├── qwen-moe                           # Launcher: Qwen3.5 35B-A3B MoE
-│   └── qwen-coder                         # Launcher: Qwen3-Coder-Next 80B (macOS)
+│   ├── qwen-coder                         # Launcher: Qwen3-Coder-Next 80B (macOS)
+│   └── gemma-moe                          # Launcher: Gemma 4 26B-A4B MoE (macOS)
 ├── configs/
 │   ├── pi-dev/
 │   │   ├── models.json                    # pi.dev config (Fedora)
 │   │   └── models-mac.json               # pi.dev config (macOS)
+│   ├── opencode/
+│   │   └── opencode-mac.jsonc            # opencode config (macOS)
 │   └── zshrc-snippet.sh                   # Shell environment (PATH, aliases)
 ├── docs/
 │   ├── fedora-setup.md                    # Fedora setup guide (RX 9060 XT)
 │   ├── mac-setup.md                       # macOS Apple Silicon setup guide
+│   ├── gemma4-model-config.md             # Gemma 4: params, quants, thinking mode
 │   ├── qwen3-coder-next-model-config.md   # Qwen3-Coder-Next: params, quants, benchmarks
 │   └── qwen3.5-model-config.md            # Qwen3.5 family: params, quants, thinking mode
 └── skills/
@@ -39,16 +43,18 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 | Model | Type | Active params | Use case | Thinking? | Config reference |
 |-------|------|---------------|----------|-----------|-----------------|
+| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B | General + multimodal | Yes | [docs/gemma4-model-config.md](docs/gemma4-model-config.md) |
 | [Qwen3-Coder-Next](https://unsloth.ai/docs/models/qwen3-coder-next) | 80B MoE | 3B | Coding | **No** | [docs/qwen3-coder-next-model-config.md](docs/qwen3-coder-next-model-config.md) |
 | [Qwen3.5-35B-A3B](https://unsloth.ai/docs/models/qwen3.5) | 35B MoE | 3B | General + reasoning | Yes | [docs/qwen3.5-model-config.md](docs/qwen3.5-model-config.md) |
 | [Qwen3.5-9B](https://unsloth.ai/docs/models/qwen3.5) | 9B dense | 9B | General (fast) | Yes (opt-in) | [docs/qwen3.5-model-config.md](docs/qwen3.5-model-config.md) |
 
-> **Important:** Qwen3-Coder-Next and Qwen3.5 are different model families with different sampling parameters. Do not mix them — see the model config docs for correct settings.
+> **Important:** Each model family has different sampling parameters. Do not mix them — see the model config docs for correct settings.
 
 ### Quantization per platform
 
 | Model | Mac (64GB) | Fedora (16GB VRAM) |
 |-------|------------|-------------------|
+| Gemma 4 26B-A4B | Q8_K_XL (28 GB) | — |
 | Qwen3-Coder-Next | Q4_K_S (46 GB) | — |
 | Qwen3.5-35B-A3B | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
 | Qwen3.5-9B | — | Q8_K_XL (~13 GB) |
@@ -57,6 +63,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 | Model | temp | top-p | top-k | min-p |
 |-------|------|-------|-------|-------|
+| Gemma 4 26B-A4B | 1.0 | 0.95 | 64 | — |
 | Qwen3-Coder-Next | 1.0 | 0.95 | 40 | 0.01 |
 | Qwen3.5 (coding/thinking) | 0.6 | 0.95 | 20 | 0.0 |
 | Qwen3.5 (creative/thinking) | 1.0 | 0.95 | 20 | 0.0 |
@@ -108,15 +115,17 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 2. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen-coder scripts/qwen-moe ~/.local/bin/
-   chmod +x ~/.local/bin/qwen-coder ~/.local/bin/qwen-moe
+   cp scripts/qwen-coder scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
+   chmod +x ~/.local/bin/qwen-coder ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
    ```
 
 3. **Run**:
    ```bash
-   qwen-coder          # Qwen3-Coder-Next server on port 8080
-   qwen-coder chat     # Qwen3-Coder-Next interactive chat
-   qwen-moe chat       # Qwen3.5-35B-A3B interactive chat with thinking
+   gemma-moe            # Gemma 4 26B-A4B server on port 8080
+   gemma-moe chat       # Gemma 4 interactive chat with thinking
+   qwen-coder           # Qwen3-Coder-Next server on port 8080
+   qwen-coder chat      # Qwen3-Coder-Next interactive chat
+   qwen-moe chat        # Qwen3.5-35B-A3B interactive chat with thinking
    ```
 
 See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info, performance data, and model selection.
@@ -129,7 +138,13 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `configs/pi-dev/models.json`
 - macOS: `configs/pi-dev/models-mac.json`
 
-Start a server (`qwen`, `qwen-moe`, or `qwen-coder`), then select the model in pi.dev via `/model`.
+Start a server (`qwen`, `qwen-moe`, `qwen-coder`, or `gemma-moe`), then select the model in pi.dev via `/model`.
+
+### opencode
+
+Copy the macOS config: `configs/opencode/opencode-mac.jsonc` → `~/.config/opencode/opencode.jsonc`
+
+Agent profiles: `local-coder` (Qwen3-Coder-Next), `local-moe` (Qwen3.5), `local-gemma` (Gemma 4).
 
 ### Claude Code
 
