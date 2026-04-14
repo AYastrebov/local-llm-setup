@@ -130,6 +130,19 @@ Config file: `~/.pi/agent/models.json` (copy from `configs/pi-dev/models.json`)
 
 Start a launcher (`gemma-moe`, `qwen`, or `qwen-moe`), then select the model in pi.dev via `/model`.
 
+## opencode Configuration
+
+Config file: `~/.config/opencode/opencode.jsonc` (copy from `configs/opencode/opencode-fedora.jsonc`)
+
+```bash
+cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
+```
+
+Agent profiles:
+- `local-gemma` — Gemma 4 26B-A4B (thinking, temp 1.0). Start server: `gemma-moe`
+- `local-moe` — Qwen3.5 35B-A3B (thinking, temp 0.6). Start server: `qwen-moe`
+- `local-qwen` — Qwen3.5 9B dense (fast, temp 0.6). Start server: `qwen`
+
 ## Web UI
 
 llama-server includes a built-in web UI. After starting a server, open `http://localhost:8080` in a browser.

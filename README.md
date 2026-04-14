@@ -24,6 +24,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 │   │   ├── models.json                    # pi.dev config (Fedora)
 │   │   └── models-mac.json               # pi.dev config (macOS)
 │   ├── opencode/
+│   │   ├── opencode-fedora.jsonc         # opencode config (Fedora)
 │   │   └── opencode-mac.jsonc            # opencode config (macOS)
 │   └── zshrc-snippet.sh                   # Shell environment (PATH, aliases)
 ├── docs/
@@ -96,7 +97,13 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
    source ~/.zshrc
    ```
 
-5. **Run**:
+5. **Configure coding agents:**
+   ```bash
+   cp configs/pi-dev/models.json ~/.pi/agent/models.json
+   cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
+   ```
+
+6. **Run**:
    ```bash
    gemma-moe chat     # Gemma 4 interactive chat with thinking
    qwen chat          # interactive chat with 9B dense
@@ -121,7 +128,13 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
    chmod +x ~/.local/bin/qwen-coder ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
    ```
 
-3. **Run**:
+3. **Configure coding agents:**
+   ```bash
+   cp configs/pi-dev/models-mac.json ~/.pi/agent/models.json
+   cp configs/opencode/opencode-mac.jsonc ~/.config/opencode/opencode.jsonc
+   ```
+
+4. **Run**:
    ```bash
    gemma-moe            # Gemma 4 26B-A4B server on port 8080
    gemma-moe chat       # Gemma 4 interactive chat with thinking
@@ -144,9 +157,16 @@ Start a server (`qwen`, `qwen-moe`, `qwen-coder`, or `gemma-moe`), then select t
 
 ### opencode
 
-Copy the macOS config: `configs/opencode/opencode-mac.jsonc` → `~/.config/opencode/opencode.jsonc`
+Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
+- Fedora: `configs/opencode/opencode-fedora.jsonc`
+- macOS: `configs/opencode/opencode-mac.jsonc`
 
-Agent profiles: `local-coder` (Qwen3-Coder-Next), `local-moe` (Qwen3.5), `local-gemma` (Gemma 4).
+| Agent | Model | Start server |
+|-------|-------|--------------|
+| `local-gemma` | Gemma 4 26B-A4B | `gemma-moe` |
+| `local-moe` | Qwen3.5 35B-A3B | `qwen-moe` |
+| `local-coder` | Qwen3-Coder-Next (macOS only) | `qwen-coder` |
+| `local-qwen` | Qwen3.5 9B (Fedora only) | `qwen` |
 
 ### Claude Code
 
