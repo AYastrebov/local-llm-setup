@@ -67,18 +67,34 @@ Models are stored as plain GGUF files in `~/models/`.
 
 | Model | Quant | Size | VRAM fit? |
 |-------|-------|------|-----------|
+| Gemma 4 26B-A4B (MoE) | UD-Q3_K_XL | 12.9 GB | Yes (~2 GB for KV cache) |
 | Qwen3.5 9B | UD-Q8_K_XL | 13 GB | Yes (3 GB left for KV cache) |
 | Qwen3.5 35B-A3B (MoE) | UD-IQ3_XXS | 13.1 GB | Yes (3B params active) |
 
 Download models:
 ```bash
+llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL -n 0 -p ""
 llama-cli -hf unsloth/Qwen3.5-9B-GGUF:UD-Q8_K_XL -n 0 -p ""
 llama-cli -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-IQ3_XXS -n 0 -p ""
 ```
 
 ## Launcher Scripts
 
-Located in `~/.local/bin/`. Both default to server mode on port 8080.
+Located in `~/.local/bin/`. All default to server mode on port 8080.
+
+### gemma-moe (Gemma 4 26B-A4B)
+
+```bash
+gemma-moe              # server on port 8080
+gemma-moe server 9090  # server on custom port
+gemma-moe chat         # interactive CLI, thinking enabled
+```
+
+Configure for Fedora by editing the MODEL line in the script:
+```bash
+MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
+KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
+```
 
 ### qwen (dense 9B)
 
@@ -100,53 +116,19 @@ qwen-moe chat-think   # interactive CLI, creative params
 
 ### Sampling Parameters
 
-From [Unsloth Qwen3.5 docs](https://unsloth.ai/docs/models/qwen3.5):
+| Model | Mode | temp | top-p | top-k | min-p |
+|-------|------|------|-------|-------|-------|
+| Gemma 4 26B-A4B | all | 1.0 | 0.95 | 64 | — |
+| Qwen3.5 | Coding (chat) | 0.6 | 0.95 | 20 | 0.0 |
+| Qwen3.5 | Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 |
 
-| Mode | temp | top-p | top-k | min-p | presence-penalty |
-|------|------|-------|-------|-------|-----------------|
-| Coding (chat) | 0.6 | 0.95 | 20 | 0.0 | — |
-| Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 | 1.5 |
-
-Context window: 65536 tokens (model supports up to 256K). KV cache is quantized to q4_0 (from default f16) to fit 64K context in 16 GB VRAM (~13 GB model + ~2 GB KV cache, ~1 GB headroom). Negligible quality impact for coding/chat/reasoning.
+Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context in 16 GB VRAM (~13 GB model + ~2 GB KV cache, ~1 GB headroom).
 
 ## pi.dev Configuration
 
-Config file: `~/.pi/agent/models.json`
+Config file: `~/.pi/agent/models.json` (copy from `configs/pi-dev/models.json`)
 
-```json
-{
-  "providers": {
-    "local-fedora": {
-      "baseUrl": "http://localhost:8080/v1",
-      "api": "openai-completions",
-      "apiKey": "none",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "qwen3.5-9b",
-          "name": "Qwen3.5 9B (Unsloth Q8_K_XL)",
-          "reasoning": true,
-          "contextWindow": 65536,
-          "maxTokens": 8192
-        },
-        {
-          "id": "qwen3.5-35b-a3b",
-          "name": "Qwen3.5 35B-A3B MoE (Unsloth IQ3_XXS)",
-          "reasoning": true,
-          "contextWindow": 65536,
-          "maxTokens": 8192
-        }
-      ]
-    }
-  }
-}
-```
-
-Start a launcher (`qwen` or `qwen-moe`), then select the model in pi.dev via `/model`.
+Start a launcher (`gemma-moe`, `qwen`, or `qwen-moe`), then select the model in pi.dev via `/model`.
 
 ## Web UI
 

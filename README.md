@@ -18,7 +18,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 │   ├── qwen                               # Launcher: Qwen3.5 9B dense
 │   ├── qwen-moe                           # Launcher: Qwen3.5 35B-A3B MoE
 │   ├── qwen-coder                         # Launcher: Qwen3-Coder-Next 80B (macOS)
-│   └── gemma-moe                          # Launcher: Gemma 4 26B-A4B MoE (macOS)
+│   └── gemma-moe                          # Launcher: Gemma 4 26B-A4B MoE (both platforms)
 ├── configs/
 │   ├── pi-dev/
 │   │   ├── models.json                    # pi.dev config (Fedora)
@@ -54,7 +54,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 | Model | Mac (64GB) | Fedora (16GB VRAM) |
 |-------|------------|-------------------|
-| Gemma 4 26B-A4B | Q8_K_XL (28 GB) | — |
+| Gemma 4 26B-A4B | Q8_K_XL (28 GB) | Q3_K_XL (13 GB) |
 | Qwen3-Coder-Next | Q4_K_S (46 GB) | — |
 | Qwen3.5-35B-A3B | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
 | Qwen3.5-9B | — | Q8_K_XL (~13 GB) |
@@ -85,8 +85,9 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 3. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen scripts/qwen-moe ~/.local/bin/
-   chmod +x ~/.local/bin/qwen ~/.local/bin/qwen-moe
+   cp scripts/qwen scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
+   chmod +x ~/.local/bin/qwen ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
+   # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
@@ -97,9 +98,10 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 5. **Run**:
    ```bash
+   gemma-moe chat     # Gemma 4 interactive chat with thinking
    qwen chat          # interactive chat with 9B dense
    qwen-moe chat      # interactive chat with 35B MoE
-   qwen server         # OpenAI-compatible API + web UI at localhost:8080
+   qwen server        # OpenAI-compatible API + web UI at localhost:8080
    ```
 
 ## Quick start (macOS)
