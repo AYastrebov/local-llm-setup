@@ -23,22 +23,15 @@
         "baseURL": "http://127.0.0.1:8080/v1"
       },
       "models": {
-        "Qwen3-Coder-Next-GGUF": {
-          "name": "Qwen3-Coder-Next 80B MoE (Local)",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
-        },
-        "qwen3.5-35b-a3b": {
-          "name": "Qwen3.5 35B-A3B MoE (Local)",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
-        },
         "gemma-4-26b-a4b": {
           "name": "Gemma 4 26B-A4B MoE (Local)",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        },
+        "qwen3.6-35b-a3b": {
+          "name": "Qwen3.6 35B-A3B MoE (Local)",
           "limit": {
             "context": 65536,
             "output": 8192
@@ -52,10 +45,10 @@
   // 🤖 AGENT PROFILES (local models only)
   // ==========================================
   "agent": {
-    "local-coder": {
-      "description": "Local Qwen3-Coder-Next for coding tasks. Runs offline on M2 Max. No thinking mode. Start with: qwen-coder",
+    "local-gemma": {
+      "description": "Local Gemma 4 26B-A4B MoE for reasoning with thinking. Runs offline on M2 Max at Q8 quality. Start with: gemma-moe",
       "mode": "primary",
-      "model": "local/Qwen3-Coder-Next-GGUF",
+      "model": "local/gemma-4-26b-a4b",
       "temperature": 1.0,
       "steps": 15,
       "permission": {
@@ -66,23 +59,10 @@
       }
     },
     "local-moe": {
-      "description": "Local Qwen3.5-35B-A3B for general reasoning with thinking. Runs offline on M2 Max. Start with: qwen-moe",
+      "description": "Local Qwen3.6-35B-A3B for reasoning with thinking. Runs offline on M2 Max at Q4_K_XL. Start with: qwen-moe",
       "mode": "primary",
-      "model": "local/qwen3.5-35b-a3b",
+      "model": "local/qwen3.6-35b-a3b",
       "temperature": 0.6,
-      "steps": 15,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "webfetch": "deny",
-        "websearch": "deny"
-      }
-    },
-    "local-gemma": {
-      "description": "Local Gemma 4 26B-A4B MoE for reasoning with thinking. Runs offline on M2 Max at Q8 quality. Start with: gemma-moe",
-      "mode": "primary",
-      "model": "local/gemma-4-26b-a4b",
-      "temperature": 1.0,
       "steps": 15,
       "permission": {
         "edit": "allow",
