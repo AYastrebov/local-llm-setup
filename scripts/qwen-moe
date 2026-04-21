@@ -18,7 +18,7 @@
 MODEL="unsloth/Qwen3.6-35B-A3B-GGUF:UD-IQ3_XXS"
 # MODEL="unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL"   # macOS 64GB
 CTX_SIZE=65536
-KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
+KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 
 MODE="${1:-server}"
 shift 2>/dev/null
@@ -30,6 +30,7 @@ case "$MODE" in
       --ctx-size "$CTX_SIZE" \
       --conversation \
       --chat-template-kwargs '{"enable_thinking":true}' \
+      --flash-attn on \
       $KV_CACHE \
       --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.0 \
       "$@"
@@ -40,6 +41,7 @@ case "$MODE" in
       --ctx-size "$CTX_SIZE" \
       --conversation \
       --chat-template-kwargs '{"enable_thinking":true}' \
+      --flash-attn on \
       $KV_CACHE \
       --temp 1.0 --top-p 0.95 --top-k 20 --min-p 0.0 \
       --presence-penalty 1.5 \
@@ -56,6 +58,8 @@ case "$MODE" in
       --chat-template-kwargs '{"enable_thinking":true}' \
       --alias "qwen3.6-35b-a3b" \
       --port "$PORT" \
+      --flash-attn on \
+      --fit on \
       $KV_CACHE \
       --temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.0 \
       "$@"

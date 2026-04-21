@@ -16,8 +16,8 @@
 # macOS (64GB):  UD-Q8_K_XL  (no KV_CACHE line needed)
 # Fedora (16GB): UD-Q3_K_XL  (uncomment KV_CACHE line)
 MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL"
-# MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"   # Fedora 16GB VRAM
-# KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"    # required for Fedora
+# MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"              # Fedora 16GB VRAM
+# KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"              # required for Fedora
 
 CTX_SIZE=65536
 SAMPLING="--temp 1.0 --top-p 0.95 --top-k 64"
@@ -32,6 +32,7 @@ case "$MODE" in
       --ctx-size "$CTX_SIZE" \
       --conversation \
       --chat-template-kwargs '{"enable_thinking":true}' \
+      --flash-attn on \
       ${KV_CACHE} \
       $SAMPLING \
       "$@"
@@ -47,6 +48,8 @@ case "$MODE" in
       --chat-template-kwargs '{"enable_thinking":true}' \
       --alias "gemma-4-26b-a4b" \
       --port "$PORT" \
+      --flash-attn on \
+      --fit on \
       ${KV_CACHE} \
       $SAMPLING \
       "$@"
