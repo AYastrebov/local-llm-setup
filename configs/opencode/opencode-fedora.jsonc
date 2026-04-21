@@ -36,13 +36,6 @@
             "context": 65536,
             "output": 8192
           }
-        },
-        "qwen3.5-9b": {
-          "name": "Qwen3.5 9B (Local)",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
         }
       }
     }
@@ -69,19 +62,6 @@
       "description": "Local Qwen3.6-35B-A3B for general reasoning with thinking. Runs offline on RX 9060 XT at IQ3_XXS. Start with: qwen-moe",
       "mode": "primary",
       "model": "local/qwen3.6-35b-a3b",
-      "temperature": 0.6,
-      "steps": 15,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "webfetch": "deny",
-        "websearch": "deny"
-      }
-    },
-    "local-qwen": {
-      "description": "Local Qwen3.5 9B dense for fast general tasks. Runs offline on RX 9060 XT at Q8_K_XL. Start with: qwen",
-      "mode": "primary",
-      "model": "local/qwen3.5-9b",
       "temperature": 0.6,
       "steps": 15,
       "permission": {

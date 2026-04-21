@@ -15,7 +15,6 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 .
 ├── scripts/
 │   ├── build-llama.sh                     # Build llama.cpp with HIP/ROCm + rocWMMA
-│   ├── qwen                               # Launcher: Qwen3.5 9B dense (Fedora)
 │   ├── qwen-moe                           # Launcher: Qwen3.6 35B-A3B MoE (both platforms)
 │   └── gemma-moe                          # Launcher: Gemma 4 26B-A4B MoE (both platforms)
 ├── configs/
@@ -43,7 +42,6 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 |-------|------|---------------|----------|-----------|-----------------|
 | [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B | General + multimodal | Yes | [docs/gemma4-model-config.md](docs/gemma4-model-config.md) |
 | [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B | General + reasoning | Yes | — |
-| [Qwen3.5 9B](https://unsloth.ai/docs/models/qwen3.5) | 9B dense | 9B | General (fast, Fedora) | Yes (opt-in) | — |
 
 > **Important:** Each model family has different sampling parameters — see the Unsloth docs for correct settings.
 
@@ -53,7 +51,6 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 |-------|------------|-------------------|
 | Gemma 4 26B-A4B | Q8_K_XL (28 GB) | Q3_K_XL (13 GB) |
 | Qwen3.6 35B-A3B | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
-| Qwen3.5 9B | — | Q8_K_XL (~13 GB) |
 
 ### Sampling parameters (quick reference)
 
@@ -80,10 +77,10 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 3. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
-   chmod +x ~/.local/bin/qwen ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
+   cp scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
+   chmod +x ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
-   # Edit qwen-moe: uncomment the UD-IQ3_XXS MODEL line (default)
+   # Edit qwen-moe: ensure UD-IQ3_XXS MODEL line is active (default)
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
@@ -101,9 +98,8 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 6. **Run**:
    ```bash
    gemma-moe chat     # Gemma 4 interactive chat with thinking
-   qwen chat          # interactive chat with 9B dense
    qwen-moe chat      # Qwen3.6 interactive chat with thinking
-   qwen server        # OpenAI-compatible API + web UI at localhost:8080
+   gemma-moe          # OpenAI-compatible API + web UI at localhost:8080
    ```
 
 ## Quick start (macOS)
@@ -148,7 +144,7 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `configs/pi-dev/models.json`
 - macOS: `configs/pi-dev/models-mac.json`
 
-Start a server (`qwen`, `qwen-moe`, or `gemma-moe`), then select the model in pi.dev via `/model`.
+Start a server (`qwen-moe` or `gemma-moe`), then select the model in pi.dev via `/model`.
 
 ### opencode
 
@@ -160,12 +156,11 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 |-------|-------|----------|--------------|
 | `local-gemma` | Gemma 4 26B-A4B | both | `gemma-moe` |
 | `local-moe` | Qwen3.6 35B-A3B | both | `qwen-moe` |
-| `local-qwen` | Qwen3.5 9B | Fedora only | `qwen` |
 
 ### Claude Code
 
 ```bash
-# macOS — start server first, then launch Claude Code
+# Start server first, then launch Claude Code
 gemma-moe && claude-gemma   # Gemma 4 26B-A4B
 qwen-moe  && claude-qwen    # Qwen3.6 35B-A3B
 ```

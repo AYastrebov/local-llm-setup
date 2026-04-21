@@ -69,13 +69,11 @@ Models are stored as plain GGUF files in `~/models/`.
 |-------|-------|------|-----------|
 | Gemma 4 26B-A4B (MoE) | UD-Q3_K_XL | 12.9 GB | Yes (~2 GB for KV cache) |
 | Qwen3.6 35B-A3B (MoE) | UD-IQ3_XXS | 13.2 GB | Yes (3B params active) |
-| Qwen3.5 9B | UD-Q8_K_XL | 13 GB | Yes (3 GB left for KV cache) |
 
 Download models:
 ```bash
 llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL -n 0 -p ""
 llama-cli -hf unsloth/Qwen3.6-35B-A3B-GGUF:UD-IQ3_XXS -n 0 -p ""
-llama-cli -hf unsloth/Qwen3.5-9B-GGUF:UD-Q8_K_XL -n 0 -p ""
 ```
 
 ## Launcher Scripts
@@ -105,15 +103,6 @@ qwen-moe chat         # interactive CLI, thinking enabled (coding params)
 qwen-moe chat-think   # interactive CLI, creative params
 ```
 
-### qwen (dense 9B)
-
-```bash
-qwen              # server on port 8080
-qwen server 9090  # server on custom port
-qwen chat         # interactive CLI, thinking enabled, coding params (temp 0.6)
-qwen chat-think   # interactive CLI, thinking enabled, creative params (temp 1.0)
-```
-
 ### Sampling Parameters
 
 | Model | Mode | temp | top-p | top-k | min-p |
@@ -121,8 +110,6 @@ qwen chat-think   # interactive CLI, thinking enabled, creative params (temp 1.0
 | Gemma 4 26B-A4B | all | 1.0 | 0.95 | 64 | — |
 | Qwen3.6 35B-A3B | Coding (chat) | 0.6 | 0.95 | 20 | 0.0 |
 | Qwen3.6 35B-A3B | Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 |
-| Qwen3.5 9B | Coding (chat) | 0.6 | 0.95 | 20 | 0.0 |
-| Qwen3.5 9B | Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 |
 
 Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context in 16 GB VRAM (~13 GB model + ~2 GB KV cache, ~1 GB headroom).
 
@@ -130,7 +117,7 @@ Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context
 
 Config file: `~/.pi/agent/models.json` (copy from `configs/pi-dev/models.json`)
 
-Start a launcher (`gemma-moe`, `qwen-moe`, or `qwen`), then select the model in pi.dev via `/model`.
+Start a launcher (`gemma-moe` or `qwen-moe`), then select the model in pi.dev via `/model`.
 
 ## opencode Configuration
 
@@ -143,7 +130,6 @@ cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
 Agent profiles:
 - `local-gemma` — Gemma 4 26B-A4B (thinking, temp 1.0). Start server: `gemma-moe`
 - `local-moe` — Qwen3.6 35B-A3B (thinking, temp 0.6). Start server: `qwen-moe`
-- `local-qwen` — Qwen3.5 9B dense (fast, temp 0.6). Start server: `qwen`
 
 ## Web UI
 
@@ -151,17 +137,12 @@ llama-server includes a built-in web UI. After starting a server, open `http://l
 
 ## Claude Code with Local Models
 
-Claude Code can route to your local llama-server instead of the Anthropic API:
-
 ```bash
 claude-gemma       # Gemma 4 26B-A4B
 claude-qwen        # Qwen3.6 35B-A3B
-claude-local       # Qwen3.5 9B (fast)
 ```
 
 Aliases defined in `configs/zshrc-snippet.sh`. Start the corresponding server first.
-
-Note: local models have significantly reduced agentic capabilities compared to Claude. Best suited for simpler tasks.
 
 ## Troubleshooting
 
