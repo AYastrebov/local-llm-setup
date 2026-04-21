@@ -29,8 +29,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 ├── docs/
 │   ├── fedora-setup.md                    # Fedora setup guide (RX 9060 XT)
 │   ├── mac-setup.md                       # macOS Apple Silicon setup guide
-│   ├── gemma4-model-config.md             # Gemma 4: params, quants, thinking mode
-│   └── qwen3.5-model-config.md            # Qwen3.5/3.6 family: params, quants, thinking mode
+│   └── gemma4-model-config.md             # Gemma 4: params, quants, thinking mode
 └── skills/
     └── llama-build/                       # Claude Code skill for building llama.cpp
         ├── SKILL.md                       # Skill definition (multi-platform)
@@ -43,10 +42,10 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 | Model | Type | Active params | Use case | Thinking? | Config reference |
 |-------|------|---------------|----------|-----------|-----------------|
 | [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B | General + multimodal | Yes | [docs/gemma4-model-config.md](docs/gemma4-model-config.md) |
-| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B | General + reasoning | Yes | [docs/qwen3.5-model-config.md](docs/qwen3.5-model-config.md) |
-| [Qwen3.5 9B](https://unsloth.ai/docs/models/qwen3.5) | 9B dense | 9B | General (fast, Fedora) | Yes (opt-in) | [docs/qwen3.5-model-config.md](docs/qwen3.5-model-config.md) |
+| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B | General + reasoning | Yes | — |
+| [Qwen3.5 9B](https://unsloth.ai/docs/models/qwen3.5) | 9B dense | 9B | General (fast, Fedora) | Yes (opt-in) | — |
 
-> **Important:** Each model family has different sampling parameters — see the model config docs for correct settings.
+> **Important:** Each model family has different sampling parameters — see the Unsloth docs for correct settings.
 
 ### Quantization per platform
 
@@ -84,6 +83,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
    cp scripts/qwen scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
    chmod +x ~/.local/bin/qwen ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
+   # Edit qwen-moe: uncomment the UD-IQ3_XXS MODEL line (default)
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
@@ -165,11 +165,21 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 ### Claude Code
 
 ```bash
-claude-local        # Claude Code using local Qwen3.5 9B
-claude-local-moe    # Claude Code using local Qwen3.6 35B-A3B MoE
+# macOS — start server first, then launch Claude Code
+gemma-moe && claude-gemma   # Gemma 4 26B-A4B
+qwen-moe  && claude-qwen    # Qwen3.6 35B-A3B
 ```
 
-Note: Claude Code’s system prompt requires ~40K+ tokens of context. The current 32K setup is insufficient for full Claude Code use. Regular chat/server modes work fine.
+Set in `~/.claude/settings.json` to prevent KV cache invalidation:
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  }
+}
+```
 
 ## Claude Code skill
 
