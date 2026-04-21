@@ -27,8 +27,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 │   └── zshrc-snippet.sh                   # Shell environment (PATH, aliases)
 ├── docs/
 │   ├── fedora-setup.md                    # Fedora setup guide (RX 9060 XT)
-│   ├── mac-setup.md                       # macOS Apple Silicon setup guide
-│   └── gemma4-model-config.md             # Gemma 4: params, quants, thinking mode
+│   └── mac-setup.md                       # macOS Apple Silicon setup guide
 └── skills/
     └── llama-build/                       # Claude Code skill for building llama.cpp
         ├── SKILL.md                       # Skill definition (multi-platform)
@@ -38,12 +37,10 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 ## Models
 
-| Model | Type | Active params | Use case | Thinking? | Config reference |
+| Model | Type | Active params | Use case | Thinking? | Docs |
 |-------|------|---------------|----------|-----------|-----------------|
-| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B | General + multimodal | Yes | [docs/gemma4-model-config.md](docs/gemma4-model-config.md) |
-| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B | General + reasoning | Yes | — |
-
-> **Important:** Each model family has different sampling parameters — see the Unsloth docs for correct settings.
+| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B | General + multimodal | Yes | [unsloth.ai/docs/models/gemma-4](https://unsloth.ai/docs/models/gemma-4) |
+| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B | General + reasoning | Yes | [unsloth.ai/docs/models/qwen3.6](https://unsloth.ai/docs/models/qwen3.6) |
 
 ### Quantization per platform
 
@@ -134,7 +131,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
    qwen-moe chat-think  # Qwen3.6 creative/general chat
    ```
 
-See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info, performance data, and model selection.
+See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info and model selection.
 
 ## Coding agent integration
 
