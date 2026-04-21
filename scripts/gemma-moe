@@ -3,8 +3,8 @@
 # Supports thinking mode.
 #
 # Platform-specific quant (edit MODEL below):
-#   macOS M2 Max 64GB : UD-Q8_K_XL (27.9 GB) — no KV cache quant needed
-#   Fedora 16GB VRAM  : UD-Q3_K_XL (12.9 GB) — KV cache quant required
+#   macOS M2 Max 64GB : UD-Q8_K_XL (27.9 GB)
+#   Fedora 16GB VRAM  : UD-Q3_K_XL (12.9 GB)
 #
 # Usage:
 #   gemma-moe              → start server (default, port 8080)
@@ -13,13 +13,10 @@
 #   gemma-moe server 8001  → start server on custom port
 
 # --- Set quant for your platform ---
-# macOS (64GB):  UD-Q8_K_XL  (no KV_CACHE line needed)
-# Fedora (16GB): UD-Q3_K_XL  (uncomment KV_CACHE line)
 MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL"
-# MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"              # Fedora 16GB VRAM
-# KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"              # required for Fedora
-
+# MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"   # Fedora 16GB VRAM
 CTX_SIZE=65536
+KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 SAMPLING="--temp 1.0 --top-p 0.95 --top-k 64"
 
 MODE="${1:-server}"
@@ -33,7 +30,7 @@ case "$MODE" in
       --conversation \
       --chat-template-kwargs '{"enable_thinking":true}' \
       --flash-attn on \
-      ${KV_CACHE} \
+      $KV_CACHE \
       $SAMPLING \
       "$@"
     ;;
@@ -50,7 +47,7 @@ case "$MODE" in
       --port "$PORT" \
       --flash-attn on \
       --fit on \
-      ${KV_CACHE} \
+      $KV_CACHE \
       $SAMPLING \
       "$@"
     ;;
