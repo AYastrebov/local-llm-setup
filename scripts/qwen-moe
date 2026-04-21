@@ -3,8 +3,8 @@
 # Supports thinking mode.
 #
 # Platform-specific quant (edit MODEL below):
-#   macOS M2 Max 64GB : UD-Q4_K_XL (~18 GB) — more headroom, higher quality
-#   Fedora 16GB VRAM  : UD-IQ3_XXS (~13 GB) — KV cache quant required
+#   macOS M2 Max 64GB : UD-Q6_K_XL (31.8 GB) — higher quality
+#   Fedora 16GB VRAM  : UD-IQ3_XXS (~13 GB)  — KV cache quant required
 #
 # Usage:
 #   qwen-moe              → start server (default, port 8080)
@@ -13,10 +13,10 @@
 #   qwen-moe server 8001  → start server on custom port
 
 # --- Set quant for your platform ---
-# macOS (64GB):  UD-Q4_K_XL
+# macOS (64GB):  UD-Q6_K_XL
 # Fedora (16GB): UD-IQ3_XXS
 MODEL="unsloth/Qwen3.6-35B-A3B-GGUF:UD-IQ3_XXS"
-# MODEL="unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL"   # macOS 64GB
+# MODEL="unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q6_K_XL"   # macOS 64GB
 CTX_SIZE=65536
 KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 
