@@ -47,7 +47,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 | Model | Mac (64GB) | Fedora (16GB VRAM) |
 |-------|------------|-------------------|
 | Gemma 4 26B-A4B | Q8_K_XL (28 GB) | Q3_K_XL (13 GB) |
-| Qwen3.6 35B-A3B | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
+| Qwen3.6 35B-A3B | Q6_K_XL (32 GB) | IQ3_XXS (13 GB) |
 
 ### Sampling parameters (quick reference)
 
@@ -114,7 +114,7 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
    ```bash
    cp scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
    chmod +x ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
-   # Edit qwen-moe: uncomment the UD-Q4_K_XL MODEL line for macOS
+   # Edit qwen-moe: uncomment the UD-Q6_K_XL MODEL line for macOS
    ```
 
 3. **Configure coding agents:**
