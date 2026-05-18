@@ -15,17 +15,20 @@ Lightweight LLM inference on a headless home server using Docker, no GPU require
 
 ## Model: LiquidAI LFM2.5-350M
 
-A tiny 350M parameter model from [Liquid AI](https://liquid.ai) designed for edge/on-device deployment. Extremely fast on CPU, uses under 600 MB of RAM.
+A 350M parameter hybrid model from [Liquid AI](https://liquid.ai) designed for on-device deployment. Uses a novel architecture mixing LIV convolution blocks with grouped query attention (16 layers total). Instruction-tuned on 28T tokens. Supports 32K context.
 
-| Quant | Size | RAM usage (idle) |
-|-------|------|-----------------|
-| Q8_0 | 379 MB | ~591 MB |
-| Q4_K_M | 229 MB | ~400 MB |
-| BF16 | 711 MB | ~800 MB |
+- Architecture: 10 LIV convolution blocks + 6 GQA blocks, 65K vocabulary
+- Context window: 32,768 tokens
+- Strengths: data extraction, structured outputs, tool/function calling
+- Not suited for: knowledge-intensive tasks, programming
 
-Good for: log analysis, simple Q&A, Home Assistant NLP, git commit messages, text summarization, structured data extraction.
+See [LiquidAI/LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M) and [Liquid AI llama.cpp docs](https://docs.liquid.ai/deployment/on-device/llama-cpp).
 
-Not suitable for: complex reasoning, multi-step coding, large context tasks, agentic workflows.
+| Quant | Size | RAM usage (idle) | Notes |
+|-------|------|-----------------|-------|
+| Q4_K_M | 229 MB | ~400 MB | Recommended balance (per Liquid AI docs) |
+| Q8_0 | 379 MB | ~591 MB | Best quality |
+| BF16 | 711 MB | ~800 MB | Full precision |
 
 ## Docker Compose
 
@@ -47,7 +50,7 @@ services:
       --port 8080
       --alias lfm2.5-350m
       --jinja
-      --ctx-size 16384
+      --ctx-size 4096
       --threads 4
     deploy:
       resources:
@@ -58,12 +61,18 @@ services:
     restart: unless-stopped
 ```
 
+Notes:
+- `--ctx-size 4096` — recommended by Liquid AI docs. The model supports up to 32K but 4K is sufficient for most automation tasks and keeps memory low.
+- `--threads 4` — match your CPU thread count.
+- `--jinja` — enables the model's native chat template.
+- Model file is from [LiquidAI/LFM2.5-350M-GGUF](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) (this is the instruction-tuned variant, not the base model).
+
 ## Setup
 
 ```bash
 mkdir -p ~/services/llama/models
 
-# Download the model (379 MB)
+# Download the model (379 MB for Q8, or 229 MB for Q4_K_M)
 wget -O ~/services/llama/models/LFM2.5-350M-Q8_0.gguf \
   'https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF/resolve/main/LFM2.5-350M-Q8_0.gguf'
 
@@ -77,11 +86,15 @@ cd ~/services/llama && docker compose up -d
 
 ## API key
 
-The `LLAMA_API_KEY` env var protects inference endpoints. Clients must send `Authorization: Bearer <key>`. The `/v1/models` endpoint remains open (standard OpenAI API behavior).
+The `LLAMA_API_KEY` env var protects inference endpoints (`/v1/chat/completions`, `/v1/completions`). Clients must send `Authorization: Bearer <key>`. The `/v1/models` endpoint remains open (standard OpenAI API behavior).
 
 ## Remote access
 
-Exposed via Cloudflare Tunnel at `https://llama.iastrebov.org/` with Cloudflare Access for browser protection.
+Exposed via Cloudflare Tunnel at `https://llama.iastrebov.org/` with Cloudflare Access for browser UI protection.
+
+## Larger model alternative
+
+If you have more RAM or want better quality, consider [LFM2.5-1.2B-Instruct](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-GGUF) (~1.3 GB at Q8). Same architecture, stronger at reasoning tasks. Adjust `--ctx-size` and memory limits accordingly.
 
 ## Use cases
 
@@ -89,7 +102,7 @@ Exposed via Cloudflare Tunnel at `https://llama.iastrebov.org/` with Cloudflare 
 ```bash
 docker logs jellyfin --since 24h 2>&1 | \
   curl -s http://localhost:8080/v1/chat/completions \
-    -H "Authorization: Bearer $(cat ~/services/llama/.env | grep LLAMA_API_KEY | cut -d= -f2)" \
+    -H "Authorization: Bearer $(grep LLAMA_API_KEY ~/services/llama/.env | cut -d= -f2)" \
     -H "Content-Type: application/json" \
     -d "{\"model\":\"lfm2.5-350m\",\"messages\":[{\"role\":\"user\",\"content\":\"Summarize these logs, highlight errors and warnings:\n$(cat)\"}]}" | \
   jq -r '.choices[0].message.content'
@@ -99,14 +112,29 @@ docker logs jellyfin --since 24h 2>&1 | \
 Parse natural language into structured commands:
 ```bash
 curl http://localhost:8080/v1/chat/completions \
+  -H "Authorization: Bearer $LLAMA_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"lfm2.5-350m","messages":[{"role":"system","content":"Parse the user request into a JSON action: {\"entity\": \"...\", \"action\": \"...\", \"value\": \"...\"}"},{"role":"user","content":"turn off the living room lights in 10 minutes"}]}'
+  -d '{"model":"lfm2.5-350m","messages":[
+    {"role":"system","content":"Extract a JSON action from the user request: {\"entity\": \"...\", \"action\": \"...\", \"value\": \"...\"}"},
+    {"role":"user","content":"turn off the living room lights in 10 minutes"}
+  ]}'
 ```
 
 ### Git commit message
 ```bash
 git diff --staged | curl -s http://localhost:8080/v1/chat/completions \
+  -H "Authorization: Bearer $LLAMA_API_KEY" \
   -H "Content-Type: application/json" \
   -d "{\"model\":\"lfm2.5-350m\",\"messages\":[{\"role\":\"user\",\"content\":\"Write a concise git commit message for this diff:\n$(cat)\"}]}" | \
+  jq -r '.choices[0].message.content'
+```
+
+### Watchtower update digest
+```bash
+docker logs watchtower --since 24h 2>&1 | \
+  curl -s http://localhost:8080/v1/chat/completions \
+    -H "Authorization: Bearer $LLAMA_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"model\":\"lfm2.5-350m\",\"messages\":[{\"role\":\"user\",\"content\":\"Summarize which Docker containers were updated and to what versions:\n$(cat)\"}]}" | \
   jq -r '.choices[0].message.content'
 ```
