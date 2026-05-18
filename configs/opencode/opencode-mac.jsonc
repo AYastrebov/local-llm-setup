@@ -1,49 +1,25 @@
 {
   "$schema": "https://opencode.ai/config.json",
-
-  // ==========================================
-  // ⚙️ GLOBAL SETTINGS
-  // ==========================================
   "small_model": "openai/gpt-5.4-mini",
   "snapshot": false,
-  "compaction": {
-    "auto": true,
-    "prune": true,
-    "reserved": 8000
-  },
-
-  // ==========================================
-  // 🧠 PROVIDERS & MODELS
-  // ==========================================
+  "compaction": { "auto": true, "prune": true, "reserved": 8000 },
   "provider": {
     "local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Local llama.cpp",
-      "options": {
-        "baseURL": "http://127.0.0.1:8080/v1"
-      },
+      "options": { "baseURL": "http://127.0.0.1:8080/v1" },
       "models": {
         "gemma-4-26b-a4b": {
           "name": "Gemma 4 26B-A4B MoE (Local)",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
+          "limit": { "context": 65536, "output": 8192 }
         },
-        "qwen3.6-35b-a3b": {
-          "name": "Qwen3.6 35B-A3B MoE (Local)",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
+        "qwen3.6-27b": {
+          "name": "Qwen3.6 27B Dense MTP (Local)",
+          "limit": { "context": 65536, "output": 8192 }
         }
       }
     }
   },
-
-  // ==========================================
-  // 🤖 AGENT PROFILES (local models only)
-  // ==========================================
   "agent": {
     "local-gemma": {
       "description": "Local Gemma 4 26B-A4B MoE for reasoning with thinking. Runs offline on M2 Max at Q8 quality. Start with: gemma-moe",
@@ -51,25 +27,15 @@
       "model": "local/gemma-4-26b-a4b",
       "temperature": 1.0,
       "steps": 15,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "webfetch": "deny",
-        "websearch": "deny"
-      }
+      "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     },
     "local-moe": {
-      "description": "Local Qwen3.6-35B-A3B for reasoning with thinking. Runs offline on M2 Max at Q4_K_XL. Start with: qwen-moe",
+      "description": "Local Qwen3.6-27B dense with MTP. All 27B params active. Runs offline on M2 Max. Start with: qwen-moe",
       "mode": "primary",
-      "model": "local/qwen3.6-35b-a3b",
+      "model": "local/qwen3.6-27b",
       "temperature": 0.6,
       "steps": 15,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "webfetch": "deny",
-        "websearch": "deny"
-      }
+      "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     }
   }
 }
