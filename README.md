@@ -1,6 +1,6 @@
 # Local LLM Setup
 
-Configuration files, launcher scripts, and Claude Code skills for running local LLM inference with [llama.cpp](https://github.com/ggml-org/llama.cpp) on Linux (AMD Radeon) and macOS (Apple Silicon).
+Configuration files, launcher scripts, and Claude Code skills for running local LLM inference with [llama.cpp](https://github.com/ggml-org/llama.cpp) on Linux (AMD Radeon), macOS (Apple Silicon), and headless servers (Docker, CPU-only).
 
 ## Platform guides
 
@@ -8,22 +8,25 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 |----------|----------|-------|
 | **Fedora** | Intel i5-14600K, RX 9060 XT (16GB), 32GB RAM | [docs/fedora-setup.md](docs/fedora-setup.md) |
 | **macOS** | Apple M2 Max, 64GB unified memory | [docs/mac-setup.md](docs/mac-setup.md) |
+| **Docker** | Intel i3-6100T, 24GB RAM, no GPU (home server) | [docs/docker-server.md](docs/docker-server.md) |
 
 ## Models
 
-| Model | Type | Active params | Use case | Thinking? | Docs |
-|-------|------|---------------|----------|-----------|------|
-| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B | General + multimodal | Yes | [unsloth.ai](https://unsloth.ai/docs/models/gemma-4) |
-| [Qwen3.6 27B](https://unsloth.ai/docs/models/qwen3.6) | 27B dense | 27B | General + reasoning | Yes | [unsloth.ai](https://unsloth.ai/docs/models/qwen3.6) |
-| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B | General + reasoning | Yes | [unsloth.ai](https://unsloth.ai/docs/models/qwen3.6) |
+| Model | Type | Params | Use case | Platform | Docs |
+|-------|------|--------|----------|----------|------|
+| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Mac, Fedora | [unsloth.ai](https://unsloth.ai/docs/models/gemma-4) |
+| [Qwen3.6 27B](https://unsloth.ai/docs/models/qwen3.6) | 27B dense | 27B | General + reasoning | Mac | [unsloth.ai](https://unsloth.ai/docs/models/qwen3.6) |
+| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B active | General + reasoning | Fedora | [unsloth.ai](https://unsloth.ai/docs/models/qwen3.6) |
+| [LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) | 350M dense | 350M | Lightweight automation | Docker server | [huggingface.co](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) |
 
 ### Quantization per platform
 
-| Model | Mac (64GB) | Fedora (16GB VRAM) |
-|-------|------------|--------------------|
-| Gemma 4 26B-A4B | Q8_K_XL (28 GB) | Q3_K_XL (13 GB) |
-| Qwen3.6 27B (dense, MTP) | Q6_K_XL (26 GB) | -- |
-| Qwen3.6 35B-A3B (MoE, MTP) | -- | IQ3_XXS (14 GB) |
+| Model | Mac (64GB) | Fedora (16GB VRAM) | Docker (CPU, 24GB RAM) |
+|-------|------------|--------------------|------------------------|
+| Gemma 4 26B-A4B | Q8_K_XL (28 GB) | Q3_K_XL (13 GB) | -- |
+| Qwen3.6 27B (dense, MTP) | Q6_K_XL (26 GB) | -- | -- |
+| Qwen3.6 35B-A3B (MoE, MTP) | -- | IQ3_XXS (14 GB) | -- |
+| LFM2.5-350M | -- | -- | Q8_0 (379 MB) |
 
 ### MTP (Multi-Token Prediction)
 
@@ -119,6 +122,23 @@ Dense models benefit significantly more from MTP than MoE models.
 
 See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info and model selection.
 
+## Quick start (Docker — home server)
+
+No build needed. See [docs/docker-server.md](docs/docker-server.md) for full details.
+
+```bash
+mkdir -p ~/services/llama/models
+
+# Download LFM2.5-350M (379 MB)
+wget -O ~/services/llama/models/LFM2.5-350M-Q8_0.gguf \
+  'https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF/resolve/main/LFM2.5-350M-Q8_0.gguf'
+
+# Copy docker-compose.yml from docs/docker-server.md, then:
+cd ~/services/llama && docker compose up -d
+```
+
+Ideal for lightweight automation: log analysis, Home Assistant NLP, git commit messages, text summarization.
+
 ## Coding agent integration
 
 ### pi.dev
@@ -172,12 +192,12 @@ Then invoke it in Claude Code with `/llama-build`.
 
 ## Hardware tested
 
-| | Fedora | macOS |
-|---|---|---|
-| CPU | Intel Core i5-14600K | Apple M2 Max (12 cores) |
-| GPU | AMD Radeon RX 9060 XT (16GB, RDNA4) | Apple M2 Max (30 cores, Metal 3) |
-| RAM | 32 GB | 64 GB unified |
-| OS | Fedora 43, kernel 6.19+ | macOS Sequoia 15.7 |
+| | Fedora | macOS | Docker (home server) |
+|---|---|---|---|
+| CPU | Intel Core i5-14600K | Apple M2 Max (12 cores) | Intel Core i3-6100T |
+| GPU | AMD Radeon RX 9060 XT (16GB, RDNA4) | Apple M2 Max (30 cores, Metal 3) | None (CPU-only) |
+| RAM | 32 GB | 64 GB unified | 24 GB |
+| OS | Fedora 43, kernel 6.19+ | macOS Sequoia 15.7 | Ubuntu 24.04 (Docker) |
 
 ## License
 
