@@ -30,7 +30,7 @@
       "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     },
     "local-moe": {
-      "description": "Local Qwen3.6-27B dense with MTP. All 27B params active. Runs offline on M2 Max. Start with: qwen-moe",
+      "description": "Local Qwen3.6-27B dense with MTP. All 27B params active. Runs offline on M2 Max. Start with: qwen-mtp",
       "mode": "primary",
       "model": "local/qwen3.6-27b",
       "temperature": 0.6,

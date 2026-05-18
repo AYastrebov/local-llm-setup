@@ -74,9 +74,9 @@ General-purpose model with thinking/reasoning support.
 
 **Launch:**
 ```bash
-qwen-moe                # server on port 8080
-qwen-moe chat           # interactive CLI (coding params)
-qwen-moe chat-think     # interactive CLI (creative params)
+qwen-mtp                # server on port 8080
+qwen-mtp chat           # interactive CLI (coding params)
+qwen-mtp chat-think     # interactive CLI (creative params)
 ```
 
 ## Key differences from Fedora setup

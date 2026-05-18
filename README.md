@@ -63,10 +63,10 @@ Dense models benefit significantly more from MTP than MoE models.
 
 3. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
-   chmod +x ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
+   cp scripts/qwen-mtp scripts/gemma-moe ~/.local/bin/
+   chmod +x ~/.local/bin/qwen-mtp ~/.local/bin/gemma-moe
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
-   # Edit qwen-moe: uncomment the 35B-A3B-MTP MODEL line for Fedora
+   # Edit qwen-mtp: uncomment the 35B-A3B-MTP MODEL line for Fedora
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
@@ -84,7 +84,7 @@ Dense models benefit significantly more from MTP than MoE models.
 6. **Run**:
    ```bash
    gemma-moe chat     # Gemma 4 interactive chat with thinking
-   qwen-moe chat      # Qwen3.6 interactive chat with thinking + MTP
+   qwen-mtp chat      # Qwen3.6 interactive chat with thinking + MTP
    gemma-moe          # OpenAI-compatible API + web UI at localhost:8080
    ```
 
@@ -101,9 +101,9 @@ Dense models benefit significantly more from MTP than MoE models.
 
 2. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen-moe scripts/gemma-moe ~/.local/bin/
-   chmod +x ~/.local/bin/qwen-moe ~/.local/bin/gemma-moe
-   # qwen-moe defaults to 27B dense MTP (macOS)
+   cp scripts/qwen-mtp scripts/gemma-moe ~/.local/bin/
+   chmod +x ~/.local/bin/qwen-mtp ~/.local/bin/gemma-moe
+   # qwen-mtp defaults to 27B dense MTP (macOS)
    ```
 
 3. **Configure coding agents:**
@@ -116,8 +116,8 @@ Dense models benefit significantly more from MTP than MoE models.
    ```bash
    gemma-moe            # Gemma 4 26B-A4B server on port 8080
    gemma-moe chat       # Gemma 4 interactive chat with thinking
-   qwen-moe chat        # Qwen3.6 27B interactive chat with MTP
-   qwen-moe chat-think  # Qwen3.6 creative/general chat
+   qwen-mtp chat        # Qwen3.6 27B interactive chat with MTP
+   qwen-mtp chat-think  # Qwen3.6 creative/general chat
    ```
 
 See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info and model selection.
@@ -147,7 +147,7 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `configs/pi-dev/models.json`
 - macOS: `configs/pi-dev/models-mac.json`
 
-Start a server (`qwen-moe` or `gemma-moe`), then select the model in pi.dev via `/model`.
+Start a server (`qwen-mtp` or `gemma-moe`), then select the model in pi.dev via `/model`.
 
 ### opencode
 
@@ -158,14 +158,14 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 | Agent | Model | Platform | Start server |
 |-------|-------|----------|--------------|
 | `local-gemma` | Gemma 4 26B-A4B | both | `gemma-moe` |
-| `local-moe` | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | both | `qwen-moe` |
+| `local-moe` | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | both | `qwen-mtp` |
 
 ### Claude Code
 
 ```bash
 # Start server first, then launch Claude Code
 gemma-moe && claude-gemma   # Gemma 4 26B-A4B
-qwen-moe  && claude-qwen    # Qwen3.6 27B with MTP
+qwen-mtp  && claude-qwen    # Qwen3.6 27B with MTP
 ```
 
 Set in `~/.claude/settings.json` to prevent KV cache invalidation:

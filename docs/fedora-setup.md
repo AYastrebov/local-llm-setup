@@ -94,13 +94,13 @@ MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
 KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
 ```
 
-### qwen-moe (Qwen3.6 35B-A3B)
+### qwen-mtp (Qwen3.6 35B-A3B)
 
 ```bash
-qwen-moe              # server on port 8080
-qwen-moe server 9090  # server on custom port
-qwen-moe chat         # interactive CLI, thinking enabled (coding params)
-qwen-moe chat-think   # interactive CLI, creative params
+qwen-mtp              # server on port 8080
+qwen-mtp server 9090  # server on custom port
+qwen-mtp chat         # interactive CLI, thinking enabled (coding params)
+qwen-mtp chat-think   # interactive CLI, creative params
 ```
 
 ### Sampling Parameters
@@ -117,7 +117,7 @@ Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context
 
 Config file: `~/.pi/agent/models.json` (copy from `configs/pi-dev/models.json`)
 
-Start a launcher (`gemma-moe` or `qwen-moe`), then select the model in pi.dev via `/model`.
+Start a launcher (`gemma-moe` or `qwen-mtp`), then select the model in pi.dev via `/model`.
 
 ## opencode Configuration
 
@@ -129,7 +129,7 @@ cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
 
 Agent profiles:
 - `local-gemma` — Gemma 4 26B-A4B (thinking, temp 1.0). Start server: `gemma-moe`
-- `local-moe` — Qwen3.6 35B-A3B (thinking, temp 0.6). Start server: `qwen-moe`
+- `local-moe` — Qwen3.6 35B-A3B (thinking, temp 0.6). Start server: `qwen-mtp`
 
 ## Web UI
 

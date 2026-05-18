@@ -59,7 +59,7 @@
       }
     },
     "local-moe": {
-      "description": "Local Qwen3.6-35B-A3B for general reasoning with thinking. Runs offline on RX 9060 XT at IQ3_XXS. Start with: qwen-moe",
+      "description": "Local Qwen3.6-35B-A3B for general reasoning with thinking. Runs offline on RX 9060 XT at IQ3_XXS. Start with: qwen-mtp",
       "mode": "primary",
       "model": "local/qwen3.6-35b-a3b",
       "temperature": 0.6,
