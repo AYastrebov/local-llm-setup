@@ -50,10 +50,10 @@ Read `~/.config/opencode/opencode.jsonc` and check what's already there before m
 
 ### Global setting
 
-Point `small_model` at the cheap MoE so background auxiliary calls (titles, summaries) stay nearly free:
+Point `small_model` at the cheap non-reasoning Qwen alias so background auxiliary calls (titles, summaries) stay fast and cheap:
 
 ```jsonc
-"small_model": "neuralwatt/Qwen/Qwen3.6-35B-A3B"
+"small_model": "neuralwatt/qwen3.6-35b-fast"
 ```
 
 ### Provider block
@@ -82,6 +82,10 @@ Add to `"provider"` if `"neuralwatt"` is not present. Note the per-model `option
     },
     "Qwen/Qwen3.6-35B-A3B": {
       "name": "Qwen3.6 35B A3B",
+      "limit": { "context": 131056, "output": 131056 }
+    },
+    "qwen3.6-35b-fast": {
+      "name": "Qwen3.6 35B Fast (no reasoning)",
       "limit": { "context": 131056, "output": 131056 }
     },
     "mistralai/Devstral-Small-2-24B-Instruct-2512": {
@@ -123,17 +127,29 @@ opencode has built-in `plan` and `build` modes — overriding them here makes th
   "model": "neuralwatt/zai-org/GLM-5.1-FP8",
   "steps": 50
 },
+"oracle": {
+  "description": "Architecture consultant — GLM 5.1 FP8 with reasoning. Use for design discussions, system architecture, library/framework selection, trade-off analysis",
+  "mode": "primary",
+  "model": "neuralwatt/zai-org/GLM-5.1-FP8",
+  "steps": 50
+},
 "qwen-fast": {
   "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
   "mode": "primary",
   "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
   "steps": 15
 },
-"code": {
-  "description": "Devstral Small 2 via NeuralWatt — coding-specialized, $0.12/M in. Step 2 of plan→implement workflow: use /agent kimi to plan, then switch here to implement",
-  "mode": "primary",
-  "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
-  "steps": 100
+"explore": {
+  "description": "Fast codebase search subagent — Qwen3.6 35B Fast (no reasoning overhead). For grep, file finding, symbol lookup, and shallow code exploration",
+  "mode": "subagent",
+  "model": "neuralwatt/qwen3.6-35b-fast",
+  "steps": 20
+},
+"docs": {
+  "description": "Documentation lookup subagent — Qwen3.6 35B Fast. For reading README, code comments, doc strings, and answering 'where is X documented' questions",
+  "mode": "subagent",
+  "model": "neuralwatt/qwen3.6-35b-fast",
+  "steps": 20
 }
 ```
 
@@ -152,5 +168,6 @@ Create a `"command"` section if it doesn't exist, then add:
 
 Report what was done (installed vs. already present). Tell the user:
 - Built-in modes: `/plan` (GLM 5.1) → exit plan → build (Devstral) — runs automatically
-- Custom agents: `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen-fast` for explicit overrides
+- Custom agents: `/agent kimi`, `/agent glm`, `/agent oracle`, `/agent qwen-fast` for explicit overrides
+- Subagents (delegatable): `explore`, `docs`
 - Command: `/nw-usage` inside an OpenCode session

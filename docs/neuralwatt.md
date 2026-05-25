@@ -148,16 +148,33 @@ The `plan` and `build` keys override opencode's built-in default agents. Everyth
 
 `steps` caps the number of tool-call iterations (file read, edit, bash, etc.) an agent runs before stopping. If a task needs more, opencode aborts with "out of steps." Workhorse agents (`build`, `code`, `kimi`) get 100 for serious refactors; planning/reasoning get 30–50; `qwen-fast` stays at 15 since it's the cheap quick agent.
 
-| Agent | Model | Best for |
-|-------|-------|----------|
-| `plan` (built-in) | GLM 5.1 FP8 | Read-only planning — invoked via `/plan` |
-| `build` (built-in) | Devstral Small 2 24B | Default execution after plan exits — runs automatically |
-| `kimi` | Kimi K2.6 | Strong coding when you want better than Devstral |
-| `code` | Devstral Small 2 24B | Same model as `build`, for explicit invocation |
-| `glm` | GLM 5.1 FP8 | Standalone reasoning outside of plan mode |
-| `qwen-fast` | Qwen3.6 35B A3B | Quick tasks, summaries — $0.29/M |
+| Agent | Mode | Model | Best for |
+|-------|------|-------|----------|
+| `plan` (built-in) | primary | GLM 5.1 FP8 | Read-only planning — invoked via `/plan` |
+| `build` (built-in) | primary | Devstral Small 2 24B | Default execution after plan exits — runs automatically |
+| `kimi` | primary | Kimi K2.6 | Strong coding when you want better than Devstral |
+| `glm` | primary | GLM 5.1 FP8 | Standalone reasoning outside of plan mode |
+| `oracle` | primary | GLM 5.1 FP8 | Architecture consultations, library/framework decisions, trade-off analysis |
+| `qwen-fast` | primary | Qwen3.6 35B A3B | Quick reasoning tasks, summaries — $0.29/M |
+| `explore` | subagent | Qwen3.6 35B Fast | Grep, file/symbol lookup, shallow code exploration (no reasoning overhead) |
+| `docs` | subagent | Qwen3.6 35B Fast | README/comment/docstring lookup, "where is X documented" |
 
-Use built-in modes with `/plan` and the normal build flow; switch to a specific custom agent with `/agent <name>`.
+Use built-in modes with `/plan` and the normal build flow; switch to a specific custom agent with `/agent <name>`. Subagents are delegated to by other agents (or invoked directly).
+
+## Recommended workflow
+
+For most coding tasks, the default flow is enough:
+
+1. **Press Tab** to enter `/plan` mode — GLM 5.1 analyses, proposes a plan
+2. **Exit plan mode** — automatically hands off to `build` (Devstral) for implementation
+3. **Hit "out of steps"?** — switch to `/agent kimi` and continue (Kimi has 100 steps + stronger reasoning)
+
+For deeper consultations or non-coding work:
+- **Architecture / design questions** → `/agent oracle`
+- **"Where is X in the codebase?"** → `/agent explore` (or it gets invoked automatically as subagent)
+- **Doc/comment lookup** → `/agent docs`
+- **Long-form writing, summaries** → `/agent qwen-fast`
+- **Hard coding problems** → `/agent kimi`
 
 ## nw-usage script
 
