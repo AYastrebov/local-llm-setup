@@ -76,6 +76,10 @@ Add to `"provider"` if `"neuralwatt"` is not present:
     "Qwen/Qwen3.6-35B-A3B": {
       "name": "Qwen3.6 35B A3B",
       "limit": { "context": 131056, "output": 131056 }
+    },
+    "mistralai/Devstral-Small-2-24B-Instruct-2512": {
+      "name": "Devstral Small 2 24B",
+      "limit": { "context": 262128, "output": 262128 }
     }
   }
 }
@@ -109,6 +113,12 @@ Add to `"agent"` if the keys are not present:
   "mode": "primary",
   "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
   "steps": 10
+},
+"code": {
+  "description": "Devstral Small 2 via NeuralWatt — coding-specialized, $0.12/M in. Step 2 of plan→implement workflow: use /agent kimi to plan, then switch here to implement",
+  "mode": "primary",
+  "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
+  "steps": 20
 }
 ```
 
@@ -126,5 +136,6 @@ Create a `"command"` section if it doesn't exist, then add:
 ## Step 4: Confirm
 
 Report what was done (installed vs. already present). Tell the user:
-- Agents: `/agent kimi`, `/agent glm`, `/agent qwen`, `/agent qwen-fast` in OpenCode
+- Agents: `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen`, `/agent qwen-fast` in OpenCode
+- Plan→implement workflow: `/agent kimi` to plan → `/agent code` to implement
 - Command: `/nw-usage` inside an OpenCode session

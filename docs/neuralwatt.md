@@ -6,6 +6,8 @@
 
 All models available on NeuralWatt as of May 2026. Prices per million tokens.
 
+All models available on NeuralWatt as of May 2026. Prices per million tokens.
+
 | Model | Reasoning | Context | Price in | Price out | Best for | Agent |
 |-------|-----------|---------|----------|-----------|----------|-------|
 | `moonshotai/Kimi-K2.6` | ✅ | 262K | $0.69 | $3.22 | Coding, agentic tasks — Sonnet/Codex-tier | `kimi` |
@@ -13,7 +15,7 @@ All models available on NeuralWatt as of May 2026. Prices per million tokens.
 | `Qwen/Qwen3.5-397B-A17B-FP8` | ✅ | 262K | $0.69 | $4.14 | General reasoning, long context — Sonnet-tier | `qwen` |
 | `zai-org/GLM-5.1-FP8` | ✅ | 202K | $1.10 | $3.60 | Complex reasoning | `glm` |
 | `MiniMaxAI/MiniMax-M2.5` | ✅ | 196K | $0.35 | $1.38 | General tasks, good value | — |
-| `mistralai/Devstral-Small-2-24B` | ❌ | 262K | $0.12 | $0.35 | Coding, fast — coding-specialized | — |
+| `mistralai/Devstral-Small-2-24B` | ❌ | 262K | $0.12 | $0.35 | Coding implementation — purpose-built | `code` |
 | `Qwen/Qwen3.6-35B-A3B` | ✅ | 131K | $0.05 | $0.10 | Quick tasks, same as local MoE | `qwen-fast` |
 | `kimi-k2.6-fast` | ❌ | 262K | $0.69 | $3.22 | Kimi without thinking overhead | — |
 | `qwen3.5-397b-fast` | ❌ | 262K | $0.69 | $4.14 | Qwen 397B without thinking overhead | — |
@@ -21,6 +23,15 @@ All models available on NeuralWatt as of May 2026. Prices per million tokens.
 | `openai/gpt-oss-20b` | ✅ | 16K | $0.03 | $0.16 | Dirt-cheap, tiny context | — |
 
 **Configured agents** use the full-precision reasoning variants. The `-fast` aliases run the same weights but skip the thinking phase — lower latency, same cost.
+
+## Plan → implement workflow
+
+Use a strong reasoning model to plan, then a cheap coding model to implement. This keeps cost down while preserving quality where it matters.
+
+1. **Plan** with `/agent kimi` (Kimi K2.6, $0.69/M) — ask it to analyse the problem and produce a detailed implementation plan
+2. **Implement** with `/agent code` (Devstral Small 2, $0.12/M) — paste or reference the plan and let it write the code
+
+Devstral is a coding-specialized model trained specifically for code generation and instruction following. It won't reason through ambiguous requirements as well as Kimi, but it's faster and ~6× cheaper for the mechanical implementation work.
 
 ## API key
 
@@ -94,12 +105,13 @@ Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already inclu
 
 | Agent | Model | Best for |
 |-------|-------|----------|
-| `kimi` | Kimi K2.6 | Coding, agentic tasks — Sonnet/Codex-tier |
+| `kimi` | Kimi K2.6 | Coding, agentic tasks — Sonnet/Codex-tier. **Step 1 of plan→implement** |
+| `code` | Devstral Small 2 24B | Coding implementation — $0.12/M. **Step 2 of plan→implement** |
 | `glm` | GLM 5.1 FP8 | Complex reasoning |
 | `qwen` | Qwen3.5 397B | General reasoning, long context — Sonnet-tier |
 | `qwen-fast` | Qwen3.6 35B A3B | Quick tasks, summaries — $0.05/M |
 
-Use agents with `/agent kimi`, `/agent glm`, `/agent qwen`, or `/agent qwen-fast` in opencode.
+Use agents with `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen`, or `/agent qwen-fast` in opencode.
 
 ## nw-usage script
 
