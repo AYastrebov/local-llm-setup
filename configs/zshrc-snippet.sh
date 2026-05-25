@@ -1,4 +1,10 @@
 # ===============================
+#   API Keys
+# ===============================
+
+export NEURALWATT_API_KEY=your-api-key-here   # https://portal.neuralwatt.com
+
+# ===============================
 #   llama.cpp
 # ===============================
 

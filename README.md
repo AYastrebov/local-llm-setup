@@ -155,10 +155,15 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 - Fedora: `configs/opencode/opencode-fedora.jsonc`
 - macOS: `configs/opencode/opencode-mac.jsonc`
 
-| Agent | Model | Platform | Start server |
-|-------|-------|----------|--------------|
-| `local-gemma` | Gemma 4 26B-A4B | both | `gemma-moe` |
-| `local-moe` | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | both | `qwen-mtp` |
+| Agent | Model | Provider | Platform |
+|-------|-------|----------|----------|
+| `local-gemma` | Gemma 4 26B-A4B | Local llama.cpp | both — start `gemma-moe` |
+| `local-moe` | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | Local llama.cpp | both — start `qwen-mtp` |
+| `kimi` | Kimi K2.6 | NeuralWatt | both |
+| `glm` | GLM 5.1 FP8 | NeuralWatt | both |
+| `qwen` | Qwen3.6 35B A3B | NeuralWatt | both |
+
+NeuralWatt agents require `NEURALWATT_API_KEY` — see [docs/fedora-setup.md](docs/fedora-setup.md#neuralwatt-cloud-provider).
 
 ### Claude Code
 

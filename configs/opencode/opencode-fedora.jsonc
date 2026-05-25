@@ -16,6 +16,28 @@
   // 🧠 PROVIDERS & MODELS
   // ==========================================
   "provider": {
+    "neuralwatt": {
+      "name": "Neuralwatt",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.neuralwatt.com/v1",
+        "apiKey": "{env:NEURALWATT_API_KEY}"
+      },
+      "models": {
+        "moonshotai/Kimi-K2.6": {
+          "name": "Kimi K2.6",
+          "limit": { "context": 262128, "output": 262128 }
+        },
+        "zai-org/GLM-5.1-FP8": {
+          "name": "GLM 5.1 FP8",
+          "limit": { "context": 202736, "output": 202736 }
+        },
+        "Qwen/Qwen3.6-35B-A3B": {
+          "name": "Qwen3.6 35B A3B",
+          "limit": { "context": 131056, "output": 131056 }
+        }
+      }
+    },
     "local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Local llama.cpp",
@@ -42,7 +64,17 @@
   },
 
   // ==========================================
-  // 🤖 AGENT PROFILES (local models only)
+  // 💡 COMMANDS
+  // ==========================================
+  "command": {
+    "nw-usage": {
+      "description": "Show Neuralwatt energy usage",
+      "template": "Here is my Neuralwatt API usage:\n\n!`nw-usage`\n\nReport this to the user."
+    }
+  },
+
+  // ==========================================
+  // 🤖 AGENT PROFILES
   // ==========================================
   "agent": {
     "local-gemma": {
@@ -70,6 +102,26 @@
         "webfetch": "deny",
         "websearch": "deny"
       }
+    },
+
+    // --- NeuralWatt cloud models ---
+    "kimi": {
+      "description": "Kimi K2.6 via NeuralWatt — reasoning + tool use, 262K context",
+      "mode": "primary",
+      "model": "neuralwatt/moonshotai/Kimi-K2.6",
+      "steps": 20
+    },
+    "glm": {
+      "description": "GLM 5.1 FP8 via NeuralWatt — reasoning + tool use, 202K context",
+      "mode": "primary",
+      "model": "neuralwatt/zai-org/GLM-5.1-FP8",
+      "steps": 20
+    },
+    "qwen": {
+      "description": "Qwen3.6 35B A3B via NeuralWatt — reasoning + tool use, 131K context",
+      "mode": "primary",
+      "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
+      "steps": 20
     }
   }
 }
