@@ -1,6 +1,6 @@
 ---
 name: neuralwatt-setup
-description: Configure OpenCode with NeuralWatt as a cloud AI provider. Use this skill when the user wants to set up NeuralWatt, add Kimi/GLM/Qwen cloud models to OpenCode, configure the NeuralWatt provider block, install the nw-usage energy script, or connect OpenCode to NeuralWatt's API. Invoke whenever the user mentions NeuralWatt, wants to add cloud models to OpenCode, or asks about configuring Kimi K2.6, GLM 5.1, or Qwen via NeuralWatt — even if they don't use the word "NeuralWatt" explicitly.
+description: Configure OpenCode with NeuralWatt as a cloud AI provider. Use this skill when the user wants to set up NeuralWatt, add Kimi/GLM/Qwen/Devstral cloud models to OpenCode, configure the NeuralWatt provider block, install the nw-usage energy script, or connect OpenCode to NeuralWatt's API. Invoke whenever the user mentions NeuralWatt, wants to add cloud models to OpenCode, or asks about configuring Kimi K2.6, GLM 5.1, Qwen, or Devstral via NeuralWatt — even if they don't use the word "NeuralWatt" explicitly.
 ---
 
 # NeuralWatt + OpenCode Setup
@@ -48,9 +48,17 @@ If `nw-usage` reports zero requests/energy that's expected on a fresh account �
 
 Read `~/.config/opencode/opencode.jsonc` and check what's already there before making changes — the user may have a partial setup.
 
+### Global setting
+
+Point `small_model` at the cheap MoE so background auxiliary calls (titles, summaries) stay nearly free:
+
+```jsonc
+"small_model": "neuralwatt/Qwen/Qwen3.6-35B-A3B"
+```
+
 ### Provider block
 
-Add to `"provider"` if `"neuralwatt"` is not present:
+Add to `"provider"` if `"neuralwatt"` is not present. Note the per-model `options` tuning — `repetitionPenalty: 1.05` on Kimi reduces looping, and Devstral gets a lower temperature and a `maxTokens` cap to keep coding responses focused:
 
 ```jsonc
 "neuralwatt": {
@@ -63,15 +71,14 @@ Add to `"provider"` if `"neuralwatt"` is not present:
   "models": {
     "moonshotai/Kimi-K2.6": {
       "name": "Kimi K2.6",
-      "limit": { "context": 262128, "output": 262128 }
+      "limit": { "context": 262128, "output": 262128 },
+      "options": {
+        "repetitionPenalty": 1.05
+      }
     },
     "zai-org/GLM-5.1-FP8": {
       "name": "GLM 5.1 FP8",
       "limit": { "context": 202736, "output": 202736 }
-    },
-    "Qwen/Qwen3.5-397B-A17B-FP8": {
-      "name": "Qwen3.5 397B A17B FP8",
-      "limit": { "context": 262128, "output": 262128 }
     },
     "Qwen/Qwen3.6-35B-A3B": {
       "name": "Qwen3.6 35B A3B",
@@ -79,7 +86,11 @@ Add to `"provider"` if `"neuralwatt"` is not present:
     },
     "mistralai/Devstral-Small-2-24B-Instruct-2512": {
       "name": "Devstral Small 2 24B",
-      "limit": { "context": 262128, "output": 262128 }
+      "limit": { "context": 262128, "output": 262128 },
+      "options": {
+        "temperature": 0.3,
+        "maxTokens": 4096
+      }
     }
   }
 }
@@ -102,14 +113,8 @@ Add to `"agent"` if the keys are not present:
   "model": "neuralwatt/zai-org/GLM-5.1-FP8",
   "steps": 20
 },
-"qwen": {
-  "description": "Qwen3.5 397B via NeuralWatt — reasoning + tool use, 262K context. Sonnet-tier for complex reasoning",
-  "mode": "primary",
-  "model": "neuralwatt/Qwen/Qwen3.5-397B-A17B-FP8",
-  "steps": 20
-},
 "qwen-fast": {
-  "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.05/M in. Use for summaries, simple edits, quick Q&A",
+  "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
   "mode": "primary",
   "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
   "steps": 10
@@ -136,6 +141,6 @@ Create a `"command"` section if it doesn't exist, then add:
 ## Step 4: Confirm
 
 Report what was done (installed vs. already present). Tell the user:
-- Agents: `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen`, `/agent qwen-fast` in OpenCode
+- Agents: `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen-fast` in OpenCode
 - Plan→implement workflow: `/agent kimi` to plan → `/agent code` to implement
 - Command: `/nw-usage` inside an OpenCode session

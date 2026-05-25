@@ -1,28 +1,33 @@
 # NeuralWatt + opencode
 
-[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as an opencode provider with Kimi, GLM, and Qwen models, plus the `nw-usage` energy reporting script.
+[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as an opencode provider with Kimi, GLM, Qwen, and Devstral models, plus the `nw-usage` energy reporting script.
 
 ## Model comparison
 
-All models available on NeuralWatt as of May 2026. Prices per million tokens.
+Live snapshot from [portal.neuralwatt.com/models](https://portal.neuralwatt.com/models), May 2026. Prices per million tokens. Energy/req is the maximum a single request can be billed under the server's attribution cap — actual usage under concurrent load is lower.
 
-All models available on NeuralWatt as of May 2026. Prices per million tokens.
-
-| Model | Reasoning | Context | Price in | Price out | Best for | Agent |
-|-------|-----------|---------|----------|-----------|----------|-------|
-| `moonshotai/Kimi-K2.6` | ✅ | 262K | $0.69 | $3.22 | Coding, agentic tasks — Sonnet/Codex-tier | `kimi` |
-| `moonshotai/Kimi-K2.5` | ✅ | 262K | $0.52 | $2.59 | Coding, previous gen | — |
-| `Qwen/Qwen3.5-397B-A17B-FP8` | ✅ | 262K | $0.69 | $4.14 | General reasoning, long context — Sonnet-tier | `qwen` |
-| `zai-org/GLM-5.1-FP8` | ✅ | 202K | $1.10 | $3.60 | Complex reasoning | `glm` |
-| `MiniMaxAI/MiniMax-M2.5` | ✅ | 196K | $0.35 | $1.38 | General tasks, good value | — |
-| `mistralai/Devstral-Small-2-24B` | ❌ | 262K | $0.12 | $0.35 | Coding implementation — purpose-built | `code` |
-| `Qwen/Qwen3.6-35B-A3B` | ✅ | 131K | $0.05 | $0.10 | Quick tasks, same as local MoE | `qwen-fast` |
-| `kimi-k2.6-fast` | ❌ | 262K | $0.69 | $3.22 | Kimi without thinking overhead | — |
-| `qwen3.5-397b-fast` | ❌ | 262K | $0.69 | $4.14 | Qwen 397B without thinking overhead | — |
-| `glm-5.1-fast` | ❌ | 202K | $1.10 | $3.60 | GLM without thinking overhead | — |
-| `openai/gpt-oss-20b` | ✅ | 16K | $0.03 | $0.16 | Dirt-cheap, tiny context | — |
+| Model | Reasoning | Context | $ in | $ out | Energy/req | Agent | Best for |
+|-------|-----------|---------|------|-------|------------|-------|----------|
+| `moonshotai/Kimi-K2.6` | ✅ | 262K | $0.69 | $3.22 | 1.46 Wh | `kimi` | Coding, agentic — Sonnet/Codex-tier |
+| `zai-org/GLM-5.1-FP8` | ✅ | 200K | $1.10 | $3.60 | 923 mWh | `glm` | Complex reasoning |
+| `mistralai/Devstral-Small-2-24B` | ❌ | 262K | $0.12 | $0.35 | 332 mWh | `code` | Coding implementation — purpose-built |
+| `Qwen/Qwen3.6-35B-A3B` | ✅ | 131K | $0.29 | $1.15 | 192 mWh | `qwen-fast` + `small_model` | Cheap utility tasks |
+| `moonshotai/Kimi-K2.5` | ✅ | 262K | $0.52 | $2.59 | 1.23 Wh | — | Coding, previous gen |
+| `Qwen/Qwen3.5-397B-A17B-FP8` | ✅ | 262K | $0.69 | $4.14 | 234 mWh | — | Large reasoning, long context |
+| `MiniMaxAI/MiniMax-M2.5` | ✅ | 196K | $0.35 | $1.38 | 296 mWh | — | General tasks, good value |
+| `kimi-k2.6-fast` | ❌ | 262K | $0.69 | $3.22 | 1.42 Wh | — | Kimi without thinking |
+| `kimi-k2.5-fast` | ❌ | 262K | $0.52 | $2.59 | 1.68 Wh | — | K2.5 without thinking |
+| `qwen3.6-35b-fast` | ❌ | 131K | $0.29 | $1.15 | 196 mWh | — | Qwen 35B without thinking |
+| `qwen3.5-397b-fast` | ❌ | 262K | $0.69 | $4.14 | 215 mWh | — | Qwen 397B without thinking |
+| `glm-5.1-fast` | ❌ | 200K | $1.10 | $3.60 | 712 mWh | — | GLM without thinking |
+| `glm-5-fast` | ❌ | 200K | $1.10 | $3.60 | 923 mWh | — | GLM-5 previous gen |
+| `openai/gpt-oss-20b` | ✅ | 16K | $0.03 | $0.16 | 53 mWh | — | Dirt-cheap, tiny context |
 
 **Configured agents** use the full-precision reasoning variants. The `-fast` aliases run the same weights but skip the thinking phase — lower latency, same cost.
+
+### Coming soon (portal roadmap)
+
+Devstral 2 123B ($0.24/$0.48, 131K), Devstral Small ($0.15/$0.19, 131K), Gemma 4 31B (Google, 256K), GPT-OSS 120B, NVIDIA Nemotron 3 Super 120B / Ultra (1M context), Qwen3.5 122B, Qwen3.5 27B FP8.
 
 ## Plan → implement workflow
 
@@ -46,6 +51,7 @@ export NEURALWATT_API_KEY=your-api-key-here
 Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already included in `configs/opencode/opencode-fedora.jsonc`):
 
 ```jsonc
+"small_model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
 "provider": {
   "neuralwatt": {
     "name": "Neuralwatt",
@@ -57,7 +63,10 @@ Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already inclu
     "models": {
       "moonshotai/Kimi-K2.6": {
         "name": "Kimi K2.6",
-        "limit": { "context": 262128, "output": 262128 }
+        "limit": { "context": 262128, "output": 262128 },
+        "options": {
+          "repetitionPenalty": 1.05
+        }
       },
       "zai-org/GLM-5.1-FP8": {
         "name": "GLM 5.1 FP8",
@@ -66,11 +75,29 @@ Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already inclu
       "Qwen/Qwen3.6-35B-A3B": {
         "name": "Qwen3.6 35B A3B",
         "limit": { "context": 131056, "output": 131056 }
+      },
+      "mistralai/Devstral-Small-2-24B-Instruct-2512": {
+        "name": "Devstral Small 2 24B",
+        "limit": { "context": 262128, "output": 262128 },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 4096
+        }
       }
     }
   }
 }
 ```
+
+`small_model` is the model opencode uses for short auxiliary calls (titles, summaries, etc.). Pointing it at the cheap MoE keeps background traffic effectively free.
+
+### Per-model tuning
+
+The `options` block lets you set provider-specific knobs. Useful tweaks:
+
+- **`repetitionPenalty: 1.05`** on Kimi K2 family — reduces the looping behaviour Kimi sometimes exhibits without affecting creativity (per [NeuralWatt docs](https://portal.neuralwatt.com/docs/integrations/opencode)).
+- **`maxTokens: 4096`** — caps responses at a sensible length for typical coding work even when the model's hard output limit is much higher. Useful on Devstral to avoid runaway generations.
+- **`temperature: 0.3`** on Devstral — lower temperature for more deterministic code generation.
 
 ## Agent profiles
 
@@ -88,17 +115,17 @@ Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already inclu
     "model": "neuralwatt/zai-org/GLM-5.1-FP8",
     "steps": 20
   },
-  "qwen": {
-    "description": "Qwen3.5 397B via NeuralWatt — reasoning + tool use, 262K context. Sonnet-tier for complex reasoning",
-    "mode": "primary",
-    "model": "neuralwatt/Qwen/Qwen3.5-397B-A17B-FP8",
-    "steps": 20
-  },
   "qwen-fast": {
     "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.05/M in. Use for summaries, simple edits, quick Q&A",
     "mode": "primary",
     "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
     "steps": 10
+  },
+  "code": {
+    "description": "Devstral Small 2 via NeuralWatt — coding-specialized, $0.12/M in. Step 2 of plan→implement workflow: use /agent kimi to plan, then switch here to implement",
+    "mode": "primary",
+    "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
+    "steps": 20
   }
 }
 ```
@@ -108,10 +135,9 @@ Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already inclu
 | `kimi` | Kimi K2.6 | Coding, agentic tasks — Sonnet/Codex-tier. **Step 1 of plan→implement** |
 | `code` | Devstral Small 2 24B | Coding implementation — $0.12/M. **Step 2 of plan→implement** |
 | `glm` | GLM 5.1 FP8 | Complex reasoning |
-| `qwen` | Qwen3.5 397B | General reasoning, long context — Sonnet-tier |
-| `qwen-fast` | Qwen3.6 35B A3B | Quick tasks, summaries — $0.05/M |
+| `qwen-fast` | Qwen3.6 35B A3B | Quick tasks, summaries — $0.29/M |
 
-Use agents with `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen`, or `/agent qwen-fast` in opencode.
+Use agents with `/agent kimi`, `/agent code`, `/agent glm`, or `/agent qwen-fast` in opencode.
 
 ## nw-usage script
 
