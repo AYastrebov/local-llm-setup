@@ -184,16 +184,26 @@ Set in `~/.claude/settings.json` to prevent KV cache invalidation:
 }
 ```
 
-## Claude Code skill
+## Claude Code skills
 
-The `skills/llama-build/` directory contains a Claude Code skill that automates the entire setup process:
+| Skill | What it does | Install location |
+|-------|-------------|-----------------|
+| `llama-build` | Build llama.cpp, download models, set up launcher scripts and coding agent integration | `~/llama.cpp/.claude/skills/` |
+| `neuralwatt-setup` | Configure OpenCode with NeuralWatt cloud provider (Kimi, GLM, Qwen), install `nw-usage` | any project's `.claude/skills/` |
+
+Install a skill:
 
 ```bash
+# llama-build (scoped to the llama.cpp project)
 mkdir -p ~/llama.cpp/.claude/skills/
 cp -r skills/llama-build ~/llama.cpp/.claude/skills/
+
+# neuralwatt-setup (global or per-project)
+mkdir -p ~/.claude/skills/
+cp -r skills/neuralwatt-setup ~/.claude/skills/
 ```
 
-Then invoke it in Claude Code with `/llama-build`.
+Invoke with `/llama-build` or `/neuralwatt-setup` in Claude Code.
 
 ## Hardware tested
 
