@@ -137,42 +137,7 @@ Agent profiles:
 | `glm` | GLM 5.1 FP8 | NeuralWatt | reasoning, 202K context |
 | `qwen` | Qwen3.6 35B A3B | NeuralWatt | reasoning, 131K context |
 
-## NeuralWatt Cloud Provider
-
-[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API with Kimi, GLM, and Qwen models.
-
-### API key
-
-Get a key from the [portal](https://portal.neuralwatt.com) and add it to `~/.zshrc`:
-
-```bash
-export NEURALWATT_API_KEY=your-api-key-here
-```
-
-### nw-usage script
-
-Queries the NeuralWatt energy API and prints today's request count and Wh consumption. Used by the `/nw-usage` opencode command.
-
-Install:
-
-```bash
-cp scripts/nw-usage ~/.local/bin/
-chmod +x ~/.local/bin/nw-usage
-
-mkdir -p ~/.config/neuralwatt
-echo "your-api-key" > ~/.config/neuralwatt/api_key
-chmod 600 ~/.config/neuralwatt/api_key
-```
-
-The script reads the key from `NEURALWATT_API_KEY` env var or `~/.config/neuralwatt/api_key` (checked in that order).
-
-Usage:
-
-```bash
-nw-usage            # human-readable: date, requests, Wh
-nw-usage --tmux     # compact for statusline (cached 5 min): ↗42 ⚡17Wh
-nw-usage --json     # raw JSON from API
-```
+See [docs/neuralwatt.md](neuralwatt.md) for full NeuralWatt setup (API key, provider config, `nw-usage` script).
 
 ## Web UI
 

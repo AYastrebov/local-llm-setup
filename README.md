@@ -163,7 +163,7 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 | `glm` | GLM 5.1 FP8 | NeuralWatt | both |
 | `qwen` | Qwen3.6 35B A3B | NeuralWatt | both |
 
-NeuralWatt agents require `NEURALWATT_API_KEY` — see [docs/fedora-setup.md](docs/fedora-setup.md#neuralwatt-cloud-provider).
+NeuralWatt agents require `NEURALWATT_API_KEY` — see [docs/neuralwatt.md](docs/neuralwatt.md).
 
 ### Claude Code
 
