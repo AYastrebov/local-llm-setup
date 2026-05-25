@@ -98,9 +98,17 @@ Add to `"provider"` if `"neuralwatt"` is not present. Note the per-model `option
 
 ### Agent profiles
 
-Add to `"agent"` if the keys are not present:
+opencode has built-in `plan` and `build` modes — overriding them here makes the entire `/plan` → exit-plan → build flow automatically use NeuralWatt models. Add the full block to `"agent"` if the keys are not present:
 
 ```jsonc
+"plan": {
+  "description": "Planning mode — uses GLM 5.1 FP8 for read-only analysis, architecture decisions, and step-by-step plans before execution",
+  "model": "neuralwatt/zai-org/GLM-5.1-FP8"
+},
+"build": {
+  "description": "Default execution mode — uses Devstral Small 2 for cheap, coding-specialized implementation. Pair with /plan first for best results",
+  "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512"
+},
 "kimi": {
   "description": "Kimi K2.6 via NeuralWatt — reasoning + tool use, 262K context",
   "mode": "primary",
@@ -141,6 +149,6 @@ Create a `"command"` section if it doesn't exist, then add:
 ## Step 4: Confirm
 
 Report what was done (installed vs. already present). Tell the user:
-- Agents: `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen-fast` in OpenCode
-- Plan→implement workflow: `/agent kimi` to plan → `/agent code` to implement
+- Built-in modes: `/plan` (GLM 5.1) → exit plan → build (Devstral) — runs automatically
+- Custom agents: `/agent kimi`, `/agent code`, `/agent glm`, `/agent qwen-fast` for explicit overrides
 - Command: `/nw-usage` inside an OpenCode session

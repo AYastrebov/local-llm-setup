@@ -88,6 +88,16 @@
   // 🤖 AGENT PROFILES
   // ==========================================
   "agent": {
+    // --- Built-in opencode modes (plan / build) ---
+    "plan": {
+      "description": "Planning mode — uses GLM 5.1 FP8 for read-only analysis, architecture decisions, and step-by-step plans before execution",
+      "model": "neuralwatt/zai-org/GLM-5.1-FP8"
+    },
+    "build": {
+      "description": "Default execution mode — uses Devstral Small 2 for cheap, coding-specialized implementation. Pair with /plan first for best results",
+      "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512"
+    },
+
     "local-gemma": {
       "description": "Local Gemma 4 26B-A4B MoE for reasoning with thinking. Runs offline on RX 9060 XT at Q3_K_XL. Start with: gemma-moe",
       "mode": "primary",

@@ -31,12 +31,14 @@ Devstral 2 123B ($0.24/$0.48, 131K), Devstral Small ($0.15/$0.19, 131K), Gemma 4
 
 ## Plan → implement workflow
 
-Use a strong reasoning model to plan, then a cheap coding model to implement. This keeps cost down while preserving quality where it matters.
+opencode has two built-in modes — `plan` (read-only analysis) and `build` (executes edits and commands). We override both to use NeuralWatt models so the entire workflow happens automatically without manual `/agent` switching:
 
-1. **Plan** with `/agent kimi` (Kimi K2.6, $0.69/M) — ask it to analyse the problem and produce a detailed implementation plan
-2. **Implement** with `/agent code` (Devstral Small 2, $0.12/M) — paste or reference the plan and let it write the code
+- **`/plan`** → GLM 5.1 FP8 ($1.10/M in) — read-only mode for architecture decisions and step-by-step plans
+- **exit plan + execute** → Devstral Small 2 24B ($0.12/M in) — coding-specialized, cheap, fast
 
-Devstral is a coding-specialized model trained specifically for code generation and instruction following. It won't reason through ambiguous requirements as well as Kimi, but it's faster and ~6× cheaper for the mechanical implementation work.
+Devstral is purpose-built for code generation and instruction following. It won't reason through ambiguous requirements as well as GLM, but with a detailed plan in hand it's faster and ~10× cheaper for the mechanical implementation work.
+
+The standalone `/agent kimi`, `/agent code`, `/agent glm`, and `/agent qwen-fast` agents are still available when you want to override the default flow for a specific request.
 
 ## API key
 
@@ -101,8 +103,18 @@ The `options` block lets you set provider-specific knobs. Useful tweaks:
 
 ## Agent profiles
 
+The `plan` and `build` keys override opencode's built-in default agents. Everything else is a custom agent you invoke explicitly with `/agent <name>`.
+
 ```jsonc
 "agent": {
+  "plan": {
+    "description": "Planning mode — uses GLM 5.1 FP8 for read-only analysis, architecture decisions, and step-by-step plans before execution",
+    "model": "neuralwatt/zai-org/GLM-5.1-FP8"
+  },
+  "build": {
+    "description": "Default execution mode — uses Devstral Small 2 for cheap, coding-specialized implementation. Pair with /plan first for best results",
+    "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512"
+  },
   "kimi": {
     "description": "Kimi K2.6 via NeuralWatt — reasoning + tool use, 262K context",
     "mode": "primary",
@@ -132,12 +144,14 @@ The `options` block lets you set provider-specific knobs. Useful tweaks:
 
 | Agent | Model | Best for |
 |-------|-------|----------|
-| `kimi` | Kimi K2.6 | Coding, agentic tasks — Sonnet/Codex-tier. **Step 1 of plan→implement** |
-| `code` | Devstral Small 2 24B | Coding implementation — $0.12/M. **Step 2 of plan→implement** |
-| `glm` | GLM 5.1 FP8 | Complex reasoning |
+| `plan` (built-in) | GLM 5.1 FP8 | Read-only planning — invoked via `/plan` |
+| `build` (built-in) | Devstral Small 2 24B | Default execution after plan exits — runs automatically |
+| `kimi` | Kimi K2.6 | Strong coding when you want better than Devstral |
+| `code` | Devstral Small 2 24B | Same model as `build`, for explicit invocation |
+| `glm` | GLM 5.1 FP8 | Standalone reasoning outside of plan mode |
 | `qwen-fast` | Qwen3.6 35B A3B | Quick tasks, summaries — $0.29/M |
 
-Use agents with `/agent kimi`, `/agent code`, `/agent glm`, or `/agent qwen-fast` in opencode.
+Use built-in modes with `/plan` and the normal build flow; switch to a specific custom agent with `/agent <name>`.
 
 ## nw-usage script
 
