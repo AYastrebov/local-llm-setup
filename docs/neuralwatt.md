@@ -109,38 +109,44 @@ The `plan` and `build` keys override opencode's built-in default agents. Everyth
 "agent": {
   "plan": {
     "description": "Planning mode — uses GLM 5.1 FP8 for read-only analysis, architecture decisions, and step-by-step plans before execution",
-    "model": "neuralwatt/zai-org/GLM-5.1-FP8"
+    "model": "neuralwatt/zai-org/GLM-5.1-FP8",
+    "steps": 30
   },
   "build": {
     "description": "Default execution mode — uses Devstral Small 2 for cheap, coding-specialized implementation. Pair with /plan first for best results",
-    "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512"
+    "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
+    "steps": 100
   },
   "kimi": {
     "description": "Kimi K2.6 via NeuralWatt — reasoning + tool use, 262K context",
     "mode": "primary",
     "model": "neuralwatt/moonshotai/Kimi-K2.6",
-    "steps": 20
+    "steps": 100
   },
   "glm": {
     "description": "GLM 5.1 FP8 via NeuralWatt — reasoning + tool use, 202K context",
     "mode": "primary",
     "model": "neuralwatt/zai-org/GLM-5.1-FP8",
-    "steps": 20
+    "steps": 50
   },
   "qwen-fast": {
-    "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.05/M in. Use for summaries, simple edits, quick Q&A",
+    "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
     "mode": "primary",
     "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
-    "steps": 10
+    "steps": 15
   },
   "code": {
     "description": "Devstral Small 2 via NeuralWatt — coding-specialized, $0.12/M in. Step 2 of plan→implement workflow: use /agent kimi to plan, then switch here to implement",
     "mode": "primary",
     "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
-    "steps": 20
+    "steps": 100
   }
 }
 ```
+
+### Step limits
+
+`steps` caps the number of tool-call iterations (file read, edit, bash, etc.) an agent runs before stopping. If a task needs more, opencode aborts with "out of steps." Workhorse agents (`build`, `code`, `kimi`) get 100 for serious refactors; planning/reasoning get 30–50; `qwen-fast` stays at 15 since it's the cheap quick agent.
 
 | Agent | Model | Best for |
 |-------|-------|----------|
