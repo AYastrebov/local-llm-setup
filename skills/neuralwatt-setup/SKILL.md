@@ -69,6 +69,10 @@ Add to `"provider"` if `"neuralwatt"` is not present:
       "name": "GLM 5.1 FP8",
       "limit": { "context": 202736, "output": 202736 }
     },
+    "Qwen/Qwen3.5-397B-A17B-FP8": {
+      "name": "Qwen3.5 397B A17B FP8",
+      "limit": { "context": 262128, "output": 262128 }
+    },
     "Qwen/Qwen3.6-35B-A3B": {
       "name": "Qwen3.6 35B A3B",
       "limit": { "context": 131056, "output": 131056 }
@@ -79,7 +83,7 @@ Add to `"provider"` if `"neuralwatt"` is not present:
 
 ### Agent profiles
 
-Add to `"agent"` if the `kimi`/`glm`/`qwen` keys are not present:
+Add to `"agent"` if the keys are not present:
 
 ```jsonc
 "kimi": {
@@ -95,10 +99,16 @@ Add to `"agent"` if the `kimi`/`glm`/`qwen` keys are not present:
   "steps": 20
 },
 "qwen": {
-  "description": "Qwen3.6 35B A3B via NeuralWatt — reasoning + tool use, 131K context",
+  "description": "Qwen3.5 397B via NeuralWatt — reasoning + tool use, 262K context. Sonnet-tier for complex reasoning",
+  "mode": "primary",
+  "model": "neuralwatt/Qwen/Qwen3.5-397B-A17B-FP8",
+  "steps": 20
+},
+"qwen-fast": {
+  "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.05/M in. Use for summaries, simple edits, quick Q&A",
   "mode": "primary",
   "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
-  "steps": 20
+  "steps": 10
 }
 ```
 
@@ -116,5 +126,5 @@ Create a `"command"` section if it doesn't exist, then add:
 ## Step 4: Confirm
 
 Report what was done (installed vs. already present). Tell the user:
-- Agents: `/agent kimi`, `/agent glm`, `/agent qwen` in OpenCode
+- Agents: `/agent kimi`, `/agent glm`, `/agent qwen`, `/agent qwen-fast` in OpenCode
 - Command: `/nw-usage` inside an OpenCode session
