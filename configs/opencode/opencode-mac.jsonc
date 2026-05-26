@@ -112,6 +112,12 @@
     "bash": {
       "./gradlew*": "allow",
       "git *": "allow",
+      // Modern read-only CLI tools — faster, sensible defaults
+      "rg *": "allow",     // ripgrep (grep replacement)
+      "fd *": "allow",     // fd (find replacement)
+      "bat *": "allow",    // bat (cat replacement, syntax-highlighted)
+      "eza *": "allow",    // eza (ls replacement)
+      "jq *": "allow",     // JSON query/filter
       // Prompt for any potentially destructive commands
       "*": "ask"
     }
