@@ -2,10 +2,14 @@
 #   API Keys
 # ===============================
 
-# Store the key once with:
+# NeuralWatt — store once with:
 #   printf '%s' 'sk-...' | secret-tool store --label='NeuralWatt API key' service neuralwatt user "$USER"
-# Then nothing about the secret lives in your shell history or this file.
 export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
+
+# GitHub — store once with:
+#   printf '%s' 'ghp_...' | secret-tool store --label='GitHub PAT' service github user "$USER"
+export GITHUB_TOKEN=$(secret-tool lookup service github user "$USER")
+export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN"  # github-mcp-server expects this name
 
 # ===============================
 #   llama.cpp
