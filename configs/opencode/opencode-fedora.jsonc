@@ -5,6 +5,7 @@
   // ⚙️ GLOBAL SETTINGS
   // ==========================================
   "small_model": "neuralwatt/qwen3.6-35b-fast",
+  "plugin": ["octto"],
   "snapshot": false,
   "compaction": {
     "auto": true,
@@ -89,6 +90,57 @@
   },
 
   // ==========================================
+  // 🔌 MODEL CONTEXT PROTOCOL (MCP) SERVERS
+  // ==========================================
+  "mcp": {
+    "jetbrains": {
+      "type": "remote",
+      "url": "http://127.0.0.1:64342/sse",
+      "enabled": false
+    },
+    "youtrack": {
+      "type": "remote",
+      "url": "https://youtrack.jetbrains.com/mcp",
+      "headers": { "Authorization": "Bearer {env:YOUTRACK_TOKEN}" },
+      "enabled": false
+    },
+    "glean_default": {
+      "type": "remote",
+      "url": "https://jetbrains-be.glean.com/mcp/default",
+      "enabled": false
+    },
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": { "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}" },
+      "enabled": true
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
+      "enabled": true
+    }
+  },
+
+  // ==========================================
+  // 🛡️ SECURITY & PERMISSIONS
+  // ==========================================
+  "permission": {
+    "read": "allow",
+    "write": "ask", // Global write requires approval
+    "apply_patch": "ask", // Treat bulk file patches like writes
+    "websearch": "deny", // Requires OPENCODE_ENABLE_EXA=1 — explicitly off
+    "jetbrains_*": "allow",
+    "youtrack_*": "allow",
+    "bash": {
+      "./gradlew*": "allow",
+      "git *": "allow",
+      // Prompt for any potentially destructive commands
+      "*": "ask"
+    }
+  },
+
+  // ==========================================
   // 🤖 AGENT PROFILES
   // ==========================================
   "agent": {
@@ -165,7 +217,7 @@
       "steps": 20
     },
     "docs": {
-      "description": "Documentation lookup subagent — Qwen3.6 35B Fast. For reading README, code comments, doc strings, and answering 'where is X documented' questions",
+      "description": "Internal docs subagent — Qwen3.6 35B Fast. For reading project READMEs, code comments, and docstrings. Use Context7 MCP for library/framework documentation instead",
       "mode": "subagent",
       "model": "neuralwatt/qwen3.6-35b-fast",
       "steps": 20

@@ -38,7 +38,7 @@ opencode has two built-in modes — `plan` (read-only analysis) and `build` (exe
 
 Devstral is purpose-built for code generation and instruction following. It won't reason through ambiguous requirements as well as GLM, but with a detailed plan in hand it's faster and ~10× cheaper for the mechanical implementation work.
 
-The standalone `/agent kimi`, `/agent code`, `/agent glm`, and `/agent qwen-fast` agents are still available when you want to override the default flow for a specific request.
+The standalone `/agent kimi`, `/agent glm`, and `/agent qwen-fast` agents are still available when you want to override the default flow for a specific request.
 
 ## API key
 
@@ -53,7 +53,7 @@ export NEURALWATT_API_KEY=your-api-key-here
 Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already included in `configs/opencode/opencode-fedora.jsonc`):
 
 ```jsonc
-"small_model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
+"small_model": "neuralwatt/qwen3.6-35b-fast",
 "provider": {
   "neuralwatt": {
     "name": "Neuralwatt",
@@ -161,6 +161,52 @@ The `plan` and `build` keys override opencode's built-in default agents. Everyth
 
 Use built-in modes with `/plan` and the normal build flow; switch to a specific custom agent with `/agent <name>`. Subagents are delegated to by other agents (or invoked directly).
 
+## Octto plugin
+
+[octto](https://github.com/vtemian/octto) is an opencode plugin that replaces terminal back-and-forth with an interactive browser UI. When you describe an idea, it opens a browser with clickable questions — pick lists, checkboxes, sliders, code editors — and explores it across 2–4 parallel branches before producing a structured design document ready for the `/plan` → `build` workflow.
+
+### Install
+
+Add to `~/.config/opencode/opencode.jsonc`:
+
+```jsonc
+"plugin": ["octto"]
+```
+
+### Agent config (`~/.config/opencode/octto.json`)
+
+Octto uses three internal agents. Override them to use NeuralWatt:
+
+```json
+{
+  "agents": {
+    "octto":        { "model": "neuralwatt/moonshotai/Kimi-K2.6" },
+    "bootstrapper": { "model": "neuralwatt/qwen3.6-35b-fast" },
+    "probe":        { "model": "neuralwatt/zai-org/GLM-5.1-FP8" }
+  },
+  "fragments": {
+    "octto": [
+      "When the brainstorming session ends, structure the final plan so it can be handed directly to a /plan → build workflow in opencode: a clear problem statement, constraints, and ordered implementation steps"
+    ],
+    "probe": [
+      "Think like a senior architect: surface trade-offs, constraints, and design decisions rather than jumping to implementation details",
+      "For each branch, identify the key architectural decision before asking about specifics"
+    ],
+    "bootstrapper": [
+      "Split requests into branches that each represent a distinct architectural decision or implementation approach — not just feature areas"
+    ]
+  }
+}
+```
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `octto` | Kimi K2.6 | Orchestrates session, manages browser UI |
+| `bootstrapper` | Qwen 35B Fast | Generates 2–4 parallel branch questions instantly |
+| `probe` | GLM 5.1 FP8 | Follow-up questions per branch — oracle-depth reasoning |
+
+The `probe` agent is configured to behave like the `oracle` agent: it surfaces trade-offs and architectural decisions rather than jumping to implementation specifics.
+
 ## Recommended workflow
 
 For most coding tasks, the default flow is enough:
@@ -169,12 +215,97 @@ For most coding tasks, the default flow is enough:
 2. **Exit plan mode** — automatically hands off to `build` (Devstral) for implementation
 3. **Hit "out of steps"?** — switch to `/agent kimi` and continue (Kimi has 100 steps + stronger reasoning)
 
-For deeper consultations or non-coding work:
-- **Architecture / design questions** → `/agent oracle`
+For design decisions before coding:
+- **Complex architecture / multi-branch exploration** → octto agent (browser UI, parallel branches, GLM probe)
+- **Quick architecture consultation** → `/agent oracle` (text-only, same GLM 5.1 model)
+
+For other tasks:
 - **"Where is X in the codebase?"** → `/agent explore` (or it gets invoked automatically as subagent)
 - **Doc/comment lookup** → `/agent docs`
 - **Long-form writing, summaries** → `/agent qwen-fast`
 - **Hard coding problems** → `/agent kimi`
+
+## GitHub MCP
+
+The official GitHub MCP server provides agents with direct access to repos, issues, PRs, Actions, and code search. Uses the remote HTTP server hosted by GitHub (the npm package `@modelcontextprotocol/server-github` was deprecated April 2025).
+
+### Install
+
+Add to the `"mcp"` section of `~/.config/opencode/opencode.jsonc`:
+
+```jsonc
+"github": {
+  "type": "remote",
+  "url": "https://api.githubcopilot.com/mcp/",
+  "headers": {
+    "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+  },
+  "enabled": true
+}
+```
+
+Add the token to `~/.zshrc`:
+
+```bash
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...
+```
+
+The PAT needs at least `repo` scope.
+
+## Playwright CLI
+
+[Playwright CLI](https://github.com/microsoft/playwright-cli) provides browser automation as a skill rather than an MCP server. For coding agents, CLI + SKILLS is more token-efficient than MCP — it avoids loading large tool schemas and accessibility trees into context.
+
+### Install
+
+```bash
+npm install -g @playwright/cli@latest
+playwright-cli install --skills
+```
+
+`install --skills` installs the skill files into `.claude/skills/playwright-cli/` in the current project. For global availability across all projects, run it from `~/.claude/skills/` or verify the skill lands in `~/.config/opencode/skills/` which OpenCode also scans.
+
+### Usage
+
+Agents pick up the skill automatically. For explicit invocation:
+
+```
+Test the login flow on https://example.com using playwright-cli.
+```
+
+To monitor running browser sessions:
+
+```bash
+playwright-cli show
+```
+
+## Context7 MCP
+
+[Context7](https://context7.com) is an MCP server that injects up-to-date library documentation directly into agent context. When an agent needs to know an API, it resolves the latest docs rather than relying on training data.
+
+### Install
+
+Add to the `"mcp"` section of `~/.config/opencode/opencode.jsonc`:
+
+```jsonc
+"context7": {
+  "type": "local",
+  "command": ["npx", "-y", "@upstash/context7-mcp"],
+  "enabled": true
+}
+```
+
+No API key required. The server starts on demand via `npx` and communicates over stdio.
+
+### Usage
+
+Once enabled, agents can call Context7 tools automatically. You can also prompt explicitly:
+
+```
+use context7 — how do I configure retry logic in Ktor?
+```
+
+Context7 resolves the library, fetches current docs, and injects them into the response.
 
 ## nw-usage script
 
