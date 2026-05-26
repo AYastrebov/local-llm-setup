@@ -2,7 +2,10 @@
 #   API Keys
 # ===============================
 
-export NEURALWATT_API_KEY=your-api-key-here   # https://portal.neuralwatt.com
+# Store the key once with:
+#   printf '%s' 'sk-...' | secret-tool store --label='NeuralWatt API key' service neuralwatt user "$USER"
+# Then nothing about the secret lives in your shell history or this file.
+export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
 
 # ===============================
 #   llama.cpp

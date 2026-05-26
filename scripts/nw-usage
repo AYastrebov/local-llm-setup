@@ -54,13 +54,18 @@ fi
 if [[ "$use_cache" == "true" ]]; then
   data=$(cat "$CACHE_FILE")
 else
-  # Get API key
+  # Get API key (env var → libsecret keyring → file)
+  api_key=""
   if [[ -n "${NEURALWATT_API_KEY:-}" ]]; then
     api_key="$NEURALWATT_API_KEY"
-  elif [[ -f "$API_KEY_FILE" ]]; then
+  elif command -v secret-tool >/dev/null 2>&1; then
+    api_key=$(secret-tool lookup service neuralwatt user "$USER" 2>/dev/null || true)
+  fi
+  if [[ -z "$api_key" ]] && [[ -f "$API_KEY_FILE" ]]; then
     api_key=$(cat "$API_KEY_FILE")
-  else
-    echo "Error: No API key found. Set NEURALWATT_API_KEY or create $API_KEY_FILE" >&2
+  fi
+  if [[ -z "$api_key" ]]; then
+    echo "Error: No API key found. Set NEURALWATT_API_KEY, store via 'secret-tool store service neuralwatt user \$USER', or create $API_KEY_FILE" >&2
     exit 1
   fi
 

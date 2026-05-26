@@ -14,26 +14,41 @@ Read `docs/neuralwatt.md` for full background. The reference config is at `confi
 ```bash
 echo "${NEURALWATT_API_KEY:-not set}"
 grep "NEURALWATT_API_KEY" ~/.zshrc 2>/dev/null || echo "not in zshrc"
+secret-tool lookup service neuralwatt user "$USER" >/dev/null 2>&1 && echo "in keyring" || echo "not in keyring"
 ```
 
-If not set, ask the user for their key (from https://portal.neuralwatt.com) and add to `~/.zshrc`:
+If the key isn't anywhere, ask the user for their key (from https://portal.neuralwatt.com). Prefer storing it in the system keyring instead of plaintext in `~/.zshrc` — same pattern as the user's existing `GITHUB_TOKEN`:
 
 ```bash
-export NEURALWATT_API_KEY=sk-...
+# Store once (key only enters memory via stdin — never in shell history)
+printf '%s' 'sk-...' | secret-tool store \
+  --label='NeuralWatt API key' service neuralwatt user "$USER"
 ```
 
-Remind them to `source ~/.zshrc` afterward.
+Then add to `~/.zshrc`:
+
+```bash
+export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
+```
+
+Remind them to `source ~/.zshrc` afterward. If `secret-tool` isn't installed (no libsecret), fall back to a plain `export NEURALWATT_API_KEY=sk-...` line — and warn that the key is then in plaintext.
 
 ## Step 2: Install nw-usage
 
-The script is at `scripts/nw-usage` in this repo. Install it and write the key file (the script checks the env var first, then falls back to this file):
+The script is at `scripts/nw-usage` in this repo:
 
 ```bash
 cp scripts/nw-usage ~/.local/bin/
 chmod +x ~/.local/bin/nw-usage
+```
 
+The script looks up the API key from (in order): `NEURALWATT_API_KEY` env var → `secret-tool` keyring (service `neuralwatt`, user `$USER`) → `~/.config/neuralwatt/api_key` plaintext fallback. If you stored the key via `secret-tool` in Step 1, you don't need the plaintext file at all — statusline callers like tmux will hit the keyring directly.
+
+Only create the file if `secret-tool` isn't available:
+
+```bash
 mkdir -p ~/.config/neuralwatt
-echo "$NEURALWATT_API_KEY" > ~/.config/neuralwatt/api_key
+printf '%s' "$NEURALWATT_API_KEY" > ~/.config/neuralwatt/api_key
 chmod 600 ~/.config/neuralwatt/api_key
 ```
 

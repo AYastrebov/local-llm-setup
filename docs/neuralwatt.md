@@ -42,11 +42,26 @@ The standalone `/agent kimi`, `/agent glm`, and `/agent qwen-fast` agents are st
 
 ## API key
 
-Get a key from the [portal](https://portal.neuralwatt.com) and add it to `~/.zshrc`:
+Get a key from the [portal](https://portal.neuralwatt.com). Store it in the system keyring instead of hardcoding it in your shell rc (no plaintext in dotfiles, no exposure in shell history):
 
 ```bash
-export NEURALWATT_API_KEY=your-api-key-here
+printf '%s' 'sk-your-key-here' | secret-tool store \
+  --label='NeuralWatt API key' service neuralwatt user "$USER"
 ```
+
+Then export it from `~/.zshrc` via a lookup:
+
+```bash
+export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
+```
+
+Verify:
+
+```bash
+echo "${NEURALWATT_API_KEY:0:6}…  (len=${#NEURALWATT_API_KEY})"
+```
+
+If you don't have `secret-tool` (libsecret), install it (`sudo dnf install libsecret` on Fedora, `sudo apt install libsecret-tools` on Debian/Ubuntu). On macOS you can use `security add-generic-password` instead.
 
 ## opencode provider config
 
@@ -315,13 +330,15 @@ Queries the NeuralWatt energy API and prints request count and Wh consumption. U
 ```bash
 cp scripts/nw-usage ~/.local/bin/
 chmod +x ~/.local/bin/nw-usage
-
-mkdir -p ~/.config/neuralwatt
-echo "your-api-key" > ~/.config/neuralwatt/api_key
-chmod 600 ~/.config/neuralwatt/api_key
 ```
 
-The script reads the key from `NEURALWATT_API_KEY` env var or `~/.config/neuralwatt/api_key` (checked in that order).
+The script looks for the API key in three places, in order:
+
+1. `NEURALWATT_API_KEY` environment variable
+2. `secret-tool lookup service neuralwatt user "$USER"` (libsecret keyring — recommended; see [API key](#api-key) above)
+3. `~/.config/neuralwatt/api_key` file (legacy plaintext fallback — only use if libsecret isn't available)
+
+Statusline-style callers (tmux, conky) often run outside an interactive shell where `~/.zshrc` hasn't been sourced — the keyring lookup keeps working in those contexts, so you don't need the plaintext file.
 
 ### Usage
 
