@@ -164,12 +164,6 @@
       "model": "neuralwatt/zai-org/GLM-5.1-FP8",
       "steps": 50
     },
-    "oracle": {
-      "description": "Architecture consultant — GLM 5.1 FP8 with reasoning. Use for design discussions, system architecture, library/framework selection, trade-off analysis",
-      "mode": "primary",
-      "model": "neuralwatt/zai-org/GLM-5.1-FP8",
-      "steps": 50
-    },
     "qwen-fast": {
       "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
       "mode": "primary",

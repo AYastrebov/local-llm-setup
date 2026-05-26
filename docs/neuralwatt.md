@@ -153,8 +153,7 @@ The `plan` and `build` keys override opencode's built-in default agents. Everyth
 | `plan` (built-in) | primary | GLM 5.1 FP8 | Read-only planning — invoked via `/plan` |
 | `build` (built-in) | primary | Devstral Small 2 24B | Default execution after plan exits — runs automatically |
 | `kimi` | primary | Kimi K2.6 | Strong coding when you want better than Devstral |
-| `glm` | primary | GLM 5.1 FP8 | Standalone reasoning outside of plan mode |
-| `oracle` | primary | GLM 5.1 FP8 | Architecture consultations, library/framework decisions, trade-off analysis |
+| `glm` | primary | GLM 5.1 FP8 | Reasoning outside plan mode — architecture chats, design discussions, trade-off analysis |
 | `qwen-fast` | primary | Qwen3.6 35B A3B | Quick reasoning tasks, summaries — $0.29/M |
 | `explore` | subagent | Qwen3.6 35B Fast | Grep, file/symbol lookup, shallow code exploration (no reasoning overhead) |
 | `docs` | subagent | Qwen3.6 35B Fast | README/comment/docstring lookup, "where is X documented" |
@@ -203,9 +202,9 @@ Octto uses three internal agents. Override them to use NeuralWatt:
 |-------|-------|------|
 | `octto` | Kimi K2.6 | Orchestrates session, manages browser UI |
 | `bootstrapper` | Qwen 35B Fast | Generates 2–4 parallel branch questions instantly |
-| `probe` | GLM 5.1 FP8 | Follow-up questions per branch — oracle-depth reasoning |
+| `probe` | GLM 5.1 FP8 | Follow-up questions per branch — deep architectural reasoning |
 
-The `probe` agent is configured to behave like the `oracle` agent: it surfaces trade-offs and architectural decisions rather than jumping to implementation specifics.
+The `probe` agent prompt is tuned to surface trade-offs and architectural decisions rather than jumping to implementation specifics.
 
 ## Recommended workflow
 
@@ -217,7 +216,7 @@ For most coding tasks, the default flow is enough:
 
 For design decisions before coding:
 - **Complex architecture / multi-branch exploration** → octto agent (browser UI, parallel branches, GLM probe)
-- **Quick architecture consultation** → `/agent oracle` (text-only, same GLM 5.1 model)
+- **Quick architecture consultation** → `/agent glm` (text-only conversation, same GLM 5.1 model)
 
 For other tasks:
 - **"Where is X in the codebase?"** → `/agent explore` (or it gets invoked automatically as subagent)

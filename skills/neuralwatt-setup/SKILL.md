@@ -127,12 +127,6 @@ opencode has built-in `plan` and `build` modes — overriding them here makes th
   "model": "neuralwatt/zai-org/GLM-5.1-FP8",
   "steps": 50
 },
-"oracle": {
-  "description": "Architecture consultant — GLM 5.1 FP8 with reasoning. Use for design discussions, system architecture, library/framework selection, trade-off analysis",
-  "mode": "primary",
-  "model": "neuralwatt/zai-org/GLM-5.1-FP8",
-  "steps": 50
-},
 "qwen-fast": {
   "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
   "mode": "primary",
@@ -146,7 +140,7 @@ opencode has built-in `plan` and `build` modes — overriding them here makes th
   "steps": 20
 },
 "docs": {
-  "description": "Documentation lookup subagent — Qwen3.6 35B Fast. For reading README, code comments, doc strings, and answering 'where is X documented' questions",
+  "description": "Internal docs subagent — Qwen3.6 35B Fast. For reading project READMEs, code comments, and docstrings. Use Context7 MCP for library/framework documentation instead",
   "mode": "subagent",
   "model": "neuralwatt/qwen3.6-35b-fast",
   "steps": 20
@@ -168,6 +162,6 @@ Create a `"command"` section if it doesn't exist, then add:
 
 Report what was done (installed vs. already present). Tell the user:
 - Built-in modes: `/plan` (GLM 5.1) → exit plan → build (Devstral) — runs automatically
-- Custom agents: `/agent kimi`, `/agent glm`, `/agent oracle`, `/agent qwen-fast` for explicit overrides
+- Custom agents: `/agent kimi`, `/agent glm`, `/agent qwen-fast` for explicit overrides
 - Subagents (delegatable): `explore`, `docs`
 - Command: `/nw-usage` inside an OpenCode session
