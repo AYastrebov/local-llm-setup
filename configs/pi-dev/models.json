@@ -1,5 +1,38 @@
 {
   "providers": {
+    "neuralwatt": {
+      "baseUrl": "https://api.neuralwatt.com/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-your-neuralwatt-key-here",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "moonshotai/Kimi-K2.6",
+          "name": "Kimi K2.6",
+          "reasoning": true,
+          "contextWindow": 262128,
+          "maxTokens": 32768
+        },
+        {
+          "id": "zai-org/GLM-5.1-FP8",
+          "name": "GLM 5.1 FP8",
+          "reasoning": true,
+          "contextWindow": 202736,
+          "maxTokens": 32768
+        },
+        {
+          "id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+          "name": "Devstral Small 2 24B",
+          "reasoning": false,
+          "contextWindow": 262128,
+          "maxTokens": 4096
+        }
+      ]
+    },
     "local-fedora": {
       "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",
