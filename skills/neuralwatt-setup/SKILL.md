@@ -173,45 +173,7 @@ Create a `"command"` section if it doesn't exist, then add:
 }
 ```
 
-## Step 4: Plugin overrides (octto)
-
-Check whether the opencode config has `"plugin": ["octto", ...]` in it:
-
-```bash
-grep -E '"plugin"\s*:\s*\[' ~/.config/opencode/opencode.jsonc 2>/dev/null
-```
-
-If octto is present, opencode will try to load it with its hardcoded defaults — and all three octto agents (`octto`, `bootstrapper`, `probe`) point at `openai/gpt-5.2-codex`, which doesn't exist on a NeuralWatt-only setup. Symptom: opencode logs "Agent octto's configured model openai/gpt-5.2-codex is not valid" on startup.
-
-Fix by writing `~/.config/opencode/octto.json` to override the models:
-
-```json
-{
-  "agents": {
-    "octto":        { "model": "neuralwatt/moonshotai/Kimi-K2.6" },
-    "bootstrapper": { "model": "neuralwatt/qwen3.6-35b-fast" },
-    "probe":        { "model": "neuralwatt/zai-org/GLM-5.1-FP8" }
-  },
-  "fragments": {
-    "octto": [
-      "When the brainstorming session ends, structure the final plan so it can be handed directly to a /plan → build workflow in opencode: a clear problem statement, constraints, and ordered implementation steps"
-    ],
-    "probe": [
-      "Think like a senior architect: surface trade-offs, constraints, and design decisions rather than jumping to implementation details",
-      "For each branch, identify the key architectural decision before asking about specifics"
-    ],
-    "bootstrapper": [
-      "Split requests into branches that each represent a distinct architectural decision or implementation approach — not just feature areas"
-    ]
-  }
-}
-```
-
-Why these models: octto orchestrates → Kimi (instruction-following, big context); bootstrapper generates branch questions fast → Qwen 35B fast (no reasoning overhead); probe asks architectural follow-ups → GLM (reasoning enabled).
-
-If octto **isn't** in `"plugin"`, skip this step entirely.
-
-## Step 5: Confirm
+## Step 4: Confirm
 
 Report what was done (installed vs. already present). Tell the user:
 - Built-in modes: `/plan` (GLM 5.1) → exit plan → build (Devstral) — runs automatically

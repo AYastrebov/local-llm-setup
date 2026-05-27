@@ -175,110 +175,6 @@ The `plan` and `build` keys override opencode's built-in default agents. Everyth
 
 Use built-in modes with `/plan` and the normal build flow; switch to a specific custom agent with `/agent <name>`. Subagents are delegated to by other agents (or invoked directly).
 
-## Octto plugin
-
-[octto](https://github.com/vtemian/octto) is an opencode plugin that replaces terminal back-and-forth with an interactive browser UI. When you describe an idea, it opens a browser with clickable questions — pick lists, checkboxes, sliders, code editors — and explores it across 2–4 parallel branches before producing a structured design document ready for the `/plan` → `build` workflow.
-
-### Install
-
-Add to `~/.config/opencode/opencode.jsonc`:
-
-```jsonc
-"plugin": ["octto"]
-```
-
-### Agent config (`~/.config/opencode/octto.json`)
-
-Octto uses three internal agents. Override them to use NeuralWatt:
-
-```json
-{
-  "agents": {
-    "octto":        { "model": "neuralwatt/moonshotai/Kimi-K2.6" },
-    "bootstrapper": { "model": "neuralwatt/qwen3.6-35b-fast" },
-    "probe":        { "model": "neuralwatt/zai-org/GLM-5.1-FP8" }
-  },
-  "fragments": {
-    "octto": [
-      "When the brainstorming session ends, structure the final plan so it can be handed directly to a /plan → build workflow in opencode: a clear problem statement, constraints, and ordered implementation steps"
-    ],
-    "probe": [
-      "Think like a senior architect: surface trade-offs, constraints, and design decisions rather than jumping to implementation details",
-      "For each branch, identify the key architectural decision before asking about specifics"
-    ],
-    "bootstrapper": [
-      "Split requests into branches that each represent a distinct architectural decision or implementation approach — not just feature areas"
-    ]
-  }
-}
-```
-
-| Agent | Model | Role |
-|-------|-------|------|
-| `octto` | Kimi K2.6 | Orchestrates session, manages browser UI |
-| `bootstrapper` | Qwen 35B Fast | Generates 2–4 parallel branch questions instantly |
-| `probe` | GLM 5.1 FP8 | Follow-up questions per branch — deep architectural reasoning |
-
-The `probe` agent prompt is tuned to surface trade-offs and architectural decisions rather than jumping to implementation specifics.
-
-### How the workflow runs end-to-end
-
-```
-1. /agent octto + your idea
-        │
-        ▼
-2. bootstrapper splits the idea into 2–4 parallel branches
-   ┌─ Branch 1: caching strategy?
-   ├─ Branch 2: invalidation policy?
-   └─ Branch 3: deployment story?
-        │
-        ▼
-3. Browser opens — initial question per branch shown simultaneously
-        │  (click answers: radio buttons, checkboxes, sliders,
-        │   code diffs, image uploads — 14 input types)
-        ▼
-4. probe evaluates each branch live: "does this need more questions?"
-        │  → emits a follow-up if yes
-        │  → loop until each branch reaches natural depth
-        │     (some end at 2 questions, others at 4)
-        ▼
-5. octto (orchestrator) synthesises a structured design doc
-        │
-        ▼
-6. Final plan rendered in browser for your approval
-        │
-        ▼
-7. Plan saved to ./docs/plans/<name>.md in the project
-        │
-        ▼
-8. Hand off to opencode: press Tab → /plan references the saved doc
-   → exit plan → build implements
-```
-
-### When to reach for octto vs plain /plan
-
-| Plain `/plan` → `build` | `/agent octto` first |
-|---|---|
-| You know what to build, just want help structuring it | Multiple unanswered design decisions to explore |
-| Task is small/scoped (one decision, one path) | Task is fuzzy, has many trade-offs |
-| You can articulate constraints in a paragraph | You'd rather click options than type them |
-| ~5 min planning is enough | Worth a 2-min browser session because the alternative is 10 min of back-and-forth in the terminal |
-
-For everyday work — small features, bug fixes, refactors — plain `/plan` is faster. Octto shines when the *design* is the hard part, not the implementation.
-
-### Project-level fragments
-
-You can inject project-specific guidance via `.octto/fragments.json` in any repo. Useful when octto keeps suggesting patterns that don't fit your stack:
-
-```json
-{
-  "octto": ["This project uses React — focus on component patterns and hooks"],
-  "probe": ["Always ask about the testing strategy before approving a branch"]
-}
-```
-
-Project fragments append to global fragments — they don't replace them.
-
 ## Recommended workflow
 
 For most coding tasks, the default flow is enough:
@@ -288,8 +184,7 @@ For most coding tasks, the default flow is enough:
 3. **Hit "out of steps"?** — switch to `/agent kimi` and continue (Kimi has 100 steps + stronger reasoning)
 
 For design decisions before coding:
-- **Complex architecture / multi-branch exploration** → octto agent (browser UI, parallel branches, GLM probe)
-- **Quick architecture consultation** → `/agent glm` (text-only conversation, same GLM 5.1 model)
+- **Architecture consultation** → `/agent glm` (reasoning through design decisions and trade-offs)
 
 For other tasks:
 - **"Where is X in the codebase?"** → `/agent explore` (or it gets invoked automatically as subagent)

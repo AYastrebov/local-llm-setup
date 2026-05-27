@@ -5,7 +5,7 @@
   // ⚙️ GLOBAL SETTINGS
   // ==========================================
   "small_model": "neuralwatt/qwen3.6-35b-fast",
-  "plugin": ["octto", "superpowers@git+https://github.com/obra/superpowers.git"],
+  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
   "snapshot": false,
   "compaction": {
     "auto": true,
