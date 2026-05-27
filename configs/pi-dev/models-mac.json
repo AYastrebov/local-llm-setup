@@ -1,5 +1,62 @@
 {
   "providers": {
+    "neuralwatt": {
+      "baseUrl": "https://api.neuralwatt.com/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-your-neuralwatt-key-here",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "moonshotai/Kimi-K2.6",
+          "name": "Kimi K2.6",
+          "reasoning": true,
+          "contextWindow": 262128,
+          "maxTokens": 32768
+        },
+        {
+          "id": "zai-org/GLM-5.1-FP8",
+          "name": "GLM 5.1 FP8",
+          "reasoning": true,
+          "contextWindow": 202736,
+          "maxTokens": 32768
+        },
+        {
+          "id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+          "name": "Devstral Small 2 24B",
+          "reasoning": false,
+          "contextWindow": 262128,
+          "maxTokens": 4096
+        }
+      ]
+    },
+    "anthropic": {
+      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/claude-code/anthropic/",
+      "apiKey": "wire-proxy",
+      "api": "anthropic-messages"
+    },
+    "openai": {
+      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/codex/openai/",
+      "apiKey": "wire-proxy",
+      "api": "openai-codex-responses"
+    },
+    "google": {
+      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/gemini-cli/vertex",
+      "apiKey": "wire-proxy",
+      "api": "google-vertex",
+      "models": [
+        {
+          "id": "gemini-3.5-flash",
+          "name": "Gemini 3.5 Flash",
+          "reasoning": false,
+          "contextWindow": 1048576,
+          "maxTokens": 65536
+        }
+      ]
+    },
     "llama-cpp": {
       "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",

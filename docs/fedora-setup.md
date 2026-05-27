@@ -117,7 +117,21 @@ Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context
 
 Config file: `~/.pi/agent/models.json` (copy from `configs/pi-dev/models.json`)
 
-Start a launcher (`gemma-moe` or `qwen-mtp`), then select the model in pi.dev via `/model`.
+```bash
+cp configs/pi-dev/models.json ~/.pi/agent/models.json
+```
+
+The config registers four providers. Select any model via `/model` inside pi.dev:
+
+| Provider | Models | Notes |
+|---|---|---|
+| `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |
+| `anthropic` | Claude models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
+| `openai` | Codex models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
+| `google` | Gemini 3.5 Flash | JBCentral proxy — replace `YOUR-WIRE-HASH` |
+| `local-fedora` | Gemma 4, Qwen3.6 35B | llama.cpp at port 8080 — start a launcher first |
+
+The wire hash is in `~/.config/opencode/opencode.json` (set up by JBCentral).
 
 ## opencode Configuration
 
@@ -127,17 +141,24 @@ Config file: `~/.config/opencode/opencode.jsonc` (copy from `configs/opencode/op
 cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
 ```
 
-Agent profiles:
+Agent profiles — see [docs/neuralwatt.md](neuralwatt.md) for full details.
 
-| Agent | Model | Provider | Notes |
-|-------|-------|----------|-------|
-| `local-gemma` | Gemma 4 26B-A4B | Local llama.cpp | thinking, temp 1.0 — start `gemma-moe` first |
-| `local-moe` | Qwen3.6 35B-A3B | Local llama.cpp | thinking, temp 0.6 — start `qwen-mtp` first |
-| `kimi` | Kimi K2.6 | NeuralWatt | reasoning, 262K context |
-| `glm` | GLM 5.1 FP8 | NeuralWatt | reasoning, 202K context |
-| `qwen` | Qwen3.6 35B A3B | NeuralWatt | reasoning, 131K context |
+## LSP Configuration
 
-See [docs/neuralwatt.md](neuralwatt.md) for full NeuralWatt setup (API key, provider config, `nw-usage` script).
+opencode ships with LSP support. Install the language servers for the languages you use:
+
+```bash
+# Go (usually already installed with Go toolchain)
+go install golang.org/x/tools/gopls@latest
+
+# TypeScript / JavaScript / Vue
+npm install -g typescript-language-server typescript @vue/language-server
+
+# Rust
+rustup component add rust-analyzer
+```
+
+The config (`opencode-fedora.jsonc`) already declares all four. opencode will start whichever servers are installed and skip the rest.
 
 ## Web UI
 

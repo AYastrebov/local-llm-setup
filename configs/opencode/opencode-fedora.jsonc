@@ -14,6 +14,24 @@
   },
 
   // ==========================================
+  // 🔬 LSP
+  // ==========================================
+  "lsp": {
+    "gopls": {
+      "command": ["gopls"]
+    },
+    "typescript": {
+      "command": ["typescript-language-server", "--stdio"]
+    },
+    "rust": {
+      "command": ["rust-analyzer"]
+    },
+    "vue": {
+      "command": ["vue-language-server", "--stdio"]
+    }
+  },
+
+  // ==========================================
   // 🧠 PROVIDERS & MODELS
   // ==========================================
   "provider": {

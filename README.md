@@ -147,7 +147,7 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `configs/pi-dev/models.json`
 - macOS: `configs/pi-dev/models-mac.json`
 
-Start a server (`qwen-mtp` or `gemma-moe`), then select the model in pi.dev via `/model`.
+Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1, Devstral), JBCentral proxy (Anthropic, OpenAI Codex, Gemini 3.5 Flash), and local llama.cpp. Replace `YOUR-WIRE-HASH` with your hash from `~/.config/opencode/opencode.json` and set your NeuralWatt key. Select any model in pi.dev via `/model`.
 
 ### opencode
 
