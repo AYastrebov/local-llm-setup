@@ -33,6 +33,16 @@
         }
       ]
     },
+    "anthropic": {
+      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/claude-code/anthropic/",
+      "apiKey": "wire-proxy",
+      "api": "anthropic-messages"
+    },
+    "openai": {
+      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/codex/openai/",
+      "apiKey": "wire-proxy",
+      "api": "openai-codex-responses"
+    },
     "local-fedora": {
       "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",
