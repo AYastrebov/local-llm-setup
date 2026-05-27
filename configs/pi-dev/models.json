@@ -43,6 +43,20 @@
       "apiKey": "wire-proxy",
       "api": "openai-codex-responses"
     },
+    "google": {
+      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/gemini-cli/vertex",
+      "apiKey": "wire-proxy",
+      "api": "google-vertex",
+      "models": [
+        {
+          "id": "gemini-3.5-flash",
+          "name": "Gemini 3.5 Flash",
+          "reasoning": false,
+          "contextWindow": 1048576,
+          "maxTokens": 65536
+        }
+      ]
+    },
     "local-fedora": {
       "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",
