@@ -145,20 +145,9 @@ Agent profiles — see [docs/neuralwatt.md](neuralwatt.md) for full details.
 
 ## LSP Configuration
 
-opencode ships with LSP support. Install the language servers for the languages you use:
+`opencode-fedora.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, and Vue. opencode silently skips any binary that's not on PATH, so install only the ones you actually use.
 
-```bash
-# Go (usually already installed with Go toolchain)
-go install golang.org/x/tools/gopls@latest
-
-# TypeScript / JavaScript / Vue
-npm install -g typescript-language-server typescript @vue/language-server
-
-# Rust (Fedora — Rust installed via dnf, not rustup)
-sudo dnf install rust-analyzer
-```
-
-The config (`opencode-fedora.jsonc`) already declares all four. opencode will start whichever servers are installed and skip the rest.
+See [docs/lsp.md](lsp.md) for the per-language install commands (Fedora uses `dnf` for `rust-analyzer`, not `rustup`).
 
 ## Web UI
 

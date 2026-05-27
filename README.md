@@ -155,15 +155,19 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 - Fedora: `configs/opencode/opencode-fedora.jsonc`
 - macOS: `configs/opencode/opencode-mac.jsonc`
 
-| Agent | Model | Provider | Platform |
-|-------|-------|----------|----------|
-| `local-gemma` | Gemma 4 26B-A4B | Local llama.cpp | both — start `gemma-moe` |
-| `local-moe` | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | Local llama.cpp | both — start `qwen-mtp` |
-| `kimi` | Kimi K2.6 | NeuralWatt | both |
-| `glm` | GLM 5.1 FP8 | NeuralWatt | both |
-| `qwen` | Qwen3.6 35B A3B | NeuralWatt | both |
+| Agent | Mode | Model | Provider |
+|-------|------|-------|----------|
+| `plan` (built-in) | primary | GLM 5.1 FP8 | NeuralWatt |
+| `build` (built-in) | primary | Devstral Small 2 24B | NeuralWatt |
+| `kimi` | primary | Kimi K2.6 | NeuralWatt |
+| `glm` | primary | GLM 5.1 FP8 | NeuralWatt |
+| `qwen-fast` | primary | Qwen3.6 35B A3B | NeuralWatt |
+| `explore` | subagent | Qwen3.6 35B Fast | NeuralWatt |
+| `docs` | subagent | Qwen3.6 35B Fast | NeuralWatt |
+| `local-gemma` | primary | Gemma 4 26B-A4B | Local llama.cpp — start `gemma-moe` |
+| `local-moe` | primary | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | Local llama.cpp — start `qwen-mtp` |
 
-NeuralWatt agents require `NEURALWATT_API_KEY` — see [docs/neuralwatt.md](docs/neuralwatt.md).
+NeuralWatt agents require `NEURALWATT_API_KEY` — see [docs/neuralwatt.md](docs/neuralwatt.md). For LSP language-server setup (Go, TypeScript, Rust, Vue), see [docs/lsp.md](docs/lsp.md).
 
 ### Claude Code
 

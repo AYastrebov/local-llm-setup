@@ -99,6 +99,10 @@ Copy configs to their respective locations:
 
 Start a server and select the model in the agent UI.
 
+## LSP
+
+`opencode-mac.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, and Vue. See [docs/lsp.md](lsp.md) for macOS install commands (`brew install rust-analyzer`, npm for the JS-based servers).
+
 ## Performance (observed)
 
 Generation speed is ~32–38 t/s for MoE models (3–4B active params) on M2 Max.
