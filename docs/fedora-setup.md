@@ -154,8 +154,8 @@ go install golang.org/x/tools/gopls@latest
 # TypeScript / JavaScript / Vue
 npm install -g typescript-language-server typescript @vue/language-server
 
-# Rust
-rustup component add rust-analyzer
+# Rust (Fedora — Rust installed via dnf, not rustup)
+sudo dnf install rust-analyzer
 ```
 
 The config (`opencode-fedora.jsonc`) already declares all four. opencode will start whichever servers are installed and skip the rest.
