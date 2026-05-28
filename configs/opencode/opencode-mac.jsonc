@@ -81,6 +81,16 @@
           "options": { "temperature": 0.3, "maxTokens": 4096 }
         }
       }
+    },
+
+    // --- JetBrains Central (proxy strips these keys, adds real JWT) ---
+    // anthropic/openai baseURLs injected by jbcentral into ~/.config/opencode/opencode.json
+    // google-vertex baseURL uses gemini-cli wire path (JB_VERTEX_BASEURL from ~/.zshrc)
+    "anthropic":  { "apiKey": "sk-ant-dummy" },
+    "openai":     { "apiKey": "sk-openai-dummy" },
+    "google-vertex": {
+      "apiKey": "dummy",
+      "options": { "baseURL": "{env:JB_VERTEX_BASEURL}" }
     }
   },
 
@@ -218,9 +228,9 @@
       "description": "Show Neuralwatt energy usage",
       "template": "Here is my Neuralwatt API usage:\n\n!`nw-usage`\n\nReport this to the user."
     },
-    "jbcentral-quota": {
-      "description": "Show JBCentral API quota and spending",
-      "template": "Here is my JBCentral quota:\n\n!`jbcentral quota`\n\nReport this to the user."
+    "jb-usage": {
+      "description": "Show JetBrains Central quota usage",
+      "template": "Here is my JetBrains Central quota:\n\n!`jb-usage`\n\nReport this to the user."
     }
   }
 }

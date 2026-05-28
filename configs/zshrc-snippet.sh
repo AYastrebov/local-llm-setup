@@ -11,6 +11,13 @@ export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
 export GITHUB_TOKEN=$(secret-tool lookup service github user "$USER")
 export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN"  # github-mcp-server expects this name
 
+# JetBrains Central — dummy keys for OpenCode (proxy strips them, adds real JWT)
+export ANTHROPIC_API_KEY=sk-ant-dummy
+export OPENAI_API_KEY=sk-openai-dummy
+export GOOGLE_OAUTH_ACCESS_TOKEN=dummy-jbcentral
+export GOOGLE_VERTEX_LOCATION=default-location
+export GOOGLE_VERTEX_PROJECT=default-project
+
 # ===============================
 #   llama.cpp
 # ===============================

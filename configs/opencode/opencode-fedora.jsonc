@@ -105,9 +105,9 @@
       "description": "Show Neuralwatt energy usage",
       "template": "Here is my Neuralwatt API usage:\n\n!`nw-usage`\n\nReport this to the user."
     },
-    "jbcentral-quota": {
-      "description": "Show JBCentral API quota and spending",
-      "template": "Here is my JBCentral quota:\n\n!`jbcentral quota`\n\nReport this to the user."
+    "jb-usage": {
+      "description": "Show JetBrains Central quota usage",
+      "template": "Here is my JetBrains Central quota:\n\n!`jb-usage`\n\nReport this to the user."
     }
   },
 
