@@ -83,15 +83,6 @@
       }
     },
 
-    // --- JetBrains Central (proxy strips these keys, adds real JWT) ---
-    // anthropic/openai baseURLs injected by jbcentral into ~/.config/opencode/opencode.json
-    // google-vertex baseURL uses gemini-cli wire path (JB_VERTEX_BASEURL from ~/.zshrc)
-    "anthropic":  { "apiKey": "sk-ant-dummy" },
-    "openai":     { "apiKey": "sk-openai-dummy" },
-    "google-vertex": {
-      "apiKey": "dummy",
-      "options": { "baseURL": "{env:JB_VERTEX_BASEURL}" }
-    }
   },
 
   // ==========================================

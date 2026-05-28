@@ -11,7 +11,11 @@ export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
 export GITHUB_TOKEN=$(secret-tool lookup service github user "$USER")
 export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN"  # github-mcp-server expects this name
 
-# JetBrains Central — dummy keys for OpenCode (proxy strips them, adds real JWT)
+# JetBrains Central
+export JB_WIRE_SECRET=$(jq -r '.proxy_secret' ~/.wire/config.json 2>/dev/null)
+export JB_WIRE_PORT=$(jq -r '.proxy_port' ~/.wire/config.json 2>/dev/null)
+export JB_WIRE_BASE="http://127.0.0.1:${JB_WIRE_PORT}/wire/${JB_WIRE_SECRET}"
+# Dummy keys — proxy strips them and adds the real JWT
 export ANTHROPIC_API_KEY=sk-ant-dummy
 export OPENAI_API_KEY=sk-openai-dummy
 export GOOGLE_OAUTH_ACCESS_TOKEN=dummy-jbcentral
