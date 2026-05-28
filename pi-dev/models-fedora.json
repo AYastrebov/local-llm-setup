@@ -1,5 +1,50 @@
 {
   "providers": {
+    "moonshot": {
+      "baseUrl": "https://api.moonshot.cn/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-your-moonshot-key-here",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "kimi-k2.6",
+          "name": "Kimi K2.6",
+          "reasoning": true,
+          "contextWindow": 262128,
+          "maxTokens": 32768
+        }
+      ]
+    },
+    "deepseek": {
+      "baseUrl": "https://api.deepseek.com",
+      "api": "openai-completions",
+      "apiKey": "sk-your-deepseek-key-here",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 32768
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "name": "DeepSeek V4 Pro",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 32768
+        }
+      ]
+    },
     "neuralwatt": {
       "baseUrl": "https://api.neuralwatt.com/v1",
       "api": "openai-completions",
@@ -11,17 +56,17 @@
       },
       "models": [
         {
-          "id": "moonshotai/Kimi-K2.6",
-          "name": "Kimi K2.6",
-          "reasoning": true,
-          "contextWindow": 262128,
-          "maxTokens": 32768
-        },
-        {
           "id": "zai-org/GLM-5.1-FP8",
           "name": "GLM 5.1 FP8",
           "reasoning": true,
           "contextWindow": 202736,
+          "maxTokens": 32768
+        },
+        {
+          "id": "Qwen/Qwen3.6-35B-A3B",
+          "name": "Qwen3.6 35B A3B",
+          "reasoning": true,
+          "contextWindow": 131056,
           "maxTokens": 32768
         },
         {
@@ -36,12 +81,30 @@
     "anthropic": {
       "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/claude-code/anthropic/",
       "apiKey": "wire-proxy",
-      "api": "anthropic-messages"
+      "api": "anthropic-messages",
+      "models": [
+        {
+          "id": "claude-opus-4-7",
+          "name": "Claude Opus 4.7",
+          "reasoning": true,
+          "contextWindow": 200000,
+          "maxTokens": 32000
+        }
+      ]
     },
     "openai": {
       "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/codex/openai/",
       "apiKey": "wire-proxy",
-      "api": "openai-codex-responses"
+      "api": "openai-codex-responses",
+      "models": [
+        {
+          "id": "gpt-5.5-pro",
+          "name": "GPT-5.5 Pro",
+          "reasoning": false,
+          "contextWindow": 200000,
+          "maxTokens": 65536
+        }
+      ]
     },
     "google": {
       "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/gemini-cli/vertex",
@@ -53,6 +116,13 @@
           "name": "Gemini 3.5 Flash",
           "reasoning": false,
           "contextWindow": 1048576,
+          "maxTokens": 65536
+        },
+        {
+          "id": "gemini-3.1-pro-preview",
+          "name": "Gemini 3.1 Pro",
+          "reasoning": true,
+          "contextWindow": 2000000,
           "maxTokens": 65536
         }
       ]

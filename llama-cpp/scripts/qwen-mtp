@@ -14,9 +14,9 @@
 
 # --- Set model for your platform ---
 # macOS (64GB):  27B dense with MTP
-MODEL="unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q6_K_XL"
+# MODEL="unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q6_K_XL"
 # Fedora (16GB): 35B-A3B MoE with MTP
-# MODEL="unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-IQ3_XXS"
+MODEL="unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-IQ3_XXS"
 
 CTX_SIZE=65536
 KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
@@ -54,13 +54,13 @@ case "$MODE" in
   server)
     PORT="${1:-8080}"
     shift 2>/dev/null
-    echo "Starting Qwen3.6-27B (dense, MTP) on http://localhost:$PORT"
+    echo "Starting Qwen3.6-35B-A3B MoE (MTP) on http://localhost:$PORT"
     exec llama-server \
       -hf "$MODEL" \
       --ctx-size "$CTX_SIZE" \
       --jinja \
       --chat-template-kwargs '{"enable_thinking":true}' \
-      --alias "qwen3.6-27b" \
+      --alias "qwen3.6-35b-a3b" \
       --port "$PORT" \
       --flash-attn on \
       --fit on \

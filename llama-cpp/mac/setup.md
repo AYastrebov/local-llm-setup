@@ -56,14 +56,14 @@ gemma-moe              # server on port 8080
 gemma-moe chat         # interactive CLI (thinking enabled)
 ```
 
-### Qwen3.6-35B-A3B (35B MoE, 3B active)
+### Qwen3.6-27B (27B dense, MTP)
 
-General-purpose model with thinking/reasoning support.
+General-purpose model with thinking/reasoning and MTP speculative decoding (~1.4–2.2× speedup).
 
 | Quant | Size | Fits 64GB Mac? | Notes |
 |-------|------|----------------|-------|
-| UD-Q4_K_XL | ~18 GB | Yes (recommended) | Good quality, ~31 GB headroom |
-| UD-IQ3_XXS | ~13 GB | Yes | Lower quality, use on constrained systems |
+| UD-Q6_K_XL | ~26 GB | Yes (recommended) | High quality, ~38 GB headroom |
+| UD-Q4_K_XL | ~18 GB | Yes | Good quality, ~46 GB headroom |
 
 **Sampling parameters** (per [Unsloth docs](https://unsloth.ai/docs/models/qwen3.6)):
 
@@ -85,8 +85,8 @@ qwen-mtp chat-think     # interactive CLI (creative params)
 |---|---|---|
 | GPU backend | Metal | HIP/ROCm |
 | Gemma 4 26B-A4B quant | Q8_K_XL (28 GB) | Q3_K_XL (13 GB) |
-| Qwen3.6-35B-A3B quant | Q4_K_XL (~18 GB) | IQ3_XXS (~13 GB) |
-| KV cache quantization | q4_0 | q4_0 |
+| Qwen3.6 model | 27B dense MTP, Q6_K_XL (~26 GB) | 35B-A3B MoE, IQ3_XXS (~13 GB) |
+| KV cache quantization | q8_0 | q8_0 |
 | Build flags | `-DGGML_METAL=ON -DGGML_NATIVE=ON` | `-DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON` |
 
 The Mac’s larger unified memory allows higher quantization levels for better quality output.

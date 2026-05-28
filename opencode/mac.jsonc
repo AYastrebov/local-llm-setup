@@ -4,7 +4,6 @@
   // ==========================================
   // ⚙️ GLOBAL SETTINGS
   // ==========================================
-  "small_model": "neuralwatt/qwen3.6-35b-fast",
   "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
   "snapshot": false,
   "compaction": {
@@ -54,6 +53,38 @@
         }
       }
     },
+    "moonshot": {
+      "name": "Moonshot",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.moonshot.cn/v1",
+        "apiKey": "{env:MOONSHOT_API_KEY}"
+      },
+      "models": {
+        "kimi-k2.6": {
+          "name": "Kimi K2.6",
+          "limit": { "context": 262128, "output": 32768 }
+        }
+      }
+    },
+    "deepseek": {
+      "name": "DeepSeek",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.deepseek.com",
+        "apiKey": "{env:DEEPSEEK_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash",
+          "limit": { "context": 1048576, "output": 131072 }
+        },
+        "deepseek-v4-pro": {
+          "name": "DeepSeek V4 Pro",
+          "limit": { "context": 1048576, "output": 131072 }
+        }
+      }
+    },
     "neuralwatt": {
       "name": "Neuralwatt",
       "npm": "@ai-sdk/openai-compatible",
@@ -62,11 +93,6 @@
         "apiKey": "{env:NEURALWATT_API_KEY}"
       },
       "models": {
-        "moonshotai/Kimi-K2.6": {
-          "name": "Kimi K2.6",
-          "limit": { "context": 262128, "output": 262128 },
-          "options": { "repetitionPenalty": 1.05 }
-        },
         "zai-org/GLM-5.1-FP8": {
           "name": "GLM 5.1 FP8",
           "limit": { "context": 202736, "output": 202736 }
@@ -152,13 +178,13 @@
   "agent": {
     // --- Built-in opencode modes (plan / build) ---
     "plan": {
-      "description": "Planning mode — uses GLM 5.1 FP8 for read-only analysis, architecture decisions, and step-by-step plans before execution",
-      "model": "neuralwatt/zai-org/GLM-5.1-FP8",
+      "description": "Planning mode — read-only analysis, architecture decisions, and step-by-step plans before execution",
+      "model": "deepseek/deepseek-v4-pro",
       "steps": 30
     },
     "build": {
-      "description": "Default execution mode — uses Devstral Small 2 for cheap, coding-specialized implementation. Pair with /plan first for best results",
-      "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
+      "description": "Default execution mode — DeepSeek V4 Flash for fast, cheap implementation. Pair with /plan first for best results",
+      "model": "deepseek/deepseek-v4-flash",
       "steps": 100
     },
 
@@ -180,13 +206,29 @@
       "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     },
 
-    // --- NeuralWatt cloud models ---
-    "kimi": {
-      "description": "Kimi K2.6 via NeuralWatt — reasoning + tool use, 262K context",
+    // --- Moonshot cloud models ---
+    "kimi-direct": {
+      "description": "Kimi K2.6 direct via Moonshot API — reasoning + tool use, 262K context",
       "mode": "primary",
-      "model": "neuralwatt/moonshotai/Kimi-K2.6",
+      "model": "moonshot/kimi-k2.6",
       "steps": 100
     },
+
+    // --- DeepSeek cloud models ---
+    "deepseek-flash": {
+      "description": "DeepSeek V4 Flash — fast reasoning + tool use, 1M context",
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-flash",
+      "steps": 50
+    },
+    "deepseek-pro": {
+      "description": "DeepSeek V4 Pro — full reasoning + tool use, 1M context",
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-pro",
+      "steps": 100
+    },
+
+    // --- NeuralWatt cloud models ---
     "glm": {
       "description": "GLM 5.1 FP8 via NeuralWatt — reasoning + tool use, 202K context",
       "mode": "primary",

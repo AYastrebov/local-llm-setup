@@ -73,7 +73,7 @@ Models are stored as plain GGUF files in `~/models/`.
 Download models:
 ```bash
 llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL -n 0 -p ""
-llama-cli -hf unsloth/Qwen3.6-35B-A3B-GGUF:UD-IQ3_XXS -n 0 -p ""
+llama-cli -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-IQ3_XXS -n 0 -p ""
 ```
 
 ## Launcher Scripts
@@ -91,10 +91,10 @@ gemma-moe chat         # interactive CLI, thinking enabled
 Configure for Fedora by editing the MODEL line in the script:
 ```bash
 MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
-KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
+KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 ```
 
-### qwen-mtp (Qwen3.6 35B-A3B)
+### qwen-mtp (Qwen3.6 35B-A3B MoE)
 
 ```bash
 qwen-mtp              # server on port 8080
@@ -111,7 +111,7 @@ qwen-mtp chat-think   # interactive CLI, creative params
 | Qwen3.6 35B-A3B | Coding (chat) | 0.6 | 0.95 | 20 | 0.0 |
 | Qwen3.6 35B-A3B | Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 |
 
-Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context in 16 GB VRAM (~13 GB model + ~2 GB KV cache, ~1 GB headroom).
+Context window: 65536 tokens. KV cache is quantized to `q8_0` (~13 GB model + ~2 GB KV cache, ~1 GB headroom in 16 GB VRAM).
 
 ## pi.dev Configuration
 
@@ -125,11 +125,13 @@ The config registers four providers. Select any model via `/model` inside pi.dev
 
 | Provider | Models | Notes |
 |---|---|---|
+| `moonshot` | Kimi K2.6 | Requires `MOONSHOT_API_KEY` — replace placeholder key in file |
+| `deepseek` | V4 Flash, V4 Pro | Requires `DEEPSEEK_API_KEY` — replace placeholder key in file |
 | `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |
 | `anthropic` | Claude models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
 | `openai` | Codex models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
 | `google` | Gemini 3.5 Flash | JBCentral proxy — replace `YOUR-WIRE-HASH` |
-| `local-fedora` | Gemma 4, Qwen3.6 35B | llama.cpp at port 8080 — start a launcher first |
+| `local-fedora` | Gemma 4 26B-A4B, Qwen3.6 35B-A3B | llama.cpp at port 8080 — start a launcher first |
 
 The wire hash is in `~/.config/opencode/opencode.json` (set up by JBCentral).
 
@@ -145,7 +147,7 @@ Agent profiles — see [neuralwatt/setup.md](../../neuralwatt/setup.md) for full
 
 ## LSP Configuration
 
-`opencode-fedora.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, and Vue. opencode silently skips any binary that's not on PATH, so install only the ones you actually use.
+`opencode-fedora.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, Vue, and Kotlin. opencode silently skips any binary that's not on PATH, so install only the ones you actually use.
 
 See [docs/lsp.md](../docs/lsp.md) for the per-language install commands (Fedora uses `dnf` for `rust-analyzer`, not `rustup`).
 

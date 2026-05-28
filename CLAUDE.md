@@ -32,6 +32,12 @@ neuralwatt/         NeuralWatt cloud provider setup
   nw-usage          usage reporting script
   skills/neuralwatt-setup/  Claude Code skill for NeuralWatt setup
 
+deepseek/           DeepSeek cloud provider setup
+  setup.md          API key, model IDs, agent config
+
+moonshot/           Moonshot (Kimi) cloud provider setup
+  setup.md          API key, model IDs, agent config
+
 opencode/           OpenCode configs per platform
   mac.jsonc         macOS live config
   fedora.jsonc      Fedora live config
@@ -52,7 +58,7 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 
 **Model families are distinct** — Qwen3.6 and Gemma 4 have different sampling parameters and thinking mode support. Qwen3.6 models use `--chat-template-kwargs '{"enable_thinking":true}'`. Never mix their parameters.
 
-**opencode configs** (`opencode/`) — The cloud provider sections (NeuralWatt, JB Central) are identical between mac and fedora. The only difference is the local model: Qwen3.6 27B dense (Mac) vs Qwen3.6 35B-A3B MoE (Fedora).
+**opencode configs** (`opencode/`) — Cloud provider sections (NeuralWatt, DeepSeek, JB Central) are identical between mac and fedora. Local models differ: both platforms run Gemma 4 26B-A4B (different quants) and a Qwen3.6 variant — 27B dense MTP on Mac, 35B-A3B MoE on Fedora.
 
 **pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
 
@@ -65,7 +71,7 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 ## Key conventions
 
 - All launcher scripts default to port 8080 and use `exec` to replace the shell process
-- KV cache quantization (`--cache-type-k q4_0 --cache-type-v q4_0`) is standard across all launchers
+- KV cache quantization (`--cache-type-k q8_0 --cache-type-v q8_0`) is standard across all launchers
 - Context size is 65536 tokens for all models
 - Models are sourced from Unsloth's GGUF quantizations on HuggingFace
 - `llama-cpp/fedora/build.sh` is Fedora/ROCm-specific (uses `hipconfig`); macOS builds use plain cmake with `-DGGML_METAL=ON`

@@ -11,6 +11,14 @@ export NEURALWATT_API_KEY=$(secret-tool lookup service neuralwatt user "$USER")
 export GITHUB_TOKEN=$(secret-tool lookup service github user "$USER")
 export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN"  # github-mcp-server expects this name
 
+# DeepSeek — store once with:
+#   printf '%s' 'sk-...' | secret-tool store --label='DeepSeek API key' service deepseek user "$USER"
+export DEEPSEEK_API_KEY=$(secret-tool lookup service deepseek user "$USER")
+
+# Moonshot (Kimi) — store once with:
+#   printf '%s' 'sk-...' | secret-tool store --label='Moonshot API key' service moonshot user "$USER"
+export MOONSHOT_API_KEY=$(secret-tool lookup service moonshot user "$USER")
+
 # JetBrains Central
 export JB_WIRE_SECRET=$(jq -r '.proxy_secret' ~/.wire/config.json 2>/dev/null)
 export JB_WIRE_PORT=$(jq -r '.proxy_port' ~/.wire/config.json 2>/dev/null)

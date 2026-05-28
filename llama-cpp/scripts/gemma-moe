@@ -13,8 +13,8 @@
 #   gemma-moe server 8001  → start server on custom port
 
 # --- Set quant for your platform ---
-MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL"
-# MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"   # Fedora 16GB VRAM
+# MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL"   # macOS M2 Max 64GB
+MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
 CTX_SIZE=65536
 KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 SAMPLING="--temp 1.0 --top-p 0.95 --top-k 64"
