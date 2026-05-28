@@ -28,6 +28,10 @@
     },
     "vue": {
       "command": ["vue-language-server", "--stdio"]
+    },
+    "kotlin": {
+      "command": ["kotlin-lsp", "--stdio"],
+      "extensions": [".kt", ".kts"]
     }
   },
 

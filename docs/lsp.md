@@ -2,7 +2,7 @@
 
 opencode uses LSP (Language Server Protocol) servers to give the AI agents real code intelligence — go-to-definition, symbol search, completion context, and live diagnostics. Without LSPs, agents can still read files, but they lose the structured signal that LSP provides (e.g., "this symbol is unused", "the type doesn't match here", "this import is wrong").
 
-The opencode configs in this repo declare four language servers:
+The opencode configs in this repo declare five language servers:
 
 | Language | Server | Triggered by |
 |---|---|---|
@@ -10,6 +10,7 @@ The opencode configs in this repo declare four language servers:
 | TypeScript / JavaScript | `typescript-language-server` | `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, etc. |
 | Rust | `rust-analyzer` | `.rs` files |
 | Vue | `vue-language-server` | `.vue` files |
+| Kotlin | `kotlin-lsp` | `.kt`, `.kts` files |
 
 opencode silently skips any server whose binary isn't on `PATH` — you only need to install the ones you actually use.
 
@@ -26,6 +27,13 @@ sudo dnf install rust-analyzer
 
 # TypeScript / JavaScript / Vue
 npm install -g typescript-language-server typescript @vue/language-server
+
+# Kotlin (alpha — https://github.com/Kotlin/kotlin-lsp)
+# No Homebrew on Fedora — install manually from releases:
+# https://github.com/Kotlin/kotlin-lsp/releases
+KOTLIN_LSP_DIR=~/tools/kotlin-lsp   # or wherever you extract it
+chmod +x $KOTLIN_LSP_DIR/kotlin-lsp.sh
+ln -s $KOTLIN_LSP_DIR/kotlin-lsp.sh ~/.local/bin/kotlin-lsp
 ```
 
 > **Why dnf for Rust:** the official Rust docs suggest `rustup component add rust-analyzer`, but that only works when Rust itself is managed by `rustup`. On Fedora 43+ where Rust is a system package (`rust.x86_64`), use dnf.
@@ -41,6 +49,9 @@ brew install rust-analyzer
 
 # TypeScript / JavaScript / Vue
 npm install -g typescript-language-server typescript @vue/language-server
+
+# Kotlin (alpha — https://github.com/Kotlin/kotlin-lsp)
+brew install JetBrains/utils/kotlin-lsp
 ```
 
 ## Verifying installation
@@ -48,7 +59,7 @@ npm install -g typescript-language-server typescript @vue/language-server
 After installing, check each binary resolves:
 
 ```bash
-for cmd in gopls typescript-language-server rust-analyzer vue-language-server; do
+for cmd in gopls typescript-language-server rust-analyzer vue-language-server kotlin-lsp; do
   command -v "$cmd" >/dev/null 2>&1 && echo "✓ $cmd" || echo "✗ $cmd"
 done
 ```
@@ -64,7 +75,8 @@ The config block lives at the top of each `opencode-*.jsonc` template:
   "gopls":      { "command": ["gopls"] },
   "typescript": { "command": ["typescript-language-server", "--stdio"] },
   "rust":       { "command": ["rust-analyzer"] },
-  "vue":        { "command": ["vue-language-server", "--stdio"] }
+  "vue":        { "command": ["vue-language-server", "--stdio"] },
+  "kotlin":     { "command": ["kotlin-lsp", "--stdio"], "extensions": [".kt", ".kts"] }
 }
 ```
 
