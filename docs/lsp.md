@@ -84,6 +84,23 @@ To add another language, append an entry with `command` set to the server binary
 
 See the [opencode LSP docs](https://opencode.ai/docs/lsp/) for the full schema (env vars, custom extensions, disabling auto-download).
 
+## LSP for pi.dev (pi-lsp-extension)
+
+`npm:pi-lsp-extension` is installed globally and registered in `~/.pi/agent/settings.json`. It provides `lsp_diagnostics`, `lsp_hover`, `lsp_definition`, `lsp_references`, and other tools.
+
+Most languages (TypeScript, Python, Rust, Go, Java) have built-in defaults. Kotlin doesn't — configure it via `.pi-lsp.json` in the project root:
+
+```json
+{
+  "servers": {
+    "kotlin": { "command": "kotlin-lsp", "args": ["--stdio"] }
+  },
+  "autoStart": ["kotlin"]
+}
+```
+
+`autoStart` spins up the server at session start rather than waiting for the first tool call (recommended for Kotlin LSP, which is slow to initialize).
+
 ## Disabling LSP auto-download
 
 opencode tries to fetch some language servers on first use. To turn that off and only rely on what's installed manually:

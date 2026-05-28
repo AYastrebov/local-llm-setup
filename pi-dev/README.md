@@ -58,6 +58,23 @@ google:    http://127.0.0.1:19516/wire/{secret}/gemini-cli/vertex
 
 These differ from the OpenCode paths. See `jbcentral/setup.md` for the full wire path table.
 
+## LSP (pi-lsp-extension)
+
+`npm:pi-lsp-extension` is installed globally (`pi list`). It gives agents `lsp_diagnostics`, `lsp_hover`, `lsp_definition`, `lsp_references`, and other IDE-grade tools.
+
+Kotlin LSP has no built-in default in the extension — configure it per project with `.pi-lsp.json` in the project root:
+
+```json
+{
+  "servers": {
+    "kotlin": { "command": "kotlin-lsp", "args": ["--stdio"] }
+  },
+  "autoStart": ["kotlin"]
+}
+```
+
+`autoStart` tells the extension to spin up `kotlin-lsp` eagerly on session start (recommended — it's slow to initialize). See the [pi-lsp-extension README](https://github.com/samfoy/pi-lsp-extension) for full `.pi-lsp.json` options.
+
 ## What agents can edit here
 
 - Add or remove models within existing providers
