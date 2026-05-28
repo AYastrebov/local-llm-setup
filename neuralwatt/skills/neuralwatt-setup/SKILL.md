@@ -7,7 +7,7 @@ description: Configure OpenCode with NeuralWatt as a cloud AI provider. Use this
 
 This skill configures OpenCode to use NeuralWatt as a cloud AI provider. The full setup involves four things: API key, `nw-usage` script, opencode provider block, and agent profiles.
 
-Read `docs/neuralwatt.md` for full background. The reference config is at `configs/opencode/opencode-fedora.jsonc`.
+Read `neuralwatt/setup.md` for full background. The reference config is at `opencode/fedora.jsonc`.
 
 ## Step 1: Check API key
 
@@ -35,10 +35,10 @@ Remind them to `source ~/.zshrc` afterward. If `secret-tool` isn't installed (no
 
 ## Step 2: Install nw-usage
 
-The script is at `scripts/nw-usage` in this repo:
+The script is at `neuralwatt/nw-usage` in this repo:
 
 ```bash
-cp scripts/nw-usage ~/.local/bin/
+cp neuralwatt/nw-usage ~/.local/bin/
 chmod +x ~/.local/bin/nw-usage
 ```
 

@@ -94,14 +94,14 @@ The Mac’s larger unified memory allows higher quantization levels for better q
 ## Coding agent integration
 
 Copy configs to their respective locations:
-- pi.dev: `configs/pi-dev/models-mac.json` → `~/.pi/agent/models.json`
-- opencode: `configs/opencode/opencode-mac.jsonc` → `~/.config/opencode/opencode.jsonc`
+- pi.dev: `pi-dev/models-mac.json` → `~/.pi/agent/models.json`
+- opencode: `opencode/mac.jsonc` → `~/.config/opencode/opencode.jsonc`
 
 Start a server and select the model in the agent UI.
 
 ## LSP
 
-`opencode-mac.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, and Vue. See [docs/lsp.md](lsp.md) for macOS install commands (`brew install rust-analyzer`, npm for the JS-based servers).
+`opencode-mac.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, and Vue. See [docs/lsp.md](../docs/lsp.md) for macOS install commands (`brew install rust-analyzer`, npm for the JS-based servers).
 
 ## Performance (observed)
 

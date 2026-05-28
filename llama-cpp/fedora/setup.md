@@ -115,10 +115,10 @@ Context window: 65536 tokens. KV cache is quantized to `q4_0` to fit 64K context
 
 ## pi.dev Configuration
 
-Config file: `~/.pi/agent/models.json` (copy from `configs/pi-dev/models.json`)
+Config file: `~/.pi/agent/models.json` (copy from `pi-dev/models-fedora.json`)
 
 ```bash
-cp configs/pi-dev/models.json ~/.pi/agent/models.json
+cp pi-dev/models-fedora.json ~/.pi/agent/models.json
 ```
 
 The config registers four providers. Select any model via `/model` inside pi.dev:
@@ -135,19 +135,19 @@ The wire hash is in `~/.config/opencode/opencode.json` (set up by JBCentral).
 
 ## opencode Configuration
 
-Config file: `~/.config/opencode/opencode.jsonc` (copy from `configs/opencode/opencode-fedora.jsonc`)
+Config file: `~/.config/opencode/opencode.jsonc` (copy from `opencode/fedora.jsonc`)
 
 ```bash
-cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
+cp opencode/fedora.jsonc ~/.config/opencode/opencode.jsonc
 ```
 
-Agent profiles — see [docs/neuralwatt.md](neuralwatt.md) for full details.
+Agent profiles — see [neuralwatt/setup.md](../../neuralwatt/setup.md) for full details.
 
 ## LSP Configuration
 
 `opencode-fedora.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, and Vue. opencode silently skips any binary that's not on PATH, so install only the ones you actually use.
 
-See [docs/lsp.md](lsp.md) for the per-language install commands (Fedora uses `dnf` for `rust-analyzer`, not `rustup`).
+See [docs/lsp.md](../docs/lsp.md) for the per-language install commands (Fedora uses `dnf` for `rust-analyzer`, not `rustup`).
 
 ## Web UI
 
@@ -160,7 +160,7 @@ claude-gemma       # Gemma 4 26B-A4B
 claude-qwen        # Qwen3.6 35B-A3B
 ```
 
-Aliases defined in `configs/zshrc-snippet.sh`. Start the corresponding server first.
+Aliases defined in `zshrc-snippet.sh`. Start the corresponding server first.
 
 ## Troubleshooting
 

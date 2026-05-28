@@ -65,7 +65,7 @@ If you don't have `secret-tool` (libsecret), install it (`sudo dnf install libse
 
 ## opencode provider config
 
-Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already included in `configs/opencode/opencode-fedora.jsonc`):
+Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already included in `opencode/fedora.jsonc`):
 
 ```jsonc
 "small_model": "neuralwatt/qwen3.6-35b-fast",
@@ -281,7 +281,7 @@ Queries the NeuralWatt energy API and prints request count and Wh consumption. U
 ### Install
 
 ```bash
-cp scripts/nw-usage ~/.local/bin/
+cp neuralwatt/nw-usage ~/.local/bin/
 chmod +x ~/.local/bin/nw-usage
 ```
 
