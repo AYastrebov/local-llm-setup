@@ -25,10 +25,11 @@ JetBrains Central wires automatically via `jbcentral add opencode`, which writes
 ## What differs between mac and fedora
 
 The only difference is the local model in the `local-moe` agent:
-- **mac**: `local/qwen3.6-27b` (27B dense, MTP)
-- **fedora**: `local/qwen3.6-27b` → should be `local/qwen3.6-27b` (same script, different quantization loaded by `qwen-mtp`)
+- **mac**: `local/qwen3.6-27b` (27B dense, Q6_K_XL, ~26 GB)
+- **fedora**: `local/qwen3.6-35b-a3b` (35B MoE, IQ3_XXS, ~14 GB VRAM)
 
-Cloud provider sections (NeuralWatt, JB Central) and all agent definitions are identical.
+Both use the `qwen-mtp` launcher script — the model file it loads differs per platform.
+Cloud provider sections (NeuralWatt, JB Central) and all other agent definitions are identical.
 
 ## Agent overview
 
@@ -53,3 +54,4 @@ JB Central agents (opus, codex, gemini) are defined in the Kotlin project config
 - Add new agents to the `agent` section
 - Enable/disable MCP servers
 - Do **not** add jbcentral provider overrides — those are managed by `opencode.json`
+- Do **not** add local models without updating both `mac.jsonc` and `fedora.jsonc` — local model IDs differ per platform

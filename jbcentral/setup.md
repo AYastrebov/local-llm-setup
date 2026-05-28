@@ -52,7 +52,7 @@ Each agent type has its own wire path for quota tracking:
 
 ## OpenCode wiring
 
-JetBrains Central auto-generates `~/.config/opencode/opencode.json` with provider baseURLs. Do **not** edit this file — it will be overwritten. The user config is `~/.config/opencode/opencode.jsonc`.
+JetBrains Central auto-generates `~/.config/opencode/opencode.json` with provider baseURLs. Do **not** edit this file — it will be overwritten on the next `jbcentral add opencode` run. The user config is `~/.config/opencode/opencode.jsonc`. Provider overrides (baseURL, apiKey) must not be added to `opencode.jsonc` — they are already in the managed file.
 
 See `opencode.json` in this directory for the reference template.
 

@@ -26,6 +26,8 @@ Then edit `~/.pi/agent/models.json`:
 pi.dev does not support env var substitution in JSON, so secrets must be hardcoded in the live file.
 The repo templates use placeholders to avoid committing real credentials.
 
+**Never commit `~/.pi/agent/models.json` to this repo** — it contains real secrets. Only edit the template files (`models-mac.json`, `models-fedora.json`) which use `YOUR-WIRE-HASH` and `sk-your-neuralwatt-key-here` as placeholders.
+
 ## Providers
 
 | Provider | Models | Notes |
