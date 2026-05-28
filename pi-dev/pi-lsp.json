@@ -1,0 +1,8 @@
+{
+  "_comment": "Template .pi-lsp.json — copy to your project root and remove languages you don't use.",
+  "_comment2": "go/rust/typescript/javascript have built-in defaults and don't need entries here.",
+  "servers": {
+    "kotlin": { "command": "kotlin-lsp", "args": ["--stdio"] }
+  },
+  "autoStart": []
+}

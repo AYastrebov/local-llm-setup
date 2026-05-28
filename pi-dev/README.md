@@ -62,7 +62,17 @@ These differ from the OpenCode paths. See `jbcentral/setup.md` for the full wire
 
 `npm:pi-lsp-extension` is installed globally (`pi list`). It gives agents `lsp_diagnostics`, `lsp_hover`, `lsp_definition`, `lsp_references`, and other IDE-grade tools.
 
-Kotlin LSP has no built-in default in the extension — configure it per project with `.pi-lsp.json` in the project root:
+Built-in defaults (work automatically, no config needed):
+
+| Language | Server |
+|----------|--------|
+| TypeScript / JavaScript | `typescript-language-server` |
+| Go | `gopls serve` |
+| Rust | `rust-analyzer` |
+| Python | `pyright-langserver` |
+| Java | `jdtls` |
+
+Kotlin has no built-in default. Vue is not in the language map and won't trigger automatically. Configure non-default servers via `.pi-lsp.json` in the project root. A template is at `pi-dev/pi-lsp.json` in this repo.
 
 ```json
 {
@@ -73,7 +83,7 @@ Kotlin LSP has no built-in default in the extension — configure it per project
 }
 ```
 
-`autoStart` tells the extension to spin up `kotlin-lsp` eagerly on session start (recommended — it's slow to initialize). See the [pi-lsp-extension README](https://github.com/samfoy/pi-lsp-extension) for full `.pi-lsp.json` options.
+`autoStart` spins up the server at session start rather than waiting for the first tool call — recommended for Kotlin LSP, which is slow to initialize. See the [pi-lsp-extension README](https://github.com/samfoy/pi-lsp-extension) for full `.pi-lsp.json` options.
 
 ## What agents can edit here
 
