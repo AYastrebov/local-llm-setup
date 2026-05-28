@@ -6,9 +6,9 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 
 | Platform | Hardware | Guide |
 |----------|----------|-------|
-| **Fedora** | Intel i5-14600K, RX 9060 XT (16GB), 32GB RAM | [docs/fedora-setup.md](docs/fedora-setup.md) |
-| **macOS** | Apple M2 Max, 64GB unified memory | [docs/mac-setup.md](docs/mac-setup.md) |
-| **Docker** | Intel i3-6100T, 24GB RAM, no GPU (home server) | [docs/docker-server.md](docs/docker-server.md) |
+| **Fedora** | Intel i5-14600K, RX 9060 XT (16GB), 32GB RAM | [llama-cpp/fedora/setup.md](llama-cpp/fedora/setup.md) |
+| **macOS** | Apple M2 Max, 64GB unified memory | [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) |
+| **Docker** | Intel i3-6100T, 24GB RAM, no GPU (home server) | [llama-cpp/docker/setup.md](llama-cpp/docker/setup.md) |
 
 ## Models
 
@@ -57,13 +57,13 @@ Dense models benefit significantly more from MTP than MoE models.
 2. **Clone and build llama.cpp**:
    ```bash
    git clone https://github.com/ggml-org/llama.cpp.git ~/llama.cpp
-   cp scripts/build-llama.sh ~/llama.cpp/build.sh
+   cp llama-cpp/fedora/build.sh ~/llama.cpp/build.sh
    cd ~/llama.cpp && ./build.sh
    ```
 
 3. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen-mtp scripts/gemma-moe ~/.local/bin/
+   cp llama-cpp/scripts/qwen-mtp llama-cpp/scripts/gemma-moe ~/.local/bin/
    chmod +x ~/.local/bin/qwen-mtp ~/.local/bin/gemma-moe
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
    # Edit qwen-mtp: uncomment the 35B-A3B-MTP MODEL line for Fedora
@@ -71,14 +71,14 @@ Dense models benefit significantly more from MTP than MoE models.
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
    ```bash
-   cat configs/zshrc-snippet.sh >> ~/.zshrc
+   cat zshrc-snippet.sh >> ~/.zshrc
    source ~/.zshrc
    ```
 
 5. **Configure coding agents:**
    ```bash
-   cp configs/pi-dev/models.json ~/.pi/agent/models.json
-   cp configs/opencode/opencode-fedora.jsonc ~/.config/opencode/opencode.jsonc
+   cp pi-dev/models-fedora.json ~/.pi/agent/models.json
+   cp opencode/fedora.jsonc ~/.config/opencode/opencode.jsonc
    ```
 
 6. **Run**:
@@ -101,15 +101,15 @@ Dense models benefit significantly more from MTP than MoE models.
 
 2. **Install launcher scripts**:
    ```bash
-   cp scripts/qwen-mtp scripts/gemma-moe ~/.local/bin/
+   cp llama-cpp/scripts/qwen-mtp llama-cpp/scripts/gemma-moe ~/.local/bin/
    chmod +x ~/.local/bin/qwen-mtp ~/.local/bin/gemma-moe
    # qwen-mtp defaults to 27B dense MTP (macOS)
    ```
 
 3. **Configure coding agents:**
    ```bash
-   cp configs/pi-dev/models-mac.json ~/.pi/agent/models.json
-   cp configs/opencode/opencode-mac.jsonc ~/.config/opencode/opencode.jsonc
+   cp pi-dev/models-mac.json ~/.pi/agent/models.json
+   cp opencode/mac.jsonc ~/.config/opencode/opencode.jsonc
    ```
 
 4. **Run**:
@@ -120,11 +120,11 @@ Dense models benefit significantly more from MTP than MoE models.
    qwen-mtp chat-think  # Qwen3.6 creative/general chat
    ```
 
-See [docs/mac-setup.md](docs/mac-setup.md) for detailed hardware info and model selection.
+See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for detailed hardware info and model selection.
 
 ## Quick start (Docker — home server)
 
-No build needed. See [docs/docker-server.md](docs/docker-server.md) for full details.
+No build needed. See [llama-cpp/docker/setup.md](llama-cpp/docker/setup.md) for full details.
 
 ```bash
 mkdir -p ~/services/llama/models
@@ -133,7 +133,7 @@ mkdir -p ~/services/llama/models
 wget -O ~/services/llama/models/LFM2.5-350M-Q8_0.gguf \
   'https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF/resolve/main/LFM2.5-350M-Q8_0.gguf'
 
-# Copy docker-compose.yml from docs/docker-server.md, then:
+# Copy docker-compose.yml from llama-cpp/docker/setup.md, then:
 cd ~/services/llama && docker compose up -d
 ```
 
@@ -144,16 +144,16 @@ Ideal for lightweight automation: log analysis, Home Assistant NLP, git commit m
 ### pi.dev
 
 Copy the appropriate config to `~/.pi/agent/models.json`:
-- Fedora: `configs/pi-dev/models.json`
-- macOS: `configs/pi-dev/models-mac.json`
+- Fedora: `pi-dev/models-fedora.json`
+- macOS: `pi-dev/models-mac.json`
 
-Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1, Devstral), JBCentral proxy (Anthropic, OpenAI Codex, Gemini 3.5 Flash), and local llama.cpp. Replace `YOUR-WIRE-HASH` with your hash from `~/.config/opencode/opencode.json` and set your NeuralWatt key. Select any model in pi.dev via `/model`.
+Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp. Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
 
 ### opencode
 
 Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
-- Fedora: `configs/opencode/opencode-fedora.jsonc`
-- macOS: `configs/opencode/opencode-mac.jsonc`
+- Fedora: `opencode/fedora.jsonc`
+- macOS: `opencode/mac.jsonc`
 
 | Agent | Mode | Model | Provider |
 |-------|------|-------|----------|
@@ -167,7 +167,7 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 | `local-gemma` | primary | Gemma 4 26B-A4B | Local llama.cpp — start `gemma-moe` |
 | `local-moe` | primary | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | Local llama.cpp — start `qwen-mtp` |
 
-NeuralWatt agents require `NEURALWATT_API_KEY` — see [docs/neuralwatt.md](docs/neuralwatt.md). For LSP language-server setup (Go, TypeScript, Rust, Vue), see [docs/lsp.md](docs/lsp.md).
+NeuralWatt agents require `NEURALWATT_API_KEY` — see [neuralwatt/setup.md](neuralwatt/setup.md). For LSP language-server setup (Go, TypeScript, Rust, Vue), see [docs/lsp.md](docs/lsp.md).
 
 ### Claude Code
 
@@ -200,11 +200,11 @@ Install a skill:
 ```bash
 # llama-build (scoped to the llama.cpp project)
 mkdir -p ~/llama.cpp/.claude/skills/
-cp -r skills/llama-build ~/llama.cpp/.claude/skills/
+cp -r llama-cpp/skills/llama-build ~/llama.cpp/.claude/skills/
 
 # neuralwatt-setup (global or per-project)
 mkdir -p ~/.claude/skills/
-cp -r skills/neuralwatt-setup ~/.claude/skills/
+cp -r neuralwatt/skills/neuralwatt-setup ~/.claude/skills/
 ```
 
 Invoke with `/llama-build` or `/neuralwatt-setup` in Claude Code.
