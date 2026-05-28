@@ -1,6 +1,6 @@
 # Local LLM Setup
 
-Configuration files, launcher scripts, and Claude Code skills for running local LLM inference with [llama.cpp](https://github.com/ggml-org/llama.cpp) on Linux (AMD Radeon), macOS (Apple Silicon), and headless servers (Docker, CPU-only).
+Config files, launcher scripts, and coding agent settings for a self-hosted AI coding setup. Runs llama.cpp on AMD ROCm and Apple Silicon, with NeuralWatt and JetBrains Central as cloud providers. Works with OpenCode, pi.dev, and Claude Code.
 
 ## Platform guides
 
@@ -10,14 +10,14 @@ Configuration files, launcher scripts, and Claude Code skills for running local 
 | **macOS** | Apple M2 Max, 64GB unified memory | [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) |
 | **Docker** | Intel i3-6100T, 24GB RAM, no GPU (home server) | [llama-cpp/docker/setup.md](llama-cpp/docker/setup.md) |
 
-## Models
+## Local models
 
-| Model | Type | Params | Use case | Platform | Docs |
-|-------|------|--------|----------|----------|------|
-| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Mac, Fedora | [unsloth.ai](https://unsloth.ai/docs/models/gemma-4) |
-| [Qwen3.6 27B](https://unsloth.ai/docs/models/qwen3.6) | 27B dense | 27B | General + reasoning | Mac | [unsloth.ai](https://unsloth.ai/docs/models/qwen3.6) |
-| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B active | General + reasoning | Fedora | [unsloth.ai](https://unsloth.ai/docs/models/qwen3.6) |
-| [LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) | 350M dense | 350M | Lightweight automation | Docker server | [huggingface.co](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) |
+| Model | Type | Params | Use case | Platform |
+|-------|------|--------|----------|----------|
+| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Mac, Fedora |
+| [Qwen3.6 27B](https://unsloth.ai/docs/models/qwen3.6) | 27B dense | 27B | General + reasoning | Mac |
+| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B active | General + reasoning | Fedora |
+| [LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) | 350M dense | 350M | Lightweight automation | Docker server |
 
 ### Quantization per platform
 
@@ -46,6 +46,16 @@ Dense models benefit significantly more from MTP than MoE models.
 | Qwen3.6 (coding/thinking) | 0.6 | 0.95 | 20 | 0.0 |
 | Qwen3.6 (creative/thinking) | 1.0 | 0.95 | 20 | 0.0 |
 
+## Cloud providers
+
+### NeuralWatt
+
+OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral Small 2. See [neuralwatt/setup.md](neuralwatt/setup.md) for API key setup and the `nw-usage` script.
+
+### JetBrains Central
+
+Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBrains AI Platform. Supports Anthropic (Claude Opus 4.7, Sonnet 4.6), OpenAI (GPT-5.5 Pro, Codex), and Google Vertex (Gemini 3.1 Pro). See [jbcentral/setup.md](jbcentral/setup.md) for wire hash setup and dummy API keys.
+
 ## Quick start (Fedora)
 
 1. **Install ROCm** (Fedora 43+):
@@ -72,16 +82,25 @@ Dense models benefit significantly more from MTP than MoE models.
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
    ```bash
    cat zshrc-snippet.sh >> ~/.zshrc
+   # Edit ~/.zshrc: fill in NEURALWATT_API_KEY and YOUTRACK_TOKEN
    source ~/.zshrc
    ```
 
-5. **Configure coding agents:**
+5. **Set up JetBrains Central** (for Claude Opus, GPT-5.5, Gemini):
+   ```bash
+   # Install from https://central-cli.labs.jb.gg
+   jbcentral login
+   jbcentral add opencode
+   ```
+
+6. **Configure coding agents:**
    ```bash
    cp pi-dev/models-fedora.json ~/.pi/agent/models.json
+   # Edit: replace YOUR-WIRE-HASH with value from ~/.wire/config.json
    cp opencode/fedora.jsonc ~/.config/opencode/opencode.jsonc
    ```
 
-6. **Run**:
+7. **Run**:
    ```bash
    gemma-moe chat     # Gemma 4 interactive chat with thinking
    qwen-mtp chat      # Qwen3.6 interactive chat with thinking + MTP
@@ -106,13 +125,28 @@ Dense models benefit significantly more from MTP than MoE models.
    # qwen-mtp defaults to 27B dense MTP (macOS)
    ```
 
-3. **Configure coding agents:**
+3. **Add shell config**:
+   ```bash
+   cat zshrc-snippet.sh >> ~/.zshrc
+   # Edit ~/.zshrc: fill in NEURALWATT_API_KEY and YOUTRACK_TOKEN
+   source ~/.zshrc
+   ```
+
+4. **Set up JetBrains Central** (for Claude Opus, GPT-5.5, Gemini):
+   ```bash
+   # Install from https://central-cli.labs.jb.gg
+   jbcentral login
+   jbcentral add opencode
+   ```
+
+5. **Configure coding agents:**
    ```bash
    cp pi-dev/models-mac.json ~/.pi/agent/models.json
+   # Edit: replace YOUR-WIRE-HASH with value from ~/.wire/config.json
    cp opencode/mac.jsonc ~/.config/opencode/opencode.jsonc
    ```
 
-4. **Run**:
+6. **Run**:
    ```bash
    gemma-moe            # Gemma 4 26B-A4B server on port 8080
    gemma-moe chat       # Gemma 4 interactive chat with thinking
@@ -137,7 +171,7 @@ wget -O ~/services/llama/models/LFM2.5-350M-Q8_0.gguf \
 cd ~/services/llama && docker compose up -d
 ```
 
-Ideal for lightweight automation: log analysis, Home Assistant NLP, git commit messages, text summarization.
+Good for lightweight automation: log analysis, Home Assistant NLP, commit messages, text summarization.
 
 ## Coding agent integration
 
@@ -155,19 +189,24 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 - Fedora: `opencode/fedora.jsonc`
 - macOS: `opencode/mac.jsonc`
 
+Both configs include the same cloud agents. The only difference is the local model (Qwen3.6 27B dense on Mac, Qwen3.6 35B-A3B MoE on Fedora).
+
 | Agent | Mode | Model | Provider |
 |-------|------|-------|----------|
-| `plan` (built-in) | primary | GLM 5.1 FP8 | NeuralWatt |
-| `build` (built-in) | primary | Devstral Small 2 24B | NeuralWatt |
+| `plan` (built-in) | — | GLM 5.1 FP8 | NeuralWatt |
+| `build` (built-in) | — | Devstral Small 2 24B | NeuralWatt |
 | `kimi` | primary | Kimi K2.6 | NeuralWatt |
 | `glm` | primary | GLM 5.1 FP8 | NeuralWatt |
 | `qwen-fast` | primary | Qwen3.6 35B A3B | NeuralWatt |
 | `explore` | subagent | Qwen3.6 35B Fast | NeuralWatt |
 | `docs` | subagent | Qwen3.6 35B Fast | NeuralWatt |
-| `local-gemma` | primary | Gemma 4 26B-A4B | Local llama.cpp — start `gemma-moe` |
-| `local-moe` | primary | Qwen3.6 27B (Mac) / 35B-A3B (Fedora) | Local llama.cpp — start `qwen-mtp` |
+| `local-gemma` | primary | Gemma 4 26B-A4B | Local — start `gemma-moe` |
+| `local-moe` | primary | Qwen3.6 27B / 35B-A3B | Local — start `qwen-mtp` |
+| `opus` | primary | Claude Opus 4.7 | JB Central |
+| `codex` | primary | GPT-5.3 Codex | JB Central |
+| `gemini` | primary | Gemini 3.1 Pro | JB Central |
 
-NeuralWatt agents require `NEURALWATT_API_KEY` — see [neuralwatt/setup.md](neuralwatt/setup.md). For LSP language-server setup (Go, TypeScript, Rust, Vue), see [docs/lsp.md](docs/lsp.md).
+NeuralWatt agents need `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). JB Central needs `jbcentral login` (see [jbcentral/setup.md](jbcentral/setup.md)). LSP setup for Go, TypeScript, Rust, and Vue is in [docs/lsp.md](docs/lsp.md).
 
 ### Claude Code
 

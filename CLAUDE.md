@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This repo contains configuration files, launcher scripts, and Claude Code skills for running local LLM inference with llama.cpp on two platforms:
+This repo covers a full AI coding assistant setup across two machines:
 - **Fedora Linux** — Intel i5-14600K + AMD RX 9060 XT (16GB VRAM, ROCm/HIP)
 - **macOS** — Apple M2 Max (64GB unified memory, Metal)
 
-There is no build system, test suite, or linter for this repo itself — it is a collection of shell scripts, JSON configs, and documentation.
+It combines local LLM inference (llama.cpp) with cloud providers (NeuralWatt, JetBrains Central) and configs for three coding agents: OpenCode, pi.dev, and Claude Code.
+
+There is no build system, test suite, or linter — this is a collection of shell scripts, JSON configs, and documentation.
 
 ## Repository structure (organized by topic)
 
@@ -50,9 +52,13 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 
 **Model families are distinct** — Qwen3.6 and Gemma 4 have different sampling parameters and thinking mode support. Qwen3.6 models use `--chat-template-kwargs '{"enable_thinking":true}'`. Never mix their parameters.
 
-**pi.dev configs** (`pi-dev/`) — JSON files for `~/.pi/agent/models.json`. Fedora and macOS have separate configs with different local model sections; cloud providers (NeuralWatt, JB Central) are identical.
+**opencode configs** (`opencode/`) — The cloud provider sections (NeuralWatt, JB Central) are identical between mac and fedora. The only difference is the local model: Qwen3.6 27B dense (Mac) vs Qwen3.6 35B-A3B MoE (Fedora).
 
-**Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH, JB Central wire env vars (`JB_WIRE_SECRET`, `JB_WIRE_BASE`), dummy API keys for proxied providers, and aliases for running Claude Code against local models.
+**pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
+
+**JetBrains Central** — Manages `~/.config/opencode/opencode.json` automatically (do not edit). User config is `~/.config/opencode/opencode.jsonc`. The proxy requires dummy API keys set as env vars (`ANTHROPIC_API_KEY=sk-ant-dummy` etc.) — the proxy strips them and injects the real JWT.
+
+**Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH, JB Central wire env vars (`JB_WIRE_SECRET`, `JB_WIRE_BASE` derived from `~/.wire/config.json`), dummy API keys for proxied providers, and aliases for running Claude Code against local models.
 
 **Claude Code skills** — `llama-cpp/skills/llama-build/` (build llama.cpp), `neuralwatt/skills/neuralwatt-setup/` (configure NeuralWatt).
 
