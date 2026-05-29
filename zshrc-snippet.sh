@@ -19,6 +19,10 @@ export DEEPSEEK_API_KEY=$(secret-tool lookup service deepseek user "$USER")
 #   printf '%s' 'sk-...' | secret-tool store --label='Moonshot API key' service moonshot user "$USER"
 export MOONSHOT_API_KEY=$(secret-tool lookup service moonshot user "$USER")
 
+# Context7 MCP — store once with:
+#   printf '%s' 'ctx7sk-...' | secret-tool store --label='Context7 API key' service context7 user "$USER"
+export CONTEXT7_API_KEY=$(secret-tool lookup service context7 user "$USER")
+
 # JetBrains Central
 export JB_WIRE_SECRET=$(jq -r '.proxy_secret' ~/.wire/config.json 2>/dev/null)
 export JB_WIRE_PORT=$(jq -r '.proxy_port' ~/.wire/config.json 2>/dev/null)
