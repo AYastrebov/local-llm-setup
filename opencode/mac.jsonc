@@ -93,14 +93,6 @@
         "apiKey": "{env:NEURALWATT_API_KEY}"
       },
       "models": {
-        "zai-org/GLM-5.1-FP8": {
-          "name": "GLM 5.1 FP8",
-          "limit": { "context": 202736, "output": 202736 }
-        },
-        "Qwen/Qwen3.6-35B-A3B": {
-          "name": "Qwen3.6 35B A3B",
-          "limit": { "context": 131056, "output": 131056 }
-        },
         "qwen3.6-35b-fast": {
           "name": "Qwen3.6 35B Fast (no reasoning)",
           "limit": { "context": 131056, "output": 131056 }
@@ -212,34 +204,6 @@
       "mode": "primary",
       "model": "moonshot/kimi-k2.6",
       "steps": 100
-    },
-
-    // --- DeepSeek cloud models ---
-    "deepseek-flash": {
-      "description": "DeepSeek V4 Flash — fast reasoning + tool use, 1M context",
-      "mode": "primary",
-      "model": "deepseek/deepseek-v4-flash",
-      "steps": 50
-    },
-    "deepseek-pro": {
-      "description": "DeepSeek V4 Pro — full reasoning + tool use, 1M context",
-      "mode": "primary",
-      "model": "deepseek/deepseek-v4-pro",
-      "steps": 100
-    },
-
-    // --- NeuralWatt cloud models ---
-    "glm": {
-      "description": "GLM 5.1 FP8 via NeuralWatt — reasoning + tool use, 202K context",
-      "mode": "primary",
-      "model": "neuralwatt/zai-org/GLM-5.1-FP8",
-      "steps": 50
-    },
-    "qwen-fast": {
-      "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
-      "mode": "primary",
-      "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
-      "steps": 15
     },
 
     // --- Subagents (delegatable) ---
