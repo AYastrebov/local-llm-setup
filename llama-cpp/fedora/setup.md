@@ -125,6 +125,7 @@ The config registers four providers. Select any model via `/model` inside pi.dev
 
 | Provider | Models | Notes |
 |---|---|---|
+| `mimo` | MiMo V2.5, V2.5 Pro | Requires `MIMO_API_KEY` — replace placeholder key in file |
 | `moonshot` | Kimi K2.6 | Requires `MOONSHOT_API_KEY` — replace placeholder key in file |
 | `deepseek` | V4 Flash, V4 Pro | Requires `DEEPSEEK_API_KEY` — replace placeholder key in file |
 | `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |

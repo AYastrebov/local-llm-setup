@@ -37,7 +37,7 @@ Cloud provider sections (NeuralWatt, JB Central) and all other agent definitions
 |-------|-------|----------|-------|
 | `plan` | DeepSeek V4 Pro | DeepSeek | Read-only analysis, built-in override |
 | `build` | DeepSeek V4 Flash | DeepSeek | Default execution, built-in override |
-| `kimi-direct` | Kimi K2.6 | Moonshot | General reasoning, 262K ctx |
+| `kimi` | Kimi K2.6 | Moonshot | General reasoning, 262K ctx |
 | `glm` | GLM 5.1 FP8 | NeuralWatt | Architecture, 202K ctx |
 | `qwen-fast` | Qwen3.6 35B A3B | NeuralWatt | Fast/cheap tasks |
 | `explore` | Qwen3.6 35B Fast | NeuralWatt | Subagent: codebase search |

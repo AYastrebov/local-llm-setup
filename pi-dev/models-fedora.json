@@ -1,5 +1,31 @@
 {
   "providers": {
+    "mimo": {
+      "baseUrl": "https://api.xiaomimimo.com/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-your-mimo-key-here",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "mimo-v2.5",
+          "name": "MiMo V2.5 (Omni)",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 32768
+        },
+        {
+          "id": "mimo-v2.5-pro",
+          "name": "MiMo V2.5 Pro",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 32768
+        }
+      ]
+    },
     "moonshot": {
       "baseUrl": "https://api.moonshot.cn/v1",
       "api": "openai-completions",

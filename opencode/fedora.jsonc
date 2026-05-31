@@ -68,6 +68,24 @@
         }
       }
     },
+    "mimo": {
+      "name": "Xiaomi MiMo",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.xiaomimimo.com/v1",
+        "apiKey": "{env:MIMO_API_KEY}"
+      },
+      "models": {
+        "mimo-v2.5": {
+          "name": "MiMo V2.5 (Omni)",
+          "limit": { "context": 1048576, "output": 131072 }
+        },
+        "mimo-v2.5-pro": {
+          "name": "MiMo V2.5 Pro",
+          "limit": { "context": 1048576, "output": 131072 }
+        }
+      }
+    },
     "moonshot": {
       "name": "Moonshot",
       "npm": "@ai-sdk/openai-compatible",
@@ -210,7 +228,7 @@
 
     "local-gemma": {
       "description": "Local Gemma 4 26B-A4B MoE for reasoning with thinking. Runs offline on RX 9060 XT at Q3_K_XL. Start with: gemma-moe",
-      "mode": "primary",
+      "mode": "subagent",
       "model": "local/gemma-4-26b-a4b",
       "temperature": 1.0,
       "steps": 15,
@@ -223,7 +241,7 @@
     },
     "local-moe": {
       "description": "Local Qwen3.6-35B-A3B for general reasoning with thinking. Runs offline on RX 9060 XT at IQ3_XXS. Start with: qwen-mtp",
-      "mode": "primary",
+      "mode": "subagent",
       "model": "local/qwen3.6-35b-a3b",
       "temperature": 0.6,
       "steps": 15,
@@ -235,25 +253,25 @@
       }
     },
 
-    // --- Moonshot cloud models ---
-    "kimi-direct": {
-      "description": "Kimi K2.6 direct via Moonshot API — reasoning + tool use, 262K context",
+    // --- Xiaomi MiMo cloud models ---
+    "mimo": {
+      "description": "MiMo V2.5 Omni via Xiaomi — thinking + tool use, 1M context, multimodal",
       "mode": "primary",
-      "model": "moonshot/kimi-k2.6",
+      "model": "mimo/mimo-v2.5",
+      "steps": 50
+    },
+    "mimo-pro": {
+      "description": "MiMo V2.5 Pro via Xiaomi — full reasoning + tool use, 1M context",
+      "mode": "primary",
+      "model": "mimo/mimo-v2.5-pro",
       "steps": 100
     },
 
-    // --- DeepSeek cloud models ---
-    "deepseek-flash": {
-      "description": "DeepSeek V4 Flash — fast reasoning + tool use, 1M context",
+    // --- Moonshot cloud models ---
+    "kimi": {
+      "description": "Kimi K2.6 via Moonshot API — reasoning + tool use, 262K context",
       "mode": "primary",
-      "model": "deepseek/deepseek-v4-flash",
-      "steps": 50
-    },
-    "deepseek-pro": {
-      "description": "DeepSeek V4 Pro — full reasoning + tool use, 1M context",
-      "mode": "primary",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "moonshot/kimi-k2.6",
       "steps": 100
     },
 
@@ -264,14 +282,14 @@
       "model": "neuralwatt/zai-org/GLM-5.1-FP8",
       "steps": 50
     },
-    "qwen-fast": {
-      "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
-      "mode": "primary",
-      "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
-      "steps": 15
-    },
 
     // --- Subagents (delegatable) ---
+    "github": {
+      "description": "GitHub workflow subagent — DeepSeek V4 Flash. Delegate any GitHub task: PR creation, review fetching/posting, issue triage, branch management, repo/code search, releases, commits. Has the github MCP plus superpowers skills for requesting-code-review, receiving-code-review, and finishing-a-development-branch.",
+      "mode": "subagent",
+      "model": "deepseek/deepseek-v4-flash",
+      "steps": 30
+    },
     "explore": {
       "description": "Fast codebase search subagent — Qwen3.6 35B Fast (no reasoning overhead). For grep, file finding, symbol lookup, and shallow code exploration",
       "mode": "subagent",

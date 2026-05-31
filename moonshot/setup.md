@@ -25,7 +25,7 @@ Base URL: `https://api.moonshot.cn/v1` (OpenAI-compatible).
 Provider name: `moonshot`. Env var: `MOONSHOT_API_KEY`.
 
 Available agent:
-- `kimi-direct` — 100 steps (vs `kimi` which routes through NeuralWatt)
+- `kimi` — 100 steps
 
 ## pi.dev
 

@@ -195,7 +195,7 @@ Both configs include the same cloud agents. The only difference is the local mod
 |-------|------|-------|----------|
 | `plan` (built-in) | — | DeepSeek V4 Pro | DeepSeek |
 | `build` (built-in) | — | DeepSeek V4 Flash | DeepSeek |
-| `kimi-direct` | primary | Kimi K2.6 | Moonshot |
+| `kimi` | primary | Kimi K2.6 | Moonshot |
 | `explore` | subagent | Qwen3.6 35B Fast | NeuralWatt |
 | `docs` | subagent | Qwen3.6 35B Fast | NeuralWatt |
 | `local-gemma` | primary | Gemma 4 26B-A4B | Local — start `gemma-moe` |
