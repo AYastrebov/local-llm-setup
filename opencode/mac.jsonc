@@ -41,17 +41,9 @@
     "local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Local llama.cpp",
-      "options": { "baseURL": "http://127.0.0.1:8080/v1" },
-      "models": {
-        "gemma-4-26b-a4b": {
-          "name": "Gemma 4 26B-A4B MoE (Local)",
-          "limit": { "context": 65536, "output": 8192 }
-        },
-        "qwen3.6-27b": {
-          "name": "Qwen3.6 27B Dense MTP (Local)",
-          "limit": { "context": 65536, "output": 8192 }
-        }
-      }
+      "options": { "baseURL": "http://127.0.0.1:8080/v1" }
+      // no models listed — keeps local-moe/local-gemma agents functional
+      // while hiding them from the TAB model picker
     },
     "moonshot": {
       "name": "Moonshot",
