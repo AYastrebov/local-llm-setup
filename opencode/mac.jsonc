@@ -53,24 +53,6 @@
         }
       }
     },
-    "mimo": {
-      "name": "Xiaomi MiMo",
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://api.xiaomimimo.com/v1",
-        "apiKey": "{env:MIMO_API_KEY}"
-      },
-      "models": {
-        "mimo-v2.5": {
-          "name": "MiMo V2.5 (Omni)",
-          "limit": { "context": 1048576, "output": 131072 }
-        },
-        "mimo-v2.5-pro": {
-          "name": "MiMo V2.5 Pro",
-          "limit": { "context": 1048576, "output": 131072 }
-        }
-      }
-    },
     "moonshot": {
       "name": "Moonshot",
       "npm": "@ai-sdk/openai-compatible",
@@ -217,23 +199,9 @@
       "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     },
 
-    // --- Xiaomi MiMo cloud models ---
-    "mimo": {
-      "description": "MiMo V2.5 Omni via Xiaomi — thinking + tool use, 1M context, multimodal",
-      "mode": "primary",
-      "model": "mimo/mimo-v2.5",
-      "steps": 50
-    },
-    "mimo-pro": {
-      "description": "MiMo V2.5 Pro via Xiaomi — full reasoning + tool use, 1M context",
-      "mode": "primary",
-      "model": "mimo/mimo-v2.5-pro",
-      "steps": 100
-    },
-
     // --- Moonshot cloud models ---
     "kimi": {
-      "description": "Kimi K2.6 via Moonshot API — reasoning + tool use, 262K context",
+      "description": "Kimi K2.6 direct via Moonshot API — reasoning + tool use, 262K context",
       "mode": "primary",
       "model": "moonshot/kimi-k2.6",
       "steps": 100
