@@ -59,6 +59,24 @@
         }
       }
     },
+    "mimo": {
+      "name": "Xiaomi MiMo",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.xiaomimimo.com/v1",
+        "apiKey": "{env:MIMO_API_KEY}"
+      },
+      "models": {
+        "mimo-v2.5": {
+          "name": "MiMo V2.5",
+          "limit": { "context": 1048576, "output": 131072 }
+        },
+        "mimo-v2.5-pro": {
+          "name": "MiMo V2.5 Pro",
+          "limit": { "context": 1048576, "output": 131072 }
+        }
+      }
+    },
     "deepseek": {
       "name": "DeepSeek",
       "npm": "@ai-sdk/openai-compatible",
@@ -193,10 +211,18 @@
 
     // --- Moonshot cloud models ---
     "kimi": {
-      "description": "Kimi K2.6 direct via Moonshot API — reasoning + tool use, 262K context",
+      "description": "Kimi K2.6 via Moonshot API — reasoning + tool use, 262K context",
       "mode": "primary",
       "model": "moonshot/kimi-k2.6",
       "steps": 100
+    },
+
+    // --- Xiaomi MiMo cloud models ---
+    "mimo": {
+      "description": "MiMo V2.5 via Xiaomi — thinking + tool use, 1M context",
+      "mode": "primary",
+      "model": "mimo/mimo-v2.5",
+      "steps": 50
     },
 
     // --- Subagents (delegatable) ---
