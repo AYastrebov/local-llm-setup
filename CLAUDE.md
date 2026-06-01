@@ -41,6 +41,9 @@ moonshot/           Moonshot (Kimi) cloud provider setup
 mimo/               Xiaomi MiMo cloud provider setup
   setup.md          API key, model IDs, agent config
 
+minimax/            MiniMax cloud provider setup
+  setup.md          API key, model IDs, agent config
+
 opencode/           OpenCode configs per platform
   mac.jsonc         macOS live config
   fedora.jsonc      Fedora live config

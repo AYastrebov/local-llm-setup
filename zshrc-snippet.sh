@@ -23,6 +23,10 @@ export MOONSHOT_API_KEY=$(secret-tool lookup service moonshot user "$USER")
 #   printf '%s' 'sk-...' | secret-tool store --label='Xiaomi MiMo API key' service mimo user "$USER"
 export MIMO_API_KEY=$(secret-tool lookup service mimo user "$USER")
 
+# MiniMax — store once with:
+#   printf '%s' 'sk-cp-...' | secret-tool store --label='MiniMax API key' service minimax user "$USER"
+export MINIMAX_API_KEY=$(secret-tool lookup service minimax user "$USER")
+
 # Context7 MCP — store once with:
 #   printf '%s' 'ctx7sk-...' | secret-tool store --label='Context7 API key' service context7 user "$USER"
 export CONTEXT7_API_KEY=$(secret-tool lookup service context7 user "$USER")

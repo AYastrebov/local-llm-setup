@@ -1,5 +1,24 @@
 {
   "providers": {
+    "minimax": {
+      "baseUrl": "https://api.minimax.io/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-your-minimax-key-here",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "id": "MiniMax-M3",
+          "name": "MiniMax M3",
+          "reasoning": true,
+          "contextWindow": 1048576,
+          "maxTokens": 32768
+        }
+      ]
+    },
     "mimo": {
       "baseUrl": "https://api.xiaomimimo.com/v1",
       "api": "openai-completions",
