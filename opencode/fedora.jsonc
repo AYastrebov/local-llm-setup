@@ -90,7 +90,7 @@
       "name": "Moonshot",
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://api.moonshot.cn/v1",
+        "baseURL": "https://api.moonshot.ai/v1",
         "apiKey": "{env:MOONSHOT_API_KEY}"
       },
       "models": {

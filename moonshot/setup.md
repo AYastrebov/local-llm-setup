@@ -18,7 +18,7 @@ printf '%s' 'sk-...' | secret-tool store --label='Moonshot API key' service moon
 |------------|---------|------------|---------------|
 | `kimi-k2.6`| 262K    | 32768      | Thinking on by default |
 
-Base URL: `https://api.moonshot.cn/v1` (OpenAI-compatible).
+Base URL: `https://api.moonshot.ai/v1` (OpenAI-compatible).
 
 ## OpenCode
 
