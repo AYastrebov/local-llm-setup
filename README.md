@@ -58,7 +58,7 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
 
 ## Quick start (Fedora)
 
-1. **Install ROCm** (Fedora 43+):
+1. **Install ROCm** (Fedora 44+):
    ```bash
    sudo dnf install rocm-hip-devel hipcc rocminfo rocm-smi rocwmma-devel cmake gcc-c++ openssl-devel
    sudo usermod -aG render,video $USER
@@ -76,7 +76,7 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    cp llama-cpp/scripts/qwen-mtp llama-cpp/scripts/gemma-moe ~/.local/bin/
    chmod +x ~/.local/bin/qwen-mtp ~/.local/bin/gemma-moe
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
-   # Edit qwen-mtp: uncomment the 35B-A3B-MTP MODEL line for Fedora
+   # qwen-mtp defaults to the Fedora 35B-A3B-MTP model; macOS users should switch to the 27B line
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
@@ -211,7 +211,7 @@ NeuralWatt agents need `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwat
 ```bash
 # Start server first, then launch Claude Code
 gemma-moe && claude-gemma   # Gemma 4 26B-A4B
-qwen-mtp  && claude-qwen    # Qwen3.6 27B with MTP
+qwen-mtp  && claude-qwen    # Qwen3.6 35B-A3B with MTP
 ```
 
 Set in `~/.claude/settings.json` to prevent KV cache invalidation:
@@ -253,7 +253,7 @@ Invoke with `/llama-build` or `/neuralwatt-setup` in Claude Code.
 | CPU | Intel Core i5-14600K | Apple M2 Max (12 cores) | Intel Core i3-6100T |
 | GPU | AMD Radeon RX 9060 XT (16GB, RDNA4) | Apple M2 Max (30 cores, Metal 3) | None (CPU-only) |
 | RAM | 32 GB | 64 GB unified | 24 GB |
-| OS | Fedora 43, kernel 6.19+ | macOS Sequoia 15.7 | Ubuntu 24.04 (Docker) |
+| OS | Fedora 44, kernel 7.0.12+ | macOS Sequoia 15.7 | Ubuntu 24.04 (Docker) |
 
 ## License
 

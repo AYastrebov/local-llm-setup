@@ -49,6 +49,8 @@ rpm -q rocm-hip-devel 2>/dev/null           # existing ROCm version if any
 
 Key rule: if the user's Fedora version ships a ROCm version >= what their GPU needs, use native packages. Otherwise, fall back to AMD's repo. See `references/rocm-fedora.md` for full details.
 
+Note: On ROCm 7.1, the RX 9060 XT may be reported as `gfx1200` instead of `gfx1201`; cmake auto-detects the correct target, so leave `GPU_TARGETS` unset.
+
 ## Step 2: Build llama.cpp
 
 ### macOS (Apple Silicon)

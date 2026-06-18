@@ -1,4 +1,4 @@
-# Local LLM Setup — Fedora 43 + AMD Radeon RX 9060 XT
+# Local LLM Setup — Fedora 44 + AMD Radeon RX 9060 XT
 
 ## Hardware
 
@@ -7,11 +7,11 @@
 | CPU | Intel Core i5-14600K |
 | RAM | 32 GB |
 | GPU | AMD Radeon RX 9060 XT (16 GB VRAM, RDNA4, gfx1200) |
-| OS | Fedora 43, kernel 6.19+ |
+| OS | Fedora 44, kernel 7.0.12+ |
 
 ## ROCm Installation
 
-Fedora 43 ships ROCm 6.4+ natively, which supports RDNA4 (gfx1200).
+Fedora 44 ships ROCm 7.1+ natively, which supports RDNA4 (gfx1200).
 
 ```bash
 sudo dnf install rocm-hip-devel hipcc rocminfo rocm-smi cmake gcc-c++ openssl-devel

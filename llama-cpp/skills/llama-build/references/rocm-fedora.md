@@ -21,7 +21,7 @@ Use this to decide whether Fedora's native ROCm packages will work, or if you ne
 |--------|-------|--------|
 | 42 | 6.3.1 | 6.11 |
 | 43 | 6.4.2 | 6.13 |
-| 44 | 7.1.1 | 6.14 |
+| 44 | 7.1.1 | 7.0.x |
 | Rawhide (45) | 7.2.1 | 6.15+ |
 
 **GPU → minimum ROCm → minimum Fedora:**
@@ -179,6 +179,8 @@ If omitted, cmake will auto-detect GPUs present in the system.
 To find yours: `rocminfo | grep gfx | head -1 | awk '{print $2}'`
 
 Note: map to the most significant version. E.g., `gfx1035` maps to target `gfx1030`.
+
+Note: On ROCm 7.1, the RX 9060 XT may be reported as `gfx1200` rather than `gfx1201`, and cmake auto-detects `gfx1200`. Leave `GPU_TARGETS` unset to use the auto-detected target.
 
 ## Environment variables
 
