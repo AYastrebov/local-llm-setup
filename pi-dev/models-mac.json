@@ -169,15 +169,15 @@
       },
       "models": [
         {
-          "id": "gemma-4-26b-a4b",
-          "name": "Gemma 4 26B-A4B MoE (Local)",
+          "id": "qwen3.8-27b",
+          "name": "Qwen3.8 27B Dense (Local)",
           "reasoning": true,
           "contextWindow": 65536,
           "maxTokens": 8192
         },
         {
-          "id": "qwen3.6-27b",
-          "name": "Qwen3.6 27B Dense MTP (Local)",
+          "id": "mellum2-12b-a2.5b",
+          "name": "JetBrains Mellum2 12B-A2.5B Thinking (Local)",
           "reasoning": true,
           "contextWindow": 65536,
           "maxTokens": 8192

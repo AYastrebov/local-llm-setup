@@ -1,6 +1,11 @@
 # ===============================
 #   API Keys
 # ===============================
+#
+# NOTE: the secret-tool lookups below are Fedora-only (libsecret is Linux).
+# On macOS use the Keychain instead, e.g.:
+#   security add-generic-password -a "$USER" -s neuralwatt -w 'sk-...'
+#   export NEURALWATT_API_KEY=$(security find-generic-password -a "$USER" -s neuralwatt -w)
 
 # NeuralWatt — store once with:
 #   printf '%s' 'sk-...' | secret-tool store --label='NeuralWatt API key' service neuralwatt user "$USER"
@@ -49,8 +54,12 @@ export GOOGLE_VERTEX_PROJECT=default-project
 export LLAMA_CACHE="$HOME/models"
 export PATH="$HOME/llama.cpp/build/bin:$PATH"
 
-# Claude Code with local models
-# Start the server first (gemma-moe or qwen-mtp), then run the alias
-# macOS users: change qwen3.6-35b-a3b to qwen3.6-27b to match the macOS qwen-mtp model
-alias claude-qwen='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.6-35b-a3b'
+# Claude Code with local models — start the server first, then run the alias.
+#
+# macOS (qwen / mellum):
+alias claude-qwen='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.8-27b'
+alias claude-mellum='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model mellum2-12b-a2.5b'
+#
+# Fedora (qwen-mtp / gemma-moe) — replace the claude-qwen alias above with:
+# alias claude-qwen='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.6-35b-a3b'
 alias claude-gemma='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model gemma-4-26b-a4b'

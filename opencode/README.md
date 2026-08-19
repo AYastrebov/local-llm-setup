@@ -24,11 +24,13 @@ JetBrains Central wires automatically via `jbcentral add opencode`, which writes
 
 ## What differs between mac and fedora
 
-The only difference is the local model in the `local-moe` agent:
-- **mac**: `local/qwen3.6-27b` (27B dense, Q6_K_XL, ~26 GB)
-- **fedora**: `local/qwen3.6-35b-a3b` (35B MoE, IQ3_XXS, ~14 GB VRAM)
+The difference is the set of local agents:
+- **mac** — `local-qwen` → `local/qwen3.8-27b` (27B dense VL, UD-Q6_K_XL, 25.9 GB, launcher `qwen`)
+  and `local-mellum` → `local/mellum2-12b-a2.5b` (12B MoE / 2.5B active, Q8_0, 12.9 GB, launcher `mellum`)
+- **fedora** — `local-gemma` → `local/gemma-4-26b-a4b` (Q3_K_XL, ~13 GB)
+  and `local-moe` → `local/qwen3.6-35b-a3b` (35B MoE, IQ3_XXS, ~14 GB VRAM, launcher `qwen-mtp`)
 
-Both use the `qwen-mtp` launcher script — the model file it loads differs per platform.
+macOS deliberately runs only these two models; Gemma 4 and the Qwen3.6 MTP builds are Fedora-only.
 Cloud provider sections (NeuralWatt, JB Central) and all other agent definitions are identical.
 
 ## Agent overview
@@ -42,8 +44,10 @@ Cloud provider sections (NeuralWatt, JB Central) and all other agent definitions
 | `qwen-fast` | Qwen3.6 35B A3B | NeuralWatt | Fast/cheap tasks |
 | `explore` | Qwen3.6 35B Fast | NeuralWatt | Subagent: codebase search |
 | `docs` | Qwen3.6 35B Fast | NeuralWatt | Subagent: internal docs |
-| `local-gemma` | Gemma 4 26B-A4B | llama.cpp | Offline — start `gemma-moe` first |
-| `local-moe` | Qwen3.6 27B/35B | llama.cpp | Offline — start `qwen-mtp` first |
+| `local-qwen` | Qwen3.8-27B (mac) | llama.cpp | Offline — start `qwen` first |
+| `local-mellum` | Mellum2 12B-A2.5B Thinking (mac) | llama.cpp | Offline — start `mellum` first |
+| `local-gemma` | Gemma 4 26B-A4B (fedora) | llama.cpp | Offline — start `gemma-moe` first |
+| `local-moe` | Qwen3.6 35B-A3B (fedora) | llama.cpp | Offline — start `qwen-mtp` first |
 
 JB Central agents (opus, codex, gemini) are defined in the Kotlin project config
 (`~/JB/kotlin/opencode.jsonc`), not here.
