@@ -97,10 +97,25 @@ is the default here; switch with `MELLUM_VARIANT=Instruct`.
 
 | Quant | Size | Fits 64 GB Mac? | Notes |
 |-------|------|-----------------|-------|
-| BF16 | ~24 GB | Yes | Reference precision |
+| BF16 | 24.3 GB | Yes | Reference precision |
 | **Q8_0** | **12.9 GB** | **Yes (recommended)** | Near-lossless for a 2.5B-active MoE |
 | Q6_K | 10.9 GB | Yes | Slightly smaller |
 | Q4_K_M | 8.1 GB | Yes | Smallest sensible |
+
+**Measured footprint** at Q8_0, 65536 context, `--flash-attn on` with q8_0 KV:
+
+| Component | Size |
+|-----------|------|
+| Weights (Metal) | 12,323 MiB |
+| Weights (CPU-mapped) | 230 MiB |
+| KV cache — 7 non-SWA layers × 65536 cells | 476 MiB |
+| KV cache — 21 SWA layers × 1536 cells | 33 MiB |
+| Compute buffers (Metal + CPU) | 161 + 75 MiB |
+| **Total** | **~13.0 GB** |
+
+The 1024-token sliding window is why the KV cache is only ~509 MiB at 64K context — just 7 of
+28 layers hold a full-length cache. Metal reports a 49,152 MiB working set on this machine
+(not the full 64 GB), which is the real ceiling to budget against.
 
 **Sampling parameters** (per the [Mellum2 model card](https://huggingface.co/JetBrains/Mellum2-12B-A2.5B-Thinking)):
 
@@ -154,6 +169,16 @@ for the JS-based servers).
 
 ## Performance (observed)
 
-Previously measured: ~32–38 t/s for MoE models with 3–4B active params on this M2 Max. Mellum2
-activates 2.5B params per token, so expect the same ballpark. Qwen3.8-27B is dense (all 27B active)
-and will be substantially slower per token — not yet benchmarked here; update this line once measured.
+**Mellum2 12B-A2.5B Thinking, Q8_0** — measured on this M2 Max (llama.cpp build 10503, `5112b9738`):
+
+| Metric | Value |
+|--------|-------|
+| Model load | 6.3 s (warm page cache) |
+| Prompt eval | 97.5 t/s |
+| Generation | 79.0 t/s |
+
+That is roughly double the ~32–38 t/s previously recorded for the 3–4B-active MoEs, consistent with
+Mellum2 activating only 2.5B params per token.
+
+**Qwen3.8-27B** is dense — all 27B params active — so expect substantially slower generation. Not
+yet benchmarked here; update this table once measured.

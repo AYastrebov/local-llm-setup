@@ -14,22 +14,22 @@ Config files, launcher scripts, and coding agent settings for a self-hosted AI c
 
 | Model | Type | Params | Use case | Platform |
 |-------|------|--------|----------|----------|
-| [Qwen3.8-27B](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF) | 27B dense | 27B | General + reasoning + vision | Mac |
+| [Qwen3.8-27B](https://huggingface.co/collections/unsloth/qwen38) | 27B dense | 27B | General + reasoning + vision | Mac, Fedora |
 | [Mellum2 12B-A2.5B](https://huggingface.co/collections/JetBrains/mellum-2) | 12B MoE | 2.5B active | Coding | Mac |
 | [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Fedora |
-| [Qwen3.6 35B-A3B](https://unsloth.ai/docs/models/qwen3.6) | 35B MoE | 3B active | General + reasoning | Fedora |
 | [LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) | 350M dense | 350M | Lightweight automation | Docker server |
 
-macOS runs **only Qwen3.8-27B and Mellum2**. Gemma 4 and the Qwen3.6 MTP builds are Fedora-only.
+macOS runs **only Qwen3.8-27B and Mellum2**; Gemma 4 is Fedora-only. Qwen3.6 has been retired from
+both machines — the `unsloth/qwen38` collection ships only the 27B dense model and a 2.4T-A95B MoE
+far too large for either box, so both platforms run the 27B at different quants.
 
 ### Quantization per platform
 
 | Model | Mac (64GB) | Fedora (16GB VRAM) | Docker (CPU, 24GB RAM) |
 |-------|------------|--------------------|------------------------|
-| Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | -- | -- |
+| Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | UD-IQ3_XXS (11.9 GB) | -- |
 | Mellum2 12B-A2.5B Thinking | Q8_0 (12.9 GB) | -- | -- |
 | Gemma 4 26B-A4B | -- | Q3_K_XL (13 GB) | -- |
-| Qwen3.6 35B-A3B (MoE, MTP) | -- | IQ3_XXS (14 GB) | -- |
 | LFM2.5-350M | -- | -- | Q8_0 (379 MB) |
 
 ### MTP (Multi-Token Prediction)
@@ -42,8 +42,9 @@ MTP enables speculative decoding for ~1.4-2.2x faster generation. Requires speci
 
 Dense models benefit significantly more from MTP than MoE models.
 
-**Fedora only.** No `-MTP-` GGUF is published for Qwen3.8-27B or Mellum2, so neither macOS launcher
-uses speculative decoding. Re-add the flags if such a repo appears.
+**No longer used on either machine.** No `-MTP-` GGUF is published for Qwen3.8-27B or Mellum2, and
+Qwen3.6-35B-A3B-MTP has been retired, so no launcher currently passes `--spec-type`. Re-add the
+flags if unsloth publishes a Qwen3.8 `-MTP-` repo.
 
 ### Sampling parameters (quick reference)
 
@@ -53,8 +54,6 @@ uses speculative decoding. Re-add the flags if such a repo appears.
 | Qwen3.8-27B (instruct) | 0.7 | 0.80 | 20 | 0.0 | 1.5 |
 | Mellum2 12B-A2.5B | 0.6 | 0.95 | 20 | -- | -- |
 | Gemma 4 26B-A4B | 1.0 | 0.95 | 64 | -- | -- |
-| Qwen3.6 (coding/thinking) | 0.6 | 0.95 | 20 | 0.0 | -- |
-| Qwen3.6 (creative/thinking) | 1.0 | 0.95 | 20 | 0.0 | -- |
 
 ## Cloud providers
 
@@ -83,10 +82,10 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
 
 3. **Install launcher scripts**:
    ```bash
-   cp llama-cpp/scripts/qwen-mtp llama-cpp/scripts/gemma-moe ~/.local/bin/
-   chmod +x ~/.local/bin/qwen-mtp ~/.local/bin/gemma-moe
+   cp llama-cpp/scripts/qwen llama-cpp/scripts/gemma-moe ~/.local/bin/
+   chmod +x ~/.local/bin/qwen ~/.local/bin/gemma-moe
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
-   # qwen-mtp defaults to the Fedora 35B-A3B-MTP model; macOS users should switch to the 27B line
+   # qwen auto-detects the platform — on Linux it picks Qwen3.8-27B UD-IQ3_XXS + --no-mmproj
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
@@ -113,7 +112,7 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
 7. **Run**:
    ```bash
    gemma-moe chat     # Gemma 4 interactive chat with thinking
-   qwen-mtp chat      # Qwen3.6 interactive chat with thinking + MTP
+   qwen chat          # Qwen3.8-27B interactive chat with thinking
    gemma-moe          # OpenAI-compatible API + web UI at localhost:8080
    ```
 
@@ -134,7 +133,8 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    chmod +x ~/.local/bin/qwen ~/.local/bin/mellum
    ```
    `qwen` runs Qwen3.8-27B (UD-Q6_K_XL); `mellum` runs Mellum2 12B-A2.5B Thinking (Q8_0).
-   `gemma-moe` and `qwen-mtp` are Fedora-only — do not install them on macOS.
+   `gemma-moe` is Fedora-only — do not install it on macOS. `qwen` is shared: it picks the right
+   quant and flags from `uname`.
 
 3. **Add shell config**:
    ```bash
@@ -194,7 +194,7 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `pi-dev/models-fedora.json`
 - macOS: `pi-dev/models-mac.json`
 
-Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp (Qwen3.8-27B + Mellum2 on Mac). Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
+Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp (Qwen3.8-27B + Mellum2 on Mac; Qwen3.8-27B + Gemma 4 on Fedora). Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
 
 ### opencode
 
@@ -203,7 +203,7 @@ Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
 - macOS: `opencode/mac.jsonc`
 
 Both configs include the same cloud agents. The local models differ: Qwen3.8-27B + Mellum2 on Mac,
-Gemma 4 26B-A4B + Qwen3.6 35B-A3B MoE on Fedora.
+Qwen3.8-27B (lower quant) + Gemma 4 26B-A4B on Fedora.
 
 | Agent | Mode | Model | Provider |
 |-------|------|-------|----------|
@@ -212,10 +212,9 @@ Gemma 4 26B-A4B + Qwen3.6 35B-A3B MoE on Fedora.
 | `kimi` | primary | Kimi K2.6 | Moonshot |
 | `explore` | subagent | Qwen3.6 35B Fast | NeuralWatt |
 | `docs` | subagent | Qwen3.6 35B Fast | NeuralWatt |
-| `local-qwen` | primary | Qwen3.8-27B (Mac) | Local — start `qwen` |
+| `local-qwen` | primary (Mac) / subagent (Fedora) | Qwen3.8-27B | Local — start `qwen` |
 | `local-mellum` | primary | Mellum2 12B-A2.5B Thinking (Mac) | Local — start `mellum` |
 | `local-gemma` | primary | Gemma 4 26B-A4B (Fedora) | Local — start `gemma-moe` |
-| `local-moe` | primary | Qwen3.6 35B-A3B (Fedora) | Local — start `qwen-mtp` |
 | `opus` | primary | Claude Opus 4.7 | JB Central |
 | `codex` | primary | GPT-5.3 Codex | JB Central |
 | `gemini` | primary | Gemini 3.1 Pro | JB Central |
@@ -231,7 +230,7 @@ mellum  # then, in another shell: claude-mellum   (Mellum2 12B-A2.5B, macOS)
 
 # Fedora
 gemma-moe && claude-gemma   # Gemma 4 26B-A4B
-qwen-mtp  && claude-qwen    # Qwen3.6 35B-A3B with MTP
+qwen      && claude-qwen    # Qwen3.8-27B (UD-IQ3_XXS)
 ```
 
 Set in `~/.claude/settings.json` to prevent KV cache invalidation:

@@ -60,6 +60,5 @@ export PATH="$HOME/llama.cpp/build/bin:$PATH"
 alias claude-qwen='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.8-27b'
 alias claude-mellum='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model mellum2-12b-a2.5b'
 #
-# Fedora (qwen-mtp / gemma-moe) — replace the claude-qwen alias above with:
-# alias claude-qwen='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.6-35b-a3b'
+# Fedora also runs qwen (same alias — the launcher picks the quant), plus gemma-moe:
 alias claude-gemma='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model gemma-4-26b-a4b'
