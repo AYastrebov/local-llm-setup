@@ -1,0 +1,68 @@
+#!/bin/bash
+# Launch JetBrains Mellum2 12B-A2.5B via llama.cpp — macOS / Apple Silicon.
+#
+# MoE: 64 experts, 8 active per token (~2.5B active), 12B total.
+# Sliding-window + full attention, native 131K context. Apache 2.0.
+#
+# Two post-trained variants (same size, ~12.9 GB at Q8_0):
+#   Thinking (default) — emits <think>...</think>; much stronger on code and
+#                        agentic work (LiveCodeBench v6 69.9 vs 37.2, AIME 58.4 vs 41.7)
+#   Instruct           — direct answers, no reasoning trace, lower latency
+# Override with: MELLUM_VARIANT=Instruct mellum
+#
+# Usage:
+#   mellum              -> start server (default, port 8080)
+#   mellum chat         -> interactive CLI chat
+#   mellum server 8001  -> start server on custom port
+
+VARIANT="${MELLUM_VARIANT:-Thinking}"
+MODEL="JetBrains/Mellum2-12B-A2.5B-${VARIANT}-GGUF-Q8_0:Q8_0"
+CTX_SIZE=65536                                 # model supports up to 131072
+KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
+
+# Per the Mellum2 model card: temp 0.6, top-p 0.95, top-k 20
+SAMPLING="--temp 0.6 --top-p 0.95 --top-k 20 --min-p 0.0"
+
+MODE="${1:-server}"
+shift 2>/dev/null
+
+case "$MODE" in
+  chat)
+    exec llama-cli \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --conversation \
+      --jinja \
+      --flash-attn on \
+      $KV_CACHE \
+      $SAMPLING \
+      "$@"
+    ;;
+  server)
+    PORT="${1:-8080}"
+    shift 2>/dev/null
+    echo "Starting Mellum2 12B-A2.5B-${VARIANT} on http://localhost:$PORT"
+    exec llama-server \
+      -hf "$MODEL" \
+      --ctx-size "$CTX_SIZE" \
+      --jinja \
+      --alias "mellum2-12b-a2.5b" \
+      --port "$PORT" \
+      --flash-attn on \
+      --fit on \
+      -np 1 \
+      $KV_CACHE \
+      $SAMPLING \
+      "$@"
+    ;;
+  *)
+    echo "Usage: $(basename "$0") [chat|server] [port] [extra llama.cpp flags...]"
+    echo ""
+    echo "  $(basename "$0")              Start server on port 8080"
+    echo "  $(basename "$0") chat         Interactive CLI chat"
+    echo "  $(basename "$0") server 8001  Server on custom port"
+    echo ""
+    echo "Env: MELLUM_VARIANT=Thinking|Instruct (default: Thinking)"
+    exit 1
+    ;;
+esac

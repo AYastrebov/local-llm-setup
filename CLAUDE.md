@@ -20,7 +20,7 @@ llama-cpp/          local inference — scripts, build instructions, skill
   fedora/setup.md   Fedora/ROCm build guide
   fedora/build.sh   ROCm build script (uses hipconfig)
   docker/setup.md   Docker/CPU-only server guide
-  scripts/          launcher scripts (gemma-moe, qwen-mtp)
+  scripts/          launcher scripts (qwen, mellum = macOS; gemma-moe, qwen-mtp = Fedora)
   skills/llama-build/  Claude Code skill for building llama.cpp
 
 jbcentral/          JetBrains Central proxy setup
@@ -62,9 +62,13 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 
 **Launcher scripts** (`llama-cpp/scripts/`) — Bash scripts that wrap `llama-cli` and `llama-server` with per-model defaults (quantization, sampling params, KV cache settings). Each script supports `server` (default), `chat`, and optionally `chat-think` modes. They use `-hf` for automatic HuggingFace model download.
 
-**Model families are distinct** — Qwen3.6 and Gemma 4 have different sampling parameters and thinking mode support. Qwen3.6 models use `--chat-template-kwargs '{"enable_thinking":true}'`. Never mix their parameters.
+**Model families are distinct** — Qwen3.8, Qwen3.6, Gemma 4, and Mellum2 each have their own sampling parameters and thinking-mode controls. Never mix them. Qwen3.8 accepts `enable_thinking`, `reasoning_effort`, and `preserve_thinking` via `--chat-template-kwargs`; Qwen3.6 accepts `enable_thinking`; Mellum2 emits `<think>` blocks unconditionally in its Thinking variant and never in Instruct.
 
-**opencode configs** (`opencode/`) — Cloud provider sections (NeuralWatt, DeepSeek, JB Central) are identical between mac and fedora. Local models differ: both platforms run Gemma 4 26B-A4B (different quants) and a Qwen3.6 variant — 27B dense MTP on Mac, 35B-A3B MoE on Fedora.
+**macOS runs only two models** — Qwen3.8-27B (`qwen`) and Mellum2 12B-A2.5B (`mellum`). Gemma 4 and the Qwen3.6 MTP builds are Fedora-only; do not reintroduce them into `opencode/mac.jsonc`, `pi-dev/models-mac.json`, or `llama-cpp/mac/setup.md`.
+
+**No MTP on macOS** — neither Qwen3.8-27B nor Mellum2 has a published `-MTP-` GGUF, so the macOS launchers carry no `--spec-type` flags. Only the Fedora `qwen-mtp` script uses speculative decoding.
+
+**opencode configs** (`opencode/`) — Cloud provider sections (NeuralWatt, DeepSeek, JB Central) are identical between mac and fedora. Local models differ: Mac exposes `local-qwen` (Qwen3.8-27B) and `local-mellum` (Mellum2), Fedora exposes `local-gemma` (Gemma 4 26B-A4B) and `local-moe` (Qwen3.6 35B-A3B MTP).
 
 **pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
 
@@ -78,6 +82,6 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 
 - All launcher scripts default to port 8080 and use `exec` to replace the shell process
 - KV cache quantization (`--cache-type-k q8_0 --cache-type-v q8_0`) is standard across all launchers
-- Context size is 65536 tokens for all models
-- Models are sourced from Unsloth's GGUF quantizations on HuggingFace
+- Context size is 65536 tokens for all models (Qwen3.8 supports 262144 and Mellum2 131072 natively; 65536 is the deliberate default)
+- Models are sourced from Unsloth's GGUF quantizations on HuggingFace, except Mellum2, which uses JetBrains' own GGUF repos (`JetBrains/Mellum2-12B-A2.5B-{Thinking,Instruct}-GGUF-Q8_0`)
 - `llama-cpp/fedora/build.sh` is Fedora/ROCm-specific (uses `hipconfig`); macOS builds use plain cmake with `-DGGML_METAL=ON`

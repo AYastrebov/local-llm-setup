@@ -42,7 +42,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Local llama.cpp",
       "options": { "baseURL": "http://127.0.0.1:8080/v1" }
-      // no models listed — keeps local-moe/local-gemma agents functional
+      // no models listed — keeps local-qwen/local-mellum agents functional
       // while hiding them from the TAB model picker
     },
     "moonshot": {
@@ -205,20 +205,20 @@
       "steps": 100
     },
 
-    // --- Local offline models ---
-    "local-moe": {
-      "description": "Local Qwen3.6-27B dense with MTP. All 27B params active. Runs offline on M2 Max. Start with: qwen-mtp",
+    // --- Local offline models (macOS runs only these two) ---
+    "local-qwen": {
+      "description": "Local Qwen3.8-27B dense, thinking on, vision-capable. Runs offline on M2 Max at Q6 quality. Start with: qwen",
       "mode": "primary",
-      "model": "local/qwen3.6-27b",
-      "temperature": 0.6,
+      "model": "local/qwen3.8-27b",
+      "temperature": 1.0,
       "steps": 15,
       "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     },
-    "local-gemma": {
-      "description": "Local Gemma 4 26B-A4B MoE for reasoning with thinking. Runs offline on M2 Max at Q8 quality. Start with: gemma-moe",
+    "local-mellum": {
+      "description": "Local JetBrains Mellum2 12B-A2.5B Thinking — coding-focused MoE, 2.5B active. Runs offline on M2 Max at Q8 quality. Start with: mellum",
       "mode": "primary",
-      "model": "local/gemma-4-26b-a4b",
-      "temperature": 1.0,
+      "model": "local/mellum2-12b-a2.5b",
+      "temperature": 0.6,
       "steps": 15,
       "permission": { "edit": "allow", "write": "allow", "webfetch": "deny", "websearch": "deny" }
     },
