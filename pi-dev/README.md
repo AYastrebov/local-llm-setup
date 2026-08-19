@@ -36,7 +36,7 @@ The repo templates use placeholders to avoid committing real credentials.
 | `anthropic` | Claude Opus 4.7 | Via JB Central proxy (`claude-code` wire path) |
 | `openai` | GPT-5.5 Pro | Via JB Central proxy (`codex` wire path), `openai-codex-responses` API |
 | `google` | Gemini 3.1 Pro | Via JB Central proxy (`gemini-cli/vertex` wire path) |
-| `llama-cpp` | mac: Qwen3.8-27B, Mellum2 12B-A2.5B — fedora: Gemma 4 26B-A4B, Qwen3.6 35B-A3B | Local llama.cpp at `localhost:8080` — start `qwen`/`mellum` (mac) or `gemma-moe`/`qwen-mtp` (fedora) first |
+| `llama-cpp` | mac: Qwen3.8-27B, Mellum2 12B-A2.5B — fedora: Qwen3.8-27B, Gemma 4 26B-A4B | Local llama.cpp at `localhost:8080` — start `qwen`/`mellum` (mac) or `qwen`/`gemma-moe` (fedora) first |
 
 ## What differs between mac and fedora
 

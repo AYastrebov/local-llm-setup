@@ -68,13 +68,39 @@ Models are stored as plain GGUF files in `~/models/`.
 | Model | Quant | Size | VRAM fit? |
 |-------|-------|------|-----------|
 | Gemma 4 26B-A4B (MoE) | UD-Q3_K_XL | 12.9 GB | Yes (~2 GB for KV cache) |
-| Qwen3.6 35B-A3B (MoE) | UD-IQ3_XXS | 13.2 GB | Yes (3B params active) |
+| Qwen3.8-27B (dense, VL) | UD-IQ3_XXS | 11.9 GB | Yes (~2 GB headroom — see below) |
 
 Download models:
 ```bash
 llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL -n 0 -p ""
-llama-cli -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-IQ3_XXS -n 0 -p ""
+llama-cli -hf unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS -n 0 -p ""
 ```
+
+### Why UD-IQ3_XXS for Qwen3.8-27B
+
+Full quant ladder against the 16 GB budget. The KV cache costs ~2.1 GB at 65536 context with
+`q8_0` — only 16 of the 27B model's 64 layers use full attention, the rest are linear (Gated
+DeltaNet) with a small fixed state.
+
+| Quant | Size | + KV @ 65536 | Verdict |
+|-------|------|--------------|---------|
+| UD-Q3_K_XL | 13.4 GB | 15.5 GB | Too tight — will spill to host RAM |
+| **UD-IQ3_XXS** | **11.9 GB** | **14.0 GB** | **Recommended — ~2 GB headroom** |
+| UD-Q2_K_XL | 10.7 GB | 12.8 GB | More room, but Q2 on a dense model hurts |
+
+`-hf` would also pull `mmproj-F16.gguf` (~0.9 GB), which is what enables image input. That eats the
+headroom, so the Fedora branch of the launcher passes `--no-mmproj`. To use vision instead, trade
+context for it: `QWEN_CTX=32768 qwen --mmproj-auto`.
+
+> **Tradeoff vs. the Qwen3.6 35B-A3B it replaces.** That was an MoE activating ~3B params per
+> token; Qwen3.8-27B is **dense** and activates all 27B. Expect substantially fewer tokens/sec on
+> the RX 9060 XT. You also lose MTP speculative decoding (~1.15–1.25x on the MoE) because no
+> `-MTP-` GGUF exists for Qwen3.8. What you gain is a much stronger model generation and far
+> flatter long-context scaling from the linear-attention layers. If throughput matters more than
+> capability here, staying on Qwen3.6 35B-A3B is defensible — it is still in git history.
+
+ROCm/HIP runs the hybrid layers natively: `GGML_OP_GATED_DELTA_NET` is implemented in the CUDA
+backend that HIP compiles from, and is only disabled on MUSA.
 
 ## Launcher Scripts
 
@@ -94,24 +120,32 @@ MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
 KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 ```
 
-### qwen-mtp (Qwen3.6 35B-A3B MoE)
+### qwen (Qwen3.8-27B dense)
 
 ```bash
-qwen-mtp              # server on port 8080
-qwen-mtp server 9090  # server on custom port
-qwen-mtp chat         # interactive CLI, thinking enabled (coding params)
-qwen-mtp chat-think   # interactive CLI, creative params
+qwen              # server on port 8080
+qwen server 9090  # server on custom port
+qwen chat         # interactive CLI, thinking on  (temp 1.0)
+qwen chat-fast    # interactive CLI, thinking off (temp 0.7, instruct params)
 ```
+
+The script auto-detects the platform — no MODEL line to edit. On Linux it selects
+`unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS` and adds `--no-mmproj`; on macOS it selects `UD-Q6_K_XL`
+with vision enabled. Override either with `QWEN_MODEL=` / `QWEN_CTX=`.
+
+This replaces the old `qwen-mtp` launcher, which is gone — Qwen3.8 has no MTP GGUF, so there is
+nothing for `--spec-type draft-mtp` to load.
 
 ### Sampling Parameters
 
-| Model | Mode | temp | top-p | top-k | min-p |
-|-------|------|------|-------|-------|-------|
-| Gemma 4 26B-A4B | all | 1.0 | 0.95 | 64 | — |
-| Qwen3.6 35B-A3B | Coding (chat) | 0.6 | 0.95 | 20 | 0.0 |
-| Qwen3.6 35B-A3B | Creative (chat-think) | 1.0 | 0.95 | 20 | 0.0 |
+| Model | Mode | temp | top-p | top-k | min-p | presence |
+|-------|------|------|-------|-------|-------|----------|
+| Gemma 4 26B-A4B | all | 1.0 | 0.95 | 64 | — | — |
+| Qwen3.8-27B | Thinking (chat) | 1.0 | 0.95 | 20 | 0.0 | 0.0 |
+| Qwen3.8-27B | Instruct (chat-fast) | 0.7 | 0.80 | 20 | 0.0 | 1.5 |
 
-Context window: 65536 tokens. KV cache is quantized to `q8_0` (~13 GB model + ~2 GB KV cache, ~1 GB headroom in 16 GB VRAM).
+Context window: 65536 tokens. KV cache is quantized to `q8_0` — Gemma 4 sits at ~12.9 GB model +
+~2 GB KV, Qwen3.8-27B at ~11.9 GB model + ~2.1 GB KV, both inside 16 GB VRAM.
 
 ## pi.dev Configuration
 
@@ -133,7 +167,7 @@ The config registers four providers. Select any model via `/model` inside pi.dev
 | `anthropic` | Claude models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
 | `openai` | Codex models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
 | `google` | Gemini 3.5 Flash | JBCentral proxy — replace `YOUR-WIRE-HASH` |
-| `local-fedora` | Gemma 4 26B-A4B, Qwen3.6 35B-A3B | llama.cpp at port 8080 — start a launcher first |
+| `local-fedora` | Gemma 4 26B-A4B, Qwen3.8-27B | llama.cpp at port 8080 — start a launcher first |
 
 The wire hash is in `~/.config/opencode/opencode.json` (set up by JBCentral).
 
@@ -161,7 +195,7 @@ llama-server includes a built-in web UI. After starting a server, open `http://l
 
 ```bash
 claude-gemma       # Gemma 4 26B-A4B
-claude-qwen        # Qwen3.6 35B-A3B
+claude-qwen        # Qwen3.8-27B
 ```
 
 Aliases defined in `zshrc-snippet.sh`. Start the corresponding server first.

@@ -1,13 +1,15 @@
 #!/bin/bash
-# Launch Qwen3.8-27B (dense, vision-language) via llama.cpp — macOS / Apple Silicon.
+# Launch Qwen3.8-27B (dense, vision-language) via llama.cpp.
 #
 # 27B dense params, hybrid Gated DeltaNet + Gated Attention, native 262K context.
 # Thinking mode is ON by default and can be toggled per mode below.
-# Native VL model: -hf pulls the mmproj automatically, so images work out of the box
-# (pass --no-mmproj to skip the extra ~0.9 GB download).
+# Platform is auto-detected; override MODEL/CTX_SIZE via the env vars below.
 #
-# NOTE: unlike Qwen3.6, there is no MTP GGUF published for Qwen3.8-27B, so this
-# launcher carries no --spec-type flags. Re-add them if unsloth publishes an -MTP- repo.
+#   macOS  M2 Max 64 GB unified : UD-Q6_K_XL  (25.9 GB) + mmproj -> vision enabled
+#   Fedora RX 9060 XT 16 GB VRAM: UD-IQ3_XXS  (11.9 GB) + --no-mmproj to protect VRAM
+#
+# NOTE: there is no MTP GGUF published for Qwen3.8-27B, so this launcher carries no
+# --spec-type flags on either platform. Re-add them if unsloth publishes an -MTP- repo.
 #
 # Usage:
 #   qwen              -> start server (default, port 8080)
@@ -15,8 +17,20 @@
 #   qwen chat-fast    -> interactive CLI, thinking off (temp 0.7, instruct params)
 #   qwen server 8001  -> start server on custom port
 
-MODEL="unsloth/Qwen3.8-27B-GGUF:UD-Q6_K_XL"   # 25.9 GB — recommended for 64 GB M2 Max
-CTX_SIZE=65536                                 # model supports up to 262144
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  MODEL="${QWEN_MODEL:-unsloth/Qwen3.8-27B-GGUF:UD-Q6_K_XL}"
+  CTX_SIZE="${QWEN_CTX:-65536}"
+  # -hf pulls mmproj-F16.gguf (~0.9 GB) automatically, which enables image input.
+  PLATFORM_FLAGS=""
+else
+  MODEL="${QWEN_MODEL:-unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS}"
+  CTX_SIZE="${QWEN_CTX:-65536}"
+  # 11.9 GB weights + ~2.1 GB q8_0 KV at 65536 ctx leaves ~2 GB of the 16 GB VRAM.
+  # The 0.9 GB mmproj would eat that, so vision is off here. To enable it instead,
+  # run: QWEN_CTX=32768 qwen --mmproj-auto
+  PLATFORM_FLAGS="--no-mmproj"
+fi
+
 KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 
 # Per the Qwen3.8 model card:
@@ -37,6 +51,7 @@ case "$MODE" in
       --jinja \
       --chat-template-kwargs '{"enable_thinking":true}' \
       --flash-attn on \
+      $PLATFORM_FLAGS \
       $KV_CACHE \
       $SAMPLING_THINK \
       "$@"
@@ -49,6 +64,7 @@ case "$MODE" in
       --jinja \
       --chat-template-kwargs '{"enable_thinking":false}' \
       --flash-attn on \
+      $PLATFORM_FLAGS \
       $KV_CACHE \
       $SAMPLING_FAST \
       "$@"
@@ -57,6 +73,7 @@ case "$MODE" in
     PORT="${1:-8080}"
     shift 2>/dev/null
     echo "Starting Qwen3.8-27B (dense, VL) on http://localhost:$PORT"
+    echo "  model: $MODEL   ctx: $CTX_SIZE"
     exec llama-server \
       -hf "$MODEL" \
       --ctx-size "$CTX_SIZE" \
@@ -67,6 +84,7 @@ case "$MODE" in
       --flash-attn on \
       --fit on \
       -np 1 \
+      $PLATFORM_FLAGS \
       $KV_CACHE \
       $SAMPLING_THINK \
       "$@"
@@ -78,6 +96,8 @@ case "$MODE" in
     echo "  server       OpenAI-compatible API + web UI (default, port 8080)"
     echo "  chat         Interactive CLI, thinking on  (temp 1.0)"
     echo "  chat-fast    Interactive CLI, thinking off (temp 0.7, instruct params)"
+    echo ""
+    echo "Env: QWEN_MODEL (override -hf ref), QWEN_CTX (override context size)"
     exit 1
     ;;
 esac
