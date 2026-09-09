@@ -1,18 +1,24 @@
-# Language Server Setup for opencode
+# Language Server Setup
 
-opencode uses LSP (Language Server Protocol) servers to give the AI agents real code intelligence — go-to-definition, symbol search, completion context, and live diagnostics. Without LSPs, agents can still read files, but they lose the structured signal that LSP provides (e.g., "this symbol is unused", "the type doesn't match here", "this import is wrong").
+LSP (Language Server Protocol) servers give coding agents real code intelligence - go-to-definition,
+symbol search, completion context, and live diagnostics. Without them an agent can still read files,
+but it loses the structured signal ("this symbol is unused", "the type doesn't match here").
 
-The opencode configs in this repo declare five language servers:
+pi gets LSP from the `pi-lsp-extension` package listed in `pi-dev/settings-mac.json`. Go, Rust,
+TypeScript and JavaScript have built-in defaults and need no configuration. Anything else goes in a
+per-project `.pi-lsp.json` - see `pi-dev/pi-lsp.json` for a template, which currently adds Kotlin:
 
-| Language | Server | Triggered by |
-|---|---|---|
-| Go | `gopls` | `.go` files |
-| TypeScript / JavaScript | `typescript-language-server` | `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, etc. |
-| Rust | `rust-analyzer` | `.rs` files |
-| Vue | `vue-language-server` | `.vue` files |
-| Kotlin | `kotlin-lsp` | `.kt`, `.kts` files |
+```json
+{
+  "servers": {
+    "kotlin": { "command": "kotlin-lsp", "args": ["--stdio"] }
+  },
+  "autoStart": []
+}
+```
 
-opencode silently skips any server whose binary isn't on `PATH` — you only need to install the ones you actually use.
+Install only the servers you actually use; a missing binary just means that language has no LSP.
+
 
 ## Install commands
 
@@ -64,49 +70,4 @@ for cmd in gopls typescript-language-server rust-analyzer vue-language-server ko
 done
 ```
 
-When you next launch opencode in a project of the matching language, the LSP starts in the background. To confirm it's wired up, open a file and ask the agent to find a symbol or look up a definition — if it returns precise file/line locations, the LSP is working.
-
-## Adding a new language
-
-The config block lives at the top of each `opencode-*.jsonc` template:
-
-```jsonc
-"lsp": {
-  "gopls":      { "command": ["gopls"] },
-  "typescript": { "command": ["typescript-language-server", "--stdio"] },
-  "rust":       { "command": ["rust-analyzer"] },
-  "vue":        { "command": ["vue-language-server", "--stdio"] },
-  "kotlin":     { "command": ["kotlin-lsp", "--stdio"], "extensions": [".kt", ".kts"] }
-}
-```
-
-To add another language, append an entry with `command` set to the server binary and (optionally) its flags. opencode auto-detects file extensions for the languages it has built-in support for; for anything exotic, you may also need an `extensions` array.
-
-See the [opencode LSP docs](https://opencode.ai/docs/lsp/) for the full schema (env vars, custom extensions, disabling auto-download).
-
-## LSP for pi.dev (pi-lsp-extension)
-
-`npm:pi-lsp-extension` is installed globally and registered in `~/.pi/agent/settings.json`. It provides `lsp_diagnostics`, `lsp_hover`, `lsp_definition`, `lsp_references`, and other tools.
-
-Most languages (TypeScript, Python, Rust, Go, Java) have built-in defaults. Kotlin doesn't — configure it via `.pi-lsp.json` in the project root:
-
-```json
-{
-  "servers": {
-    "kotlin": { "command": "kotlin-lsp", "args": ["--stdio"] }
-  },
-  "autoStart": ["kotlin"]
-}
-```
-
-`autoStart` spins up the server at session start rather than waiting for the first tool call (recommended for Kotlin LSP, which is slow to initialize).
-
-## Disabling LSP auto-download
-
-opencode tries to fetch some language servers on first use. To turn that off and only rely on what's installed manually:
-
-```bash
-export OPENCODE_DISABLE_LSP_DOWNLOAD=1
-```
-
-Add it to `~/.zshrc` if you want this permanent.
+When you next launch pi in a project of the matching language, the LSP starts in the background. To confirm it's wired up, open a file and ask the agent to find a symbol or look up a definition — if it returns precise file/line locations, the LSP is working.

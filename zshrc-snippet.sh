@@ -51,14 +51,20 @@ export GOOGLE_VERTEX_PROJECT=default-project
 #   llama.cpp
 # ===============================
 
-export LLAMA_CACHE="$HOME/models"
+# Recent llama.cpp stores -hf downloads in the standard HuggingFace hub cache
+# (~/.cache/huggingface/hub), which is where the macOS box keeps them. Set
+# LLAMA_CACHE only if you want them somewhere else, e.g. an external volume:
+# export LLAMA_CACHE="$HOME/models"
 export PATH="$HOME/llama.cpp/build/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"   # qwen, mellum, pi-qwen launchers
 
-# Claude Code with local models — start the server first, then run the alias.
+# Local models are driven through pi, not Claude Code aliases.
+#   pi-qwen            start llama-server with Qwen3.8-27B if needed, then run pi on it
+#   pi-qwen stop       stop the background server (frees ~25 GB)
+#   pi-qwen status     show what is on the port
 #
-# macOS (qwen / mellum):
-alias claude-qwen='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.8-27b'
-alias claude-mellum='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model mellum2-12b-a2.5b'
+# Mellum2 twin - different port, so both can run side by side:
+alias pi-mellum='PI_LOCAL_LAUNCHER=mellum PI_LOCAL_MODEL=mellum2-12b-a2.5b PI_LOCAL_PORT=8081 pi-qwen'
 #
-# Fedora also runs qwen (same alias — the launcher picks the quant), plus gemma-moe:
-alias claude-gemma='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model gemma-4-26b-a4b'
+# Fedora also has gemma-moe; to point Claude Code at any local server:
+# alias claude-local='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model qwen3.8-27b'

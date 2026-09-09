@@ -22,14 +22,21 @@ Base URL: `https://api.minimax.io/v1` (OpenAI-compatible).
 
 Other available models (not configured): `MiniMax-M2.7`, `MiniMax-M2.7-highspeed`, `MiniMax-M2.5`.
 
-## OpenCode
-
-Provider name: `minimax`. Env var: `MINIMAX_API_KEY`.
-
-Available agent:
-- `minimax` — M3, 100 steps
 
 ## pi.dev
 
-Provider name: `minimax` in `models-fedora.json` / `models-mac.json`.  
-API key set directly in the config file.
+pi ships a built-in provider catalog, and `minimax` is in it - so there is nothing to add to
+`models.json`. Just export the key:
+
+```bash
+export MINIMAX_API_KEY=...      # pi reads this directly
+```
+
+Then enable it in `~/.pi/agent/settings.json`:
+
+```json
+"enabledModels": ["minimax/*"]
+```
+
+Only custom endpoints (`llama-cpp`, `neuralwatt`, `jbcentral-local`) need an entry in
+`models.json`, where the key is stored literally rather than read from the environment.

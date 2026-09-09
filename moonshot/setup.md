@@ -20,14 +20,21 @@ printf '%s' 'sk-...' | secret-tool store --label='Moonshot API key' service moon
 
 Base URL: `https://api.moonshot.ai/v1` (OpenAI-compatible).
 
-## OpenCode
-
-Provider name: `moonshot`. Env var: `MOONSHOT_API_KEY`.
-
-Available agent:
-- `kimi` — 100 steps
 
 ## pi.dev
 
-Provider name: `moonshot` in `models-fedora.json` / `models-mac.json`.  
-API key set directly in the config file.
+pi ships a built-in provider catalog, and `moonshotai` is in it - so there is nothing to add to
+`models.json`. Just export the key:
+
+```bash
+export MOONSHOT_API_KEY=...      # pi reads this directly
+```
+
+Then enable it in `~/.pi/agent/settings.json`:
+
+```json
+"enabledModels": ["moonshotai/*"]
+```
+
+Only custom endpoints (`llama-cpp`, `neuralwatt`, `jbcentral-local`) need an entry in
+`models.json`, where the key is stored literally rather than read from the environment.

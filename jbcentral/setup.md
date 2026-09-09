@@ -42,19 +42,13 @@ Each agent type has its own wire path for quota tracking:
 
 | Agent | Anthropic | OpenAI | Vertex |
 |-------|-----------|--------|--------|
-| OpenCode | `opencode/anthropic/v1` | `opencode/openai` | `opencode/vertex` |
 | Claude Code | `claude-code/anthropic` | — | — |
 | Codex CLI | — | `codex/openai` | — |
 | Gemini CLI | — | — | `gemini-cli/vertex` |
 | pi.dev | `claude-code/anthropic` | `codex/openai` | `gemini-cli/vertex` |
 
-**Note:** The `opencode/vertex` path does not work for Gemini. Use `gemini-cli/vertex` path instead (confirmed working via curl).
+**Note:** use the `gemini-cli/vertex` path for Gemini (confirmed working via curl).
 
-## OpenCode wiring
-
-JetBrains Central auto-generates `~/.config/opencode/opencode.json` with provider baseURLs. Do **not** edit this file — it will be overwritten on the next `jbcentral add opencode` run. The user config is `~/.config/opencode/opencode.jsonc`. Provider overrides (baseURL, apiKey) must not be added to `opencode.jsonc` — they are already in the managed file.
-
-See `opencode.json` in this directory for the reference template.
 
 ## Quota
 

@@ -1,6 +1,23 @@
 # Local LLM Setup
 
-Config files, launcher scripts, and coding agent settings for a self-hosted AI coding setup. Runs llama.cpp on AMD ROCm and Apple Silicon, with NeuralWatt and JetBrains Central as cloud providers. Works with OpenCode, pi.dev, and Claude Code.
+Config files, launcher scripts, and coding agent settings for a self-hosted AI coding setup. Runs llama.cpp on AMD ROCm and Apple Silicon, with NeuralWatt and JetBrains Central as cloud providers. Driven through pi.dev, plus Claude Code.
+
+## Status (2026-09-09)
+
+Everything below was verified on the macOS box on this date. **The Fedora and Docker sections are
+documented but unverified** - there is no access to those machines from here, so treat their numbers
+as intent, not measurement.
+
+| | macOS (M2 Max, 64 GB) | Fedora | Docker |
+|---|---|---|---|
+| llama.cpp | `22397c31a`, build 10881, ggml 0.23.0 | not checked | not checked |
+| Qwen3.8-27B | downloaded, served, 11.6 t/s gen | documented only | - |
+| Mellum2 12B-A2.5B | downloaded, served, 79-80 t/s gen | - | - |
+| Agent | pi (`pi-qwen` shorthand) | pi | - |
+
+opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
+configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
+pi.
 
 ## Platform guides
 
@@ -99,14 +116,12 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    ```bash
    # Install from https://central-cli.labs.jb.gg
    jbcentral login
-   jbcentral add opencode
    ```
 
 6. **Configure coding agents:**
    ```bash
    cp pi-dev/models-fedora.json ~/.pi/agent/models.json
    # Edit: replace YOUR-WIRE-HASH with value from ~/.wire/config.json
-   cp opencode/fedora.jsonc ~/.config/opencode/opencode.jsonc
    ```
 
 7. **Run**:
@@ -147,14 +162,13 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    ```bash
    # Install from https://central-cli.labs.jb.gg
    jbcentral login
-   jbcentral add opencode
    ```
 
 5. **Configure coding agents:**
    ```bash
-   cp pi-dev/models-mac.json ~/.pi/agent/models.json
-   # Edit: replace YOUR-WIRE-HASH with value from ~/.wire/config.json
-   cp opencode/mac.jsonc ~/.config/opencode/opencode.jsonc
+   cp pi-dev/models-mac.json   ~/.pi/agent/models.json     # fill in the placeholder keys
+   cp pi-dev/settings-mac.json ~/.pi/agent/settings.json
+   cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
    ```
 
 6. **Run** (one at a time — both default to port 8080):
@@ -196,41 +210,45 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 
 Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp (Qwen3.8-27B + Mellum2 on Mac; Qwen3.8-27B + Gemma 4 on Fedora). Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
 
-### opencode
+macOS also copies `pi-dev/settings-mac.json` to `~/.pi/agent/settings.json`, which sets the
+defaults and the enabled-model patterns:
 
-Copy the config for your platform to `~/.config/opencode/opencode.jsonc`:
-- Fedora: `opencode/fedora.jsonc`
-- macOS: `opencode/mac.jsonc`
+| Setting | Value |
+|---------|-------|
+| `defaultProvider` / `defaultModel` | `moonshotai` / `kimi-k3` (needs `MOONSHOT_API_KEY`) |
+| `defaultThinkingLevel` | `high` |
+| `enabledModels` | `neuralwatt/*`, `llama-cpp/*`, `jbcentral-local/**`, `moonshotai/*`, `openrouter/*` |
 
-Both configs include the same cloud agents. The local models differ: Qwen3.8-27B + Mellum2 on Mac,
-Qwen3.8-27B (lower quant) + Gemma 4 26B-A4B on Fedora.
+pi ships a built-in provider catalog (`moonshotai`, `openrouter`, `deepseek`, `minimax`, `xiaomi`,
+`anthropic`, `google`, `openai`, ...). Those need only the matching API key exported - they are not
+listed in `models.json`. Only custom endpoints go in `models.json`: `llama-cpp`, `neuralwatt`, and
+`jbcentral-local`.
 
-| Agent | Mode | Model | Provider |
-|-------|------|-------|----------|
-| `plan` (built-in) | — | DeepSeek V4 Pro | DeepSeek |
-| `build` (built-in) | — | DeepSeek V4 Flash | DeepSeek |
-| `kimi` | primary | Kimi K2.6 | Moonshot |
-| `explore` | subagent | Qwen3.6 35B Fast | NeuralWatt |
-| `docs` | subagent | Qwen3.6 35B Fast | NeuralWatt |
-| `local-qwen` | primary (Mac) / subagent (Fedora) | Qwen3.8-27B | Local — start `qwen` |
-| `local-mellum` | primary | Mellum2 12B-A2.5B Thinking (Mac) | Local — start `mellum` |
-| `local-gemma` | primary | Gemma 4 26B-A4B (Fedora) | Local — start `gemma-moe` |
-| `opus` | primary | Claude Opus 4.7 | JB Central |
-| `codex` | primary | GPT-5.3 Codex | JB Central |
-| `gemini` | primary | Gemini 3.1 Pro | JB Central |
+NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). JB Central needs `jbcentral login` (see [jbcentral/setup.md](jbcentral/setup.md)). LSP setup for Go, TypeScript, Rust, Vue, and Kotlin is in [docs/lsp.md](docs/lsp.md).
 
-NeuralWatt agents need `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). JB Central needs `jbcentral login` (see [jbcentral/setup.md](jbcentral/setup.md)). LSP setup for Go, TypeScript, Rust, and Vue is in [docs/lsp.md](docs/lsp.md).
+### Local models through pi
+
+```bash
+pi-qwen            # start Qwen3.8-27B if needed, then run pi on it
+pi-qwen stop       # stop the background server (frees ~25 GB)
+pi-qwen status     # show what is on the port
+pi-mellum          # same, for Mellum2 on port 8081 (alias in zshrc-snippet.sh)
+```
+
+See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for how `pi-qwen` reuses an already-loaded
+model and what it refuses to do.
 
 ### Claude Code
 
-```bash
-# Start the server first, then launch Claude Code against it
-qwen    # then, in another shell: claude-qwen     (Qwen3.8-27B,  macOS)
-mellum  # then, in another shell: claude-mellum   (Mellum2 12B-A2.5B, macOS)
+The dedicated `claude-qwen` / `claude-mellum` aliases were removed in September 2026 - local models
+are driven through `pi-qwen` now. To point Claude Code at a running local server anyway, start one
+and set the base URL:
 
-# Fedora
-gemma-moe && claude-gemma   # Gemma 4 26B-A4B
-qwen      && claude-qwen    # Qwen3.8-27B (UD-IQ3_XXS)
+```bash
+qwen                                        # or: mellum / gemma-moe (Fedora)
+ANTHROPIC_BASE_URL=http://localhost:8080/v1 \
+ANTHROPIC_API_KEY=sk-no-key-required \
+  claude --model qwen3.8-27b
 ```
 
 Set in `~/.claude/settings.json` to prevent KV cache invalidation:
@@ -249,7 +267,6 @@ Set in `~/.claude/settings.json` to prevent KV cache invalidation:
 | Skill | What it does | Install location |
 |-------|-------------|-----------------|
 | `llama-build` | Build llama.cpp, download models, set up launcher scripts and coding agent integration | `~/llama.cpp/.claude/skills/` |
-| `neuralwatt-setup` | Configure OpenCode with NeuralWatt cloud provider (Kimi, GLM, Qwen), install `nw-usage` | any project's `.claude/skills/` |
 
 Install a skill:
 
@@ -258,12 +275,9 @@ Install a skill:
 mkdir -p ~/llama.cpp/.claude/skills/
 cp -r llama-cpp/skills/llama-build ~/llama.cpp/.claude/skills/
 
-# neuralwatt-setup (global or per-project)
-mkdir -p ~/.claude/skills/
-cp -r neuralwatt/skills/neuralwatt-setup ~/.claude/skills/
 ```
 
-Invoke with `/llama-build` or `/neuralwatt-setup` in Claude Code.
+Invoke with `/llama-build` in Claude Code.
 
 ## Hardware tested
 

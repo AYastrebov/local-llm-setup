@@ -56,7 +56,7 @@ openai:    http://127.0.0.1:19516/wire/{secret}/codex/openai/
 google:    http://127.0.0.1:19516/wire/{secret}/gemini-cli/vertex
 ```
 
-These differ from the OpenCode paths. See `jbcentral/setup.md` for the full wire path table.
+See `jbcentral/setup.md` for the full wire path table.
 
 ## LSP (pi-lsp-extension)
 

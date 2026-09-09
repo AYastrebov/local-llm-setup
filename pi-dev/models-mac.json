@@ -1,186 +1,390 @@
 {
   "providers": {
-    "minimax": {
-      "baseUrl": "https://api.minimax.io/v1",
+    "jbcentral-local": {
       "api": "openai-completions",
-      "apiKey": "sk-your-minimax-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
+      "apiKey": "sk-your-jbcentral-litellm-key-here",
+      "authHeader": true,
+      "baseUrl": "https://litellm.labs.jb.gg/v1",
       "models": [
         {
-          "id": "MiniMax-M3",
-          "name": "MiniMax M3",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "mimo": {
-      "baseUrl": "https://api.xiaomimimo.com/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-mimo-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "mimo-v2.5",
-          "name": "MiMo V2.5 (Omni)",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        },
-        {
-          "id": "mimo-v2.5-pro",
-          "name": "MiMo V2.5 Pro",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "moonshot": {
-      "baseUrl": "https://api.moonshot.ai/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-moonshot-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "kimi-k2.6",
-          "name": "Kimi K2.6",
-          "reasoning": true,
-          "contextWindow": 262128,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "deepseek": {
-      "baseUrl": "https://api.deepseek.com",
-      "api": "openai-completions",
-      "apiKey": "sk-your-deepseek-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "deepseek-v4-flash",
-          "name": "DeepSeek V4 Flash",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        },
-        {
-          "id": "deepseek-v4-pro",
-          "name": "DeepSeek V4 Pro",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "neuralwatt": {
-      "baseUrl": "https://api.neuralwatt.com/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-neuralwatt-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "zai-org/GLM-5.1-FP8",
-          "name": "GLM 5.1 FP8",
-          "reasoning": true,
-          "contextWindow": 202736,
-          "maxTokens": 32768
-        },
-        {
-          "id": "Qwen/Qwen3.6-35B-A3B",
-          "name": "Qwen3.6 35B A3B",
-          "reasoning": true,
-          "contextWindow": 131056,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "anthropic": {
-      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/claude-code/anthropic/",
-      "apiKey": "wire-proxy",
-      "api": "anthropic-messages",
-      "models": [
-        {
-          "id": "claude-opus-4-7",
-          "name": "Claude Opus 4.7",
-          "reasoning": true,
-          "contextWindow": 200000,
-          "maxTokens": 32000
-        }
-      ]
-    },
-    "openai": {
-      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/codex/openai/",
-      "apiKey": "wire-proxy",
-      "api": "openai-codex-responses",
-      "models": [
-        {
-          "id": "gpt-5.5-pro",
-          "name": "GPT-5.5 Pro",
-          "reasoning": false,
-          "contextWindow": 200000,
-          "maxTokens": 65536
-        }
-      ]
-    },
-    "google": {
-      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/gemini-cli/vertex",
-      "apiKey": "wire-proxy",
-      "api": "google-vertex",
-      "models": [
-        {
-          "id": "gemini-3.1-pro-preview",
-          "name": "Gemini 3.1 Pro",
-          "reasoning": true,
-          "contextWindow": 2000000,
-          "maxTokens": 65536
+          "id": "hetzner/Qwen/Qwen3.6-27B-FP8",
+          "name": "hetzner/Qwen/Qwen3.6-27B-FP8",
+          "reasoning": false
         }
       ]
     },
     "llama-cpp": {
-      "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",
       "apiKey": "none",
+      "baseUrl": "http://localhost:8080/v1",
       "compat": {
         "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
+        "supportsReasoningEffort": true,
+        "supportsUsageInStreaming": true
       },
       "models": [
         {
-          "id": "qwen3.8-27b",
-          "name": "Qwen3.8 27B Dense (Local)",
-          "reasoning": true,
           "contextWindow": 65536,
-          "maxTokens": 8192
+          "id": "qwen3.8-27b",
+          "maxTokens": 8192,
+          "name": "Qwen3.8 27B Dense (Local)",
+          "reasoning": true
         },
         {
-          "id": "mellum2-12b-a2.5b",
-          "name": "JetBrains Mellum2 12B-A2.5B Thinking (Local)",
-          "reasoning": true,
           "contextWindow": 65536,
-          "maxTokens": 8192
+          "id": "mellum2-12b-a2.5b",
+          "maxTokens": 8192,
+          "name": "JetBrains Mellum2 12B-A2.5B Thinking (Local)",
+          "reasoning": true
+        }
+      ]
+    },
+    "neuralwatt": {
+      "api": "openai-completions",
+      "apiKey": "sk-your-neuralwatt-key-here",
+      "baseUrl": "https://api.neuralwatt.com/v1",
+      "compat": {
+        "supportsDeveloperRole": false
+      },
+      "models": [
+        {
+          "compat": {
+            "supportsReasoningEffort": false
+          },
+          "contextWindow": 262128,
+          "cost": {
+            "cacheRead": 0.095,
+            "cacheWrite": 0,
+            "input": 0.95,
+            "output": 4.0
+          },
+          "id": "kimi-k2.7-code",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Kimi K2.7 Code",
+          "reasoning": true
+        },
+        {
+          "compat": {
+            "supportsReasoningEffort": false
+          },
+          "contextWindow": 262128,
+          "cost": {
+            "cacheRead": 0.095,
+            "cacheWrite": 0,
+            "input": 0.95,
+            "output": 4.0
+          },
+          "id": "kimi-k2.7-code-fast",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Kimi K2.7 Code Fast",
+          "reasoning": true
+        },
+        {
+          "compat": {
+            "supportsReasoningEffort": false
+          },
+          "contextWindow": 262128,
+          "cost": {
+            "cacheRead": 0.095,
+            "cacheWrite": 0,
+            "input": 0.95,
+            "output": 4.0
+          },
+          "id": "kimi-k2.7-code-flex",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Kimi K2.7 Code (flex)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "GLM-5.2",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2-fast",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "GLM-5.2 (fast)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2-flex",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "GLM-5.2 (flex)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 199984,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2-short",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32000,
+          "name": "GLM-5.2 (short)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 199984,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2-short-fast",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32000,
+          "name": "GLM-5.2 (short, fast)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 199984,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2-short-flex",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32000,
+          "name": "GLM-5.2 (short, flex)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 199984,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.2-short-fast-flex",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32000,
+          "name": "GLM-5.2 (short, fast, flex)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.145,
+            "cacheWrite": 0,
+            "input": 1.45,
+            "output": 4.5
+          },
+          "id": "glm-5.3",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 32768,
+          "name": "GLM 5.3",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.028,
+            "cacheWrite": 0,
+            "input": 0.14,
+            "output": 0.28
+          },
+          "id": "deepseek-v4-flash",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 65536,
+          "name": "DeepSeek V4 Flash",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.028,
+            "cacheWrite": 0,
+            "input": 0.14,
+            "output": 0.28
+          },
+          "id": "deepseek-v4-flash-flex",
+          "input": [
+            "text"
+          ],
+          "maxTokens": 65536,
+          "name": "DeepSeek V4 Flash (flex)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.3,
+            "cacheWrite": 0,
+            "input": 3.0,
+            "output": 15.0
+          },
+          "id": "kimi-k3",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Kimi K3",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.3,
+            "cacheWrite": 0,
+            "input": 3.0,
+            "output": 15.0
+          },
+          "id": "kimi-k3-fast",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Kimi K3 Fast",
+          "reasoning": false
+        },
+        {
+          "contextWindow": 1048560,
+          "cost": {
+            "cacheRead": 0.3,
+            "cacheWrite": 0,
+            "input": 3.0,
+            "output": 15.0
+          },
+          "id": "kimi-k3-flex",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32768,
+          "name": "Kimi K3 (flex)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 131056,
+          "cost": {
+            "cacheRead": 0.029,
+            "cacheWrite": 0,
+            "input": 0.29,
+            "output": 1.15
+          },
+          "id": "qwen3.6-35b",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32764,
+          "name": "Qwen3.6 35B",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 131056,
+          "cost": {
+            "cacheRead": 0.029,
+            "cacheWrite": 0,
+            "input": 0.29,
+            "output": 1.15
+          },
+          "id": "qwen3.6-35b-fast",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 32764,
+          "name": "Qwen3.6 35B Fast",
+          "reasoning": false
+        },
+        {
+          "contextWindow": 262128,
+          "cost": {
+            "cacheRead": 0.0144,
+            "cacheWrite": 0,
+            "input": 0.144,
+            "output": 0.42
+          },
+          "id": "gemma-4-31b",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 16384,
+          "name": "Gemma 4 31B",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 262128,
+          "cost": {
+            "cacheRead": 0.25,
+            "cacheWrite": 0,
+            "input": 0.45,
+            "output": 3.2
+          },
+          "id": "qwen-3.8-27b",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 131072,
+          "name": "Qwen 3.8 27B",
+          "reasoning": true
         }
       ]
     }

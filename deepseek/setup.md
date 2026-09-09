@@ -21,15 +21,21 @@ printf '%s' 'sk-...' | secret-tool store --label='DeepSeek API key' service deep
 
 Both models default to thinking mode. Base URL: `https://api.deepseek.com` (OpenAI-compatible).
 
-## OpenCode
-
-Provider name: `deepseek`. Env var: `DEEPSEEK_API_KEY`.
-
-Available agents:
-- `deepseek-flash` — fast tasks, 50 steps
-- `deepseek-pro` — full reasoning, 100 steps
 
 ## pi.dev
 
-Provider name: `deepseek` in `models-fedora.json` / `models-mac.json`.  
-API key set directly in the config file (not via env var — pi doesn't support env var substitution).
+pi ships a built-in provider catalog, and `deepseek` is in it - so there is nothing to add to
+`models.json`. Just export the key:
+
+```bash
+export DEEPSEEK_API_KEY=...      # pi reads this directly
+```
+
+Then enable it in `~/.pi/agent/settings.json`:
+
+```json
+"enabledModels": ["deepseek/*"]
+```
+
+Only custom endpoints (`llama-cpp`, `neuralwatt`, `jbcentral-local`) need an entry in
+`models.json`, where the key is stored literally rather than read from the environment.

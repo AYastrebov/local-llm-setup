@@ -1,6 +1,6 @@
-# NeuralWatt + opencode
+# NeuralWatt
 
-[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as an opencode provider with Kimi, GLM, Qwen, and Devstral models, plus the `nw-usage` energy reporting script.
+[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as a pi provider with Kimi, GLM, Qwen, and Devstral models, plus the `nw-usage` energy reporting script.
 
 ## Model comparison
 
@@ -31,7 +31,6 @@ Devstral 2 123B ($0.24/$0.48, 131K), Devstral Small ($0.15/$0.19, 131K), Gemma 4
 
 ## Plan → implement workflow
 
-opencode has two built-in modes — `plan` (read-only analysis) and `build` (executes edits and commands). We override both to use NeuralWatt models so the entire workflow happens automatically without manual `/agent` switching:
 
 - **`/plan`** → GLM 5.1 FP8 ($1.10/M in) — read-only mode for architecture decisions and step-by-step plans
 - **exit plan + execute** → Devstral Small 2 24B ($0.12/M in) — coding-specialized, cheap, fast
@@ -63,134 +62,32 @@ echo "${NEURALWATT_API_KEY:0:6}…  (len=${#NEURALWATT_API_KEY})"
 
 If you don't have `secret-tool` (libsecret), install it (`sudo dnf install libsecret` on Fedora, `sudo apt install libsecret-tools` on Debian/Ubuntu). On macOS you can use `security add-generic-password` instead.
 
-## opencode provider config
+## Wiring it into pi
 
-Add the `neuralwatt` block to `~/.config/opencode/opencode.jsonc` (already included in `opencode/fedora.jsonc`):
+NeuralWatt is a custom endpoint, so it needs an entry in `~/.pi/agent/models.json` (unlike the
+providers in pi's built-in catalog, which only need an env var). The macOS template
+`pi-dev/models-mac.json` already contains it:
 
-```jsonc
-"small_model": "neuralwatt/qwen3.6-35b-fast",
-"provider": {
-  "neuralwatt": {
-    "name": "Neuralwatt",
-    "npm": "@ai-sdk/openai-compatible",
-    "options": {
-      "baseURL": "https://api.neuralwatt.com/v1",
-      "apiKey": "{env:NEURALWATT_API_KEY}"
-    },
-    "models": {
-      "moonshotai/Kimi-K2.6": {
-        "name": "Kimi K2.6",
-        "limit": { "context": 262128, "output": 262128 },
-        "options": {
-          "repetitionPenalty": 1.05
-        }
-      },
-      "zai-org/GLM-5.1-FP8": {
-        "name": "GLM 5.1 FP8",
-        "limit": { "context": 202736, "output": 202736 }
-      },
-      "Qwen/Qwen3.6-35B-A3B": {
-        "name": "Qwen3.6 35B A3B",
-        "limit": { "context": 131056, "output": 131056 }
-      },
-      "mistralai/Devstral-Small-2-24B-Instruct-2512": {
-        "name": "Devstral Small 2 24B",
-        "limit": { "context": 262128, "output": 262128 },
-        "options": {
-          "temperature": 0.3,
-          "maxTokens": 4096
-        }
-      }
-    }
-  }
+```json
+"neuralwatt": {
+  "api": "openai-completions",
+  "apiKey": "sk-your-neuralwatt-key-here",
+  "baseUrl": "https://api.neuralwatt.com/v1",
+  "models": [ { "id": "kimi-k3", "name": "Kimi K3", "reasoning": true }, "..." ]
 }
 ```
 
-`small_model` is the model opencode uses for short auxiliary calls (titles, summaries, etc.). Pointing it at the cheap MoE keeps background traffic effectively free.
+Then enable it in `~/.pi/agent/settings.json`:
 
-### Per-model tuning
-
-The `options` block lets you set provider-specific knobs. Useful tweaks:
-
-- **`repetitionPenalty: 1.05`** on Kimi K2 family — reduces the looping behaviour Kimi sometimes exhibits without affecting creativity (per [NeuralWatt docs](https://portal.neuralwatt.com/docs/integrations/opencode)).
-- **`maxTokens: 4096`** — caps responses at a sensible length for typical coding work even when the model's hard output limit is much higher. Useful on Devstral to avoid runaway generations.
-- **`temperature: 0.3`** on Devstral — lower temperature for more deterministic code generation.
-
-## Agent profiles
-
-The `plan` and `build` keys override opencode's built-in default agents. Everything else is a custom agent you invoke explicitly with `/agent <name>`.
-
-```jsonc
-"agent": {
-  "plan": {
-    "description": "Planning mode — uses GLM 5.1 FP8 for read-only analysis, architecture decisions, and step-by-step plans before execution",
-    "model": "neuralwatt/zai-org/GLM-5.1-FP8",
-    "steps": 30
-  },
-  "build": {
-    "description": "Default execution mode — uses Devstral Small 2 for cheap, coding-specialized implementation. Pair with /plan first for best results",
-    "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
-    "steps": 100
-  },
-  "kimi": {
-    "description": "Kimi K2.6 via NeuralWatt — reasoning + tool use, 262K context",
-    "mode": "primary",
-    "model": "neuralwatt/moonshotai/Kimi-K2.6",
-    "steps": 100
-  },
-  "glm": {
-    "description": "GLM 5.1 FP8 via NeuralWatt — reasoning + tool use, 202K context",
-    "mode": "primary",
-    "model": "neuralwatt/zai-org/GLM-5.1-FP8",
-    "steps": 50
-  },
-  "qwen-fast": {
-    "description": "Qwen3.6 35B A3B MoE via NeuralWatt — cheap fast tasks, $0.29/M in. Use for summaries, simple edits, quick Q&A",
-    "mode": "primary",
-    "model": "neuralwatt/Qwen/Qwen3.6-35B-A3B",
-    "steps": 15
-  },
-  "code": {
-    "description": "Devstral Small 2 via NeuralWatt — coding-specialized, $0.12/M in. Step 2 of plan→implement workflow: use /agent kimi to plan, then switch here to implement",
-    "mode": "primary",
-    "model": "neuralwatt/mistralai/Devstral-Small-2-24B-Instruct-2512",
-    "steps": 100
-  }
-}
+```json
+"enabledModels": ["neuralwatt/*"]
 ```
 
-### Step limits
+Note pi stores the key literally in `models.json` for custom providers - it does not read
+`NEURALWATT_API_KEY` for them. Keep the real key out of git; the committed file is a placeholder.
 
-`steps` caps the number of tool-call iterations (file read, edit, bash, etc.) an agent runs before stopping. If a task needs more, opencode aborts with "out of steps." Workhorse agents (`build`, `code`, `kimi`) get 100 for serious refactors; planning/reasoning get 30–50; `qwen-fast` stays at 15 since it's the cheap quick agent.
+Select a model at runtime with `pi --provider neuralwatt --model <id>`, or `/model` in a session.
 
-| Agent | Mode | Model | Best for |
-|-------|------|-------|----------|
-| `plan` (built-in) | primary | GLM 5.1 FP8 | Read-only planning — invoked via `/plan` |
-| `build` (built-in) | primary | Devstral Small 2 24B | Default execution after plan exits — runs automatically |
-| `kimi` | primary | Kimi K2.6 | Strong coding when you want better than Devstral |
-| `glm` | primary | GLM 5.1 FP8 | Reasoning outside plan mode — architecture chats, design discussions, trade-off analysis |
-| `qwen-fast` | primary | Qwen3.6 35B A3B | Quick reasoning tasks, summaries — $0.29/M |
-| `explore` | subagent | Qwen3.6 35B Fast | Grep, file/symbol lookup, shallow code exploration (no reasoning overhead) |
-| `docs` | subagent | Qwen3.6 35B Fast | README/comment/docstring lookup, "where is X documented" |
-
-Use built-in modes with `/plan` and the normal build flow; switch to a specific custom agent with `/agent <name>`. Subagents are delegated to by other agents (or invoked directly).
-
-## Recommended workflow
-
-For most coding tasks, the default flow is enough:
-
-1. **Press Tab** to enter `/plan` mode — GLM 5.1 analyses, proposes a plan
-2. **Exit plan mode** — automatically hands off to `build` (Devstral) for implementation
-3. **Hit "out of steps"?** — switch to `/agent kimi` and continue (Kimi has 100 steps + stronger reasoning)
-
-For design decisions before coding:
-- **Architecture consultation** → `/agent glm` (reasoning through design decisions and trade-offs)
-
-For other tasks:
-- **"Where is X in the codebase?"** → `/agent explore` (or it gets invoked automatically as subagent)
-- **Doc/comment lookup** → `/agent docs`
-- **Long-form writing, summaries** → `/agent qwen-fast`
-- **Hard coding problems** → `/agent kimi`
 
 ## GitHub MCP
 
@@ -198,7 +95,7 @@ The official GitHub MCP server provides agents with direct access to repos, issu
 
 ### Install
 
-Add to the `"mcp"` section of `~/.config/opencode/opencode.jsonc`:
+MCP servers are configured through pi's `pi-mcp-adapter` package (see `pi list`):
 
 ```jsonc
 "github": {
@@ -230,7 +127,7 @@ npm install -g @playwright/cli@latest
 playwright-cli install --skills
 ```
 
-`install --skills` installs the skill files into `.claude/skills/playwright-cli/` in the current project. For global availability across all projects, run it from `~/.claude/skills/` or verify the skill lands in `~/.config/opencode/skills/` which OpenCode also scans.
+`install --skills` installs the skill files into `.claude/skills/playwright-cli/` in the current project. For global availability across all projects, run it from `~/.claude/skills/`.
 
 ### Usage
 
@@ -252,7 +149,7 @@ playwright-cli show
 
 ### Install
 
-Add to the `"mcp"` section of `~/.config/opencode/opencode.jsonc`:
+MCP servers are configured through pi's `pi-mcp-adapter` package (see `pi list`):
 
 ```jsonc
 "context7": {
@@ -276,7 +173,7 @@ Context7 resolves the library, fetches current docs, and injects them into the r
 
 ## nw-usage script
 
-Queries the NeuralWatt energy API and prints request count and Wh consumption. Used by the `/nw-usage` opencode command.
+Queries the NeuralWatt energy API and prints request count and Wh consumption.
 
 ### Install
 
@@ -301,17 +198,3 @@ nw-usage --tmux     # compact for statusline (cached 5 min): ↗42 ⚡17Wh
 nw-usage --json     # raw JSON from API
 ```
 
-### opencode command
-
-Add to `opencode.jsonc` to query usage from within a session:
-
-```jsonc
-"command": {
-  "nw-usage": {
-    "description": "Show Neuralwatt energy usage",
-    "template": "Here is my Neuralwatt API usage:\n\n!`nw-usage`\n\nReport this to the user."
-  }
-}
-```
-
-Then run `/nw-usage` inside opencode.

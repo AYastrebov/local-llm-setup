@@ -44,6 +44,15 @@ Both architectures used here must be present in your build — verify with:
 grep -E '"(qwen35|mellum)"' ~/llama.cpp/src/llama-arch.cpp
 ```
 
+**Last verified build** (2026-09-09): llama.cpp `22397c31a`, build 10881, version 0.4.0-dev,
+ggml 0.23.0, AppleClang 21.0.0 (Xcode 26.6), macOS Tahoe 26.6.2. Configure line used:
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_METAL=ON -DGGML_BLAS=ON -DLLAMA_OPENSSL=ON
+```
+
+The CPU backend variant selected for this machine was `-mcpu=native+dotprod+i8mm+nosve+nosme`.
+
 ## Models
 
 ### Qwen3.8-27B (27B dense, vision-language)
@@ -59,11 +68,27 @@ video understanding, 262K native context, thinking on by default with per-reques
 | UD-Q5_K_XL | 20.2 GB | Yes | Good quality, more room for context |
 | UD-Q4_K_XL | 17.9 GB | Yes | Max headroom |
 
-At 65536 context with q8_0 KV cache the attention cache adds roughly 2 GB — only 16 of 64 layers
-use full attention, the rest are linear (DeltaNet) and carry a small fixed-size state.
+**Measured footprint** at UD-Q6_K_XL, 65536 context, `--flash-attn on` with q8_0 KV:
 
-`-hf` also pulls `mmproj-F16.gguf` (~0.9 GB) automatically, which is what enables image input.
-Pass `--no-mmproj` to skip it.
+| Component | Size |
+|-----------|------|
+| Weights (Metal) | 23,782 MiB |
+| Weights (CPU-mapped) | 995 MiB |
+| KV cache — 16 of 64 layers x 65536 cells, K 1088 + V 1088 | 2,176 MiB |
+| Compute buffers (Metal + CPU) | 429 + 84 MiB |
+| **Total** | **~27.5 GB** |
+
+Only 16 of the 64 layers use full attention; the rest are linear (Gated DeltaNet) carrying a small
+fixed-size state, which is why 64K of context costs just over 2 GB. Metal reported a 53,084 MiB
+working set at measurement time — not the full 64 GB, and it varies with memory pressure — so that
+is the real ceiling to budget against.
+
+Confirmed on this build: **q8_0 KV cache works with flash attention on the hybrid `qwen35` arch.**
+
+`-hf` also pulls an mmproj automatically, which is what enables image input; the server reports
+`modalities: {vision: true, video: true, audio: false}`. Note it selects **`mmproj-BF16.gguf`**
+(896 MB), not the F16 file — do not fetch F16 by hand, it will sit unused. Pass `--no-mmproj` to
+skip vision entirely.
 
 > There is **no MTP GGUF** for Qwen3.8-27B (unlike Qwen3.6-27B-MTP), so the launcher carries no
 > `--spec-type draft-mtp` flags. Speculative decoding returns if unsloth publishes an `-MTP-` repo.
@@ -155,17 +180,58 @@ mellum server 8081   # coding
 
 ## Coding agent integration
 
-Copy configs to their respective locations:
-- pi.dev: `pi-dev/models-mac.json` → `~/.pi/agent/models.json`
-- opencode: `opencode/mac.jsonc` → `~/.config/opencode/opencode.jsonc`
+macOS drives local models through **pi** only. opencode is no longer installed here.
 
-Start a server and select the model in the agent UI.
+```bash
+cp pi-dev/models-mac.json    ~/.pi/agent/models.json     # then fill in the placeholder keys
+cp pi-dev/settings-mac.json  ~/.pi/agent/settings.json
+cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
+```
+
+### pi-qwen (the shorthand)
+
+`pi-qwen` starts llama-server with Qwen3.8-27B if it is not already up, then execs pi against it:
+
+```bash
+pi-qwen [pi args...]   # ensure server, then run pi on it
+pi-qwen stop           # stop the background server (frees ~25 GB)
+pi-qwen status         # show what is on the port
+pi-qwen logs           # follow the server log
+```
+
+The server is left running after pi exits, so a second launch reuses the loaded model instead of
+paying the load cost again. State lives in `~/.local/state/pi-local/`.
+
+It resolves `~/.local/bin`, `~/llama.cpp/build/bin` and the fnm node dir internally, so it works
+from a non-login shell (cron, Raycast, scripts). It refuses to run if the port is serving a
+different model, rather than silently talking to the wrong one.
+
+A Mellum2 twin needs no second file - the vars are env-overridable:
+
+```bash
+alias pi-mellum='PI_LOCAL_LAUNCHER=mellum PI_LOCAL_MODEL=mellum2-12b-a2.5b PI_LOCAL_PORT=8081 pi-qwen'
+```
+
+### pi provider settings
+
+`pi-dev/models-mac.json` registers three providers: `llama-cpp` (local), `neuralwatt`, and
+`jbcentral-local`. pi also ships a built-in catalog (`moonshotai`, `openrouter`, `deepseek`,
+`minimax`, `xiaomi`, ...) that needs only the matching API key in the environment - those do not
+appear in `models.json` at all.
+
+The `llama-cpp` `compat` block is set from what this llama.cpp build actually accepts:
+
+| Flag | Value | Why |
+|------|-------|-----|
+| `supportsReasoningEffort` | `true` | server accepts `reasoning_effort` in the request body (HTTP 200 on both local models) |
+| `supportsUsageInStreaming` | `true` | `stream_options.include_usage` returns a usage chunk |
+| `supportsDeveloperRole` | `false` | unverified, and it is model-dependent - the flag is provider-wide |
 
 ## LSP
 
-`opencode/mac.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, Vue, and Kotlin.
-See [docs/lsp.md](../../docs/lsp.md) for macOS install commands (`brew install rust-analyzer`, npm
-for the JS-based servers).
+LSP is provided by the `pi-lsp-extension` package listed in `pi-dev/settings-mac.json`. See
+[docs/lsp.md](../../docs/lsp.md) for macOS install commands (`brew install rust-analyzer`, npm for
+the JS-based servers) and `pi-dev/pi-lsp.json` for the server map.
 
 ## Performance (observed)
 
@@ -180,5 +246,15 @@ for the JS-based servers).
 That is roughly double the ~32–38 t/s previously recorded for the 3–4B-active MoEs, consistent with
 Mellum2 activating only 2.5B params per token.
 
-**Qwen3.8-27B** is dense — all 27B params active — so expect substantially slower generation. Not
-yet benchmarked here; update this table once measured.
+**Qwen3.8-27B, UD-Q6_K_XL** — measured on the same machine and build:
+
+| Metric | Value |
+|--------|-------|
+| Model load | 6 s (warm page cache) |
+| Prompt eval | 46.6 t/s |
+| Generation | 11.6 t/s |
+
+Roughly **7x slower generation than Mellum2** — exactly the dense-vs-MoE gap, since Qwen3.8
+activates all 27B params per token against Mellum2's 2.5B. Use Mellum2 for interactive agent loops;
+reach for Qwen3.8 when you need stronger reasoning, the larger context, or vision, which Mellum2
+does not have at all.

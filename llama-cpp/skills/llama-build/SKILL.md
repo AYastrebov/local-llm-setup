@@ -1,6 +1,6 @@
 ---
 name: llama-build
-description: "Build llama.cpp from source, run local LLM inference with GPU acceleration, and configure coding agents to use local models. Use this skill whenever the user wants to: compile llama.cpp, set up local AI inference, run GGUF models locally, configure llama-server or llama-cli, create model launcher scripts, work with Unsloth quantized models, or connect coding tools (Claude Code, opencode, pi.dev, Continue, Cursor) to a local llama.cpp server. Triggers on mentions of llama.cpp, GGUF, local LLM serving, Metal/ROCm/HIP/CUDA GPU backends, model quantization (Q4, Q3, IQ3, Q8, etc), MTP/Multi-Token Prediction, or running models from Hugging Face locally. Also triggers when the user asks about using local models with Claude Code, opencode, pi.dev, or any OpenAI-compatible API client."
+description: "Build llama.cpp from source, run local LLM inference with GPU acceleration, and configure coding agents to use local models. Use this skill whenever the user wants to: compile llama.cpp, set up local AI inference, run GGUF models locally, configure llama-server or llama-cli, create model launcher scripts, work with Unsloth quantized models, or connect coding tools (Claude Code, pi.dev, Continue, Cursor) to a local llama.cpp server. Triggers on mentions of llama.cpp, GGUF, local LLM serving, Metal/ROCm/HIP/CUDA GPU backends, model quantization (Q4, Q3, IQ3, Q8, etc), MTP/Multi-Token Prediction, or running models from Hugging Face locally. Also triggers when the user asks about using local models with Claude Code, pi.dev, or any OpenAI-compatible API client."
 ---
 
 # llama-build
@@ -271,42 +271,18 @@ The llama-server exposes an OpenAI-compatible API at `http://localhost:8080/v1`.
 
 Select the model in pi.dev via `/model`.
 
-### opencode (`~/.config/opencode/opencode.jsonc`)
+### Launcher shorthand (`pi-qwen`)
 
-```jsonc
-{
-  "provider": {
-    "local": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Local llama.cpp",
-      "options": { "baseURL": "http://127.0.0.1:8080/v1" },
-      "models": {
-        "<model-alias>": {
-          "name": "<display name>",
-          "limit": { "context": 65536, "output": 8192 }
-        }
-      }
-    }
-  },
-  "agent": {
-    "local-model": {
-      "description": "Local <model-name>. Start server first: <launcher-name>",
-      "mode": "primary",
-      "model": "local/<model-alias>",
-      "temperature": 0.6,
-      "steps": 15,
-      "permission": {
-        "edit": "allow",
-        "write": "allow",
-        "webfetch": "deny",
-        "websearch": "deny"
-      }
-    }
-  }
-}
+Wrap the launcher so the server starts on demand and pi attaches to it:
+
+```bash
+pi-qwen [pi args...]   # ensure llama-server is up, then exec pi against it
+pi-qwen stop|status|logs
 ```
 
-Disable webfetch/websearch for local agents since the model runs offline.
+Keep the server alive after pi exits so the next run reuses the loaded weights, and refuse to
+attach if the port is serving a different model. See `llama-cpp/scripts/pi-qwen`.
+
 
 ### Claude Code
 

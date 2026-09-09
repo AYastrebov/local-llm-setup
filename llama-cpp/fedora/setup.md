@@ -169,23 +169,16 @@ The config registers four providers. Select any model via `/model` inside pi.dev
 | `google` | Gemini 3.5 Flash | JBCentral proxy — replace `YOUR-WIRE-HASH` |
 | `local-fedora` | Gemma 4 26B-A4B, Qwen3.8-27B | llama.cpp at port 8080 — start a launcher first |
 
-The wire hash is in `~/.config/opencode/opencode.json` (set up by JBCentral).
-
-## opencode Configuration
-
-Config file: `~/.config/opencode/opencode.jsonc` (copy from `opencode/fedora.jsonc`)
-
-```bash
-cp opencode/fedora.jsonc ~/.config/opencode/opencode.jsonc
-```
-
-Agent profiles — see [neuralwatt/setup.md](../../neuralwatt/setup.md) for full details.
+The wire hash comes from JetBrains Central; see `jbcentral/setup.md`.
 
 ## LSP Configuration
 
-`opencode-fedora.jsonc` declares language servers for Go, TypeScript/JavaScript, Rust, Vue, and Kotlin. opencode silently skips any binary that's not on PATH, so install only the ones you actually use.
+LSP comes from pi's `pi-lsp-extension`. Go, Rust, TypeScript and JavaScript work out of the box;
+anything else goes in a per-project `.pi-lsp.json` (see `pi-dev/pi-lsp.json`). A missing binary just
+means that language has no LSP, so install only the servers you use.
 
-See [docs/lsp.md](../docs/lsp.md) for the per-language install commands (Fedora uses `dnf` for `rust-analyzer`, not `rustup`).
+See [docs/lsp.md](../../docs/lsp.md) for the per-language install commands (Fedora uses `dnf` for
+`rust-analyzer`, not `rustup`).
 
 ## Web UI
 
@@ -193,12 +186,15 @@ llama-server includes a built-in web UI. After starting a server, open `http://l
 
 ## Claude Code with Local Models
 
+Start a server (`gemma-moe` or `qwen`), then point Claude Code at it:
+
 ```bash
-claude-gemma       # Gemma 4 26B-A4B
-claude-qwen        # Qwen3.8-27B
+ANTHROPIC_BASE_URL=http://localhost:8080/v1 \
+ANTHROPIC_API_KEY=sk-no-key-required \
+  claude --model qwen3.8-27b
 ```
 
-Aliases defined in `zshrc-snippet.sh`. Start the corresponding server first.
+`zshrc-snippet.sh` carries a commented `claude-local` alias for this.
 
 ## Troubleshooting
 

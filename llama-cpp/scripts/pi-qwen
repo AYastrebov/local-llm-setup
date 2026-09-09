@@ -1,0 +1,115 @@
+#!/bin/bash
+# Run pi against a local llama.cpp server, starting the server if needed.
+#
+#   pi-qwen [pi args...]   ensure the server is up, then launch pi on it
+#   pi-qwen stop           stop the background server
+#   pi-qwen status         show server state
+#   pi-qwen logs           follow the server log
+#
+# The server is left running after pi exits so the next launch is instant
+# (loading the model costs ~1 min and ~25 GB of RAM). Use `pi-qwen stop`
+# to reclaim it.
+#
+# To make a Mellum2 twin: copy this file and change the three vars below.
+
+set -uo pipefail
+
+LAUNCHER="${PI_LOCAL_LAUNCHER:-qwen}"          # script in ~/.local/bin
+MODEL_ID="${PI_LOCAL_MODEL:-qwen3.8-27b}"      # --alias the launcher sets
+PORT="${PI_LOCAL_PORT:-8080}"
+
+PROVIDER="llama-cpp"                            # provider in ~/.pi/agent/models.json
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/pi-local"
+PID_FILE="$STATE_DIR/$MODEL_ID.pid"
+LOG_FILE="$STATE_DIR/$MODEL_ID.log"
+BOOT_TIMEOUT="${PI_LOCAL_TIMEOUT:-600}"         # seconds to wait for /health
+
+mkdir -p "$STATE_DIR"
+
+# Non-interactive shells miss the login PATH, so resolve the pieces we need.
+export PATH="$HOME/.local/bin:$HOME/llama.cpp/build/bin:$PATH"
+for d in "$HOME"/.local/share/fnm/node-versions/*/installation/bin; do
+  [ -x "$d/pi" ] && export PATH="$d:$PATH" && break
+done
+
+die() { echo "pi-qwen: $*" >&2; exit 1; }
+
+# Which model, if any, is answering on $PORT
+serving_model() {
+  curl -sf -m 3 "http://127.0.0.1:$PORT/v1/models" 2>/dev/null \
+    | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1
+}
+
+port_busy() { lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; }
+
+start_server() {
+  command -v "$LAUNCHER" >/dev/null || die "launcher '$LAUNCHER' not found in PATH"
+  command -v llama-server >/dev/null || die "llama-server not found - build llama.cpp first"
+
+  echo "pi-qwen: starting $MODEL_ID on port $PORT (this takes ~1 min)..." >&2
+  nohup "$LAUNCHER" server "$PORT" >"$LOG_FILE" 2>&1 &
+  local pid=$!
+  echo "$pid" > "$PID_FILE"
+
+  local waited=0
+  while [ "$waited" -lt "$BOOT_TIMEOUT" ]; do
+    if curl -sf -m 3 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then
+      echo "pi-qwen: ready after ${waited}s (pid $pid, log $LOG_FILE)" >&2
+      return 0
+    fi
+    kill -0 "$pid" 2>/dev/null || {
+      rm -f "$PID_FILE"
+      echo "pi-qwen: server exited during startup. Last lines:" >&2
+      tail -20 "$LOG_FILE" >&2
+      return 1
+    }
+    sleep 3; waited=$((waited + 3))
+  done
+
+  echo "pi-qwen: gave up after ${BOOT_TIMEOUT}s; server still loading? log: $LOG_FILE" >&2
+  return 1
+}
+
+ensure_server() {
+  local now; now="$(serving_model)"
+  if [ "$now" = "$MODEL_ID" ]; then
+    echo "pi-qwen: reusing running $MODEL_ID on port $PORT" >&2
+    return 0
+  fi
+  if [ -n "$now" ]; then
+    die "port $PORT already serves '$now', not '$MODEL_ID'. Stop it first, or set PI_LOCAL_PORT."
+  fi
+  if port_busy; then
+    die "port $PORT is in use by a non-llama process. Set PI_LOCAL_PORT to use another."
+  fi
+  start_server
+}
+
+case "${1:-}" in
+  stop)
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      kill "$(cat "$PID_FILE")" && rm -f "$PID_FILE"
+      echo "pi-qwen: stopped $MODEL_ID"
+    else
+      rm -f "$PID_FILE"
+      echo "pi-qwen: no server started by pi-qwen is running"
+    fi
+    exit 0 ;;
+  status)
+    m="$(serving_model)"
+    if [ -n "$m" ]; then echo "pi-qwen: port $PORT serving '$m'"
+    elif port_busy;   then echo "pi-qwen: port $PORT busy, but not a llama.cpp server"
+    else                   echo "pi-qwen: nothing on port $PORT"; fi
+    [ -f "$PID_FILE" ] && echo "pi-qwen: tracked pid $(cat "$PID_FILE"), log $LOG_FILE"
+    exit 0 ;;
+  logs)
+    [ -f "$LOG_FILE" ] || die "no log at $LOG_FILE"
+    exec tail -f "$LOG_FILE" ;;
+  -h|--help)
+    sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0 ;;
+esac
+
+ensure_server || exit 1
+command -v pi >/dev/null || die "pi not found in PATH"
+exec pi --provider "$PROVIDER" --model "$MODEL_ID" "$@"

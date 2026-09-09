@@ -1,0 +1,20 @@
+{
+  "defaultProvider": "moonshotai",
+  "defaultModel": "kimi-k3",
+  "defaultThinkingLevel": "high",
+  "theme": "dark",
+  "packages": [
+    "npm:pi-lsp-extension",
+    "npm:pi-antigravity",
+    "npm:pi-web-access",
+    "npm:pi-subagents",
+    "npm:pi-mcp-adapter"
+  ],
+  "enabledModels": [
+    "neuralwatt/*",
+    "llama-cpp/*",
+    "jbcentral-local/**",
+    "moonshotai/*",
+    "openrouter/*"
+  ]
+}
