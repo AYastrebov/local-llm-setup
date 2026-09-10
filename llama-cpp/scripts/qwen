@@ -21,7 +21,8 @@
 if [[ "$(uname -s)" == "Darwin" ]]; then
   MODEL="${QWEN_MODEL:-unsloth/Qwen3.8-27B-GGUF:UD-Q6_K_XL}"
   CTX_SIZE="${QWEN_CTX:-65536}"
-  # -hf pulls mmproj-F16.gguf (~0.9 GB) automatically, which enables image input.
+  # -hf pulls mmproj-BF16.gguf (~0.9 GB) automatically, which enables image input.
+  # (It selects BF16, not F16 -- do not fetch F16 by hand, it will sit unused.)
   PLATFORM_FLAGS="--fit-target 4096"
   # 64 GB unified leaves room for the higher-quality KV cache.
   KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"

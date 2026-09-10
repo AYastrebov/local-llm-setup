@@ -152,6 +152,19 @@ has a fast path for `q4_0`. Measured at a fixed 2560 MiB fit margin, ctx 65536, 
 `q8_0` also forces `--fit` to spill layers to host RAM at a safe margin, which is most of that
 collapse. Output quality at `q4_0` was spot-checked and is fine.
 
+**KV cache type does not matter on Metal.** The `q4_0` result above is a ROCm/RDNA4
+flash-attention quirk and does not transfer. Measured on the M2 Max, UD-Q6_K_XL, ctx 8192, MTP
+`-n-max 4`, medians of 3:
+
+| `--cache-type-k` / `-v` | tok/s |
+|---|---|
+| f16 / f16 | 20.0 |
+| **q8_0 / q8_0** | **19.9** |
+| q4_0 / q4_0 | 19.8 |
+| q8_0 / q4_0 | 19.5 |
+
+A 2.5% spread, i.e. noise-adjacent. macOS keeps `q8_0` for quality, not speed.
+
 **2. `--fit-target 2560`, not the default 1024.** The desktop (gnome-shell, Xwayland, terminal)
 holds ~1919 MiB (1.9 GiB) of VRAM on its own. At the default margin `--fit on` fills to 98%, and the compositor
 then fails to allocate:
