@@ -19,7 +19,6 @@ llama-cpp/          local inference — scripts, build instructions, skill
   mac/setup.md      macOS build guide
   fedora/setup.md   Fedora/ROCm build guide
   fedora/build.sh   ROCm build script (uses hipconfig)
-  docker/setup.md   Docker/CPU-only server guide
   scripts/          launcher scripts (qwen = both platforms, auto-detected; mellum = macOS; gemma-moe = Fedora)
   skills/llama-build/  Claude Code skill for building llama.cpp
 
