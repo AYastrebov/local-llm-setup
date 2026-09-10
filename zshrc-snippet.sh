@@ -36,16 +36,9 @@ export MINIMAX_API_KEY=$(secret-tool lookup service minimax user "$USER")
 #   printf '%s' 'ctx7sk-...' | secret-tool store --label='Context7 API key' service context7 user "$USER"
 export CONTEXT7_API_KEY=$(secret-tool lookup service context7 user "$USER")
 
-# JetBrains Central
-export JB_WIRE_SECRET=$(jq -r '.proxy_secret' ~/.wire/config.json 2>/dev/null)
-export JB_WIRE_PORT=$(jq -r '.proxy_port' ~/.wire/config.json 2>/dev/null)
-export JB_WIRE_BASE="http://127.0.0.1:${JB_WIRE_PORT}/wire/${JB_WIRE_SECRET}"
-# Dummy keys — proxy strips them and adds the real JWT
-export ANTHROPIC_API_KEY=sk-ant-dummy
-export OPENAI_API_KEY=sk-openai-dummy
-export GOOGLE_OAUTH_ACCESS_TOKEN=dummy-jbcentral
-export GOOGLE_VERTEX_LOCATION=default-location
-export GOOGLE_VERTEX_PROJECT=default-project
+# Anthropic / OpenAI / Google: export the real API keys here if you use them.
+# pi discovers a provider from its key alone -- do NOT set placeholder values,
+# or pi will offer models that fail on every call.
 
 # ===============================
 #   llama.cpp

@@ -20,22 +20,18 @@ cp pi-dev/models-fedora.json ~/.pi/agent/models.json
 ```
 
 Then edit `~/.pi/agent/models.json`:
-1. Replace `YOUR-WIRE-HASH` with your secret from `~/.wire/config.json` (`proxy_secret` field)
-2. Replace `sk-your-neuralwatt-key-here` with your NeuralWatt API key
+1. Replace `sk-your-neuralwatt-key-here` with your NeuralWatt API key
 
 pi.dev does not support env var substitution in JSON, so secrets must be hardcoded in the live file.
 The repo templates use placeholders to avoid committing real credentials.
 
-**Never commit `~/.pi/agent/models.json` to this repo** — it contains real secrets. Only edit the template files (`models-mac.json`, `models-fedora.json`) which use `YOUR-WIRE-HASH` and `sk-your-neuralwatt-key-here` as placeholders.
+**Never commit `~/.pi/agent/models.json` to this repo** — it contains real secrets. Only edit the template files (`models-mac.json`, `models-fedora.json`), which use `sk-your-neuralwatt-key-here` as a placeholder.
 
 ## Providers
 
 | Provider | Models | Notes |
 |----------|--------|-------|
 | `neuralwatt` | Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B | Requires NeuralWatt API key |
-| `anthropic` | Claude Opus 4.7 | Via JB Central proxy (`claude-code` wire path) |
-| `openai` | GPT-5.5 Pro | Via JB Central proxy (`codex` wire path), `openai-codex-responses` API |
-| `google` | Gemini 3.1 Pro | Via JB Central proxy (`gemini-cli/vertex` wire path) |
 | `llama-cpp` | mac: Qwen3.8-27B, Mellum2 12B-A2.5B — fedora: Qwen3.8-27B, Gemma 4 26B-A4B | Local llama.cpp at `localhost:8080` — start `qwen`/`mellum` (mac) or `qwen`/`gemma-moe` (fedora) first |
 
 ## What differs between mac and fedora
@@ -46,17 +42,11 @@ Only the `llama-cpp` models section changes:
 
 All cloud provider sections are identical.
 
-## JB Central wire paths
+## Vendor providers
 
-pi.dev uses agent-specific wire paths for quota tracking:
-
-```
-anthropic: http://127.0.0.1:19516/wire/{secret}/claude-code/anthropic/
-openai:    http://127.0.0.1:19516/wire/{secret}/codex/openai/
-google:    http://127.0.0.1:19516/wire/{secret}/gemini-cli/vertex
-```
-
-See `jbcentral/setup.md` for the full wire path table.
+`anthropic`, `openai`, `google`, `deepseek` and friends are in pi's built-in catalog: export the
+matching API key and pi picks them up on its own. They do not belong in `models.json` — only custom
+endpoints (`llama-cpp`, `neuralwatt`) do.
 
 ## LSP (pi-lsp-extension)
 

@@ -1,73 +1,9 @@
 {
   "providers": {
-    "minimax": {
-      "baseUrl": "https://api.minimax.io/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-minimax-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "MiniMax-M3",
-          "name": "MiniMax M3",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "mimo": {
-      "baseUrl": "https://api.xiaomimimo.com/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-mimo-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "mimo-v2.5",
-          "name": "MiMo V2.5 (Omni)",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        },
-        {
-          "id": "mimo-v2.5-pro",
-          "name": "MiMo V2.5 Pro",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "moonshot": {
-      "baseUrl": "https://api.moonshot.ai/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-moonshot-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "kimi-k2.6",
-          "name": "Kimi K2.6",
-          "reasoning": true,
-          "contextWindow": 262128,
-          "maxTokens": 32768
-        }
-      ]
-    },
     "deepseek": {
-      "baseUrl": "https://api.deepseek.com",
       "api": "openai-completions",
       "apiKey": "sk-your-deepseek-key-here",
+      "baseUrl": "https://api.deepseek.com",
       "compat": {
         "supportsDeveloperRole": false,
         "supportsReasoningEffort": false,
@@ -75,107 +11,25 @@
       },
       "models": [
         {
+          "contextWindow": 1048576,
           "id": "deepseek-v4-flash",
+          "maxTokens": 32768,
           "name": "DeepSeek V4 Flash",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
+          "reasoning": true
         },
         {
+          "contextWindow": 1048576,
           "id": "deepseek-v4-pro",
+          "maxTokens": 32768,
           "name": "DeepSeek V4 Pro",
-          "reasoning": true,
-          "contextWindow": 1048576,
-          "maxTokens": 32768
-        }
-      ]
-    },
-    "neuralwatt": {
-      "baseUrl": "https://api.neuralwatt.com/v1",
-      "api": "openai-completions",
-      "apiKey": "sk-your-neuralwatt-key-here",
-      "compat": {
-        "supportsDeveloperRole": false,
-        "supportsReasoningEffort": false,
-        "supportsUsageInStreaming": false
-      },
-      "models": [
-        {
-          "id": "zai-org/GLM-5.1-FP8",
-          "name": "GLM 5.1 FP8",
-          "reasoning": true,
-          "contextWindow": 202736,
-          "maxTokens": 32768
-        },
-        {
-          "id": "Qwen/Qwen3.6-35B-A3B",
-          "name": "Qwen3.6 35B A3B",
-          "reasoning": true,
-          "contextWindow": 131056,
-          "maxTokens": 32768
-        },
-        {
-          "id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
-          "name": "Devstral Small 2 24B",
-          "reasoning": false,
-          "contextWindow": 262128,
-          "maxTokens": 4096
-        }
-      ]
-    },
-    "anthropic": {
-      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/claude-code/anthropic/",
-      "apiKey": "wire-proxy",
-      "api": "anthropic-messages",
-      "models": [
-        {
-          "id": "claude-opus-4-7",
-          "name": "Claude Opus 4.7",
-          "reasoning": true,
-          "contextWindow": 200000,
-          "maxTokens": 32000
-        }
-      ]
-    },
-    "openai": {
-      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/codex/openai/",
-      "apiKey": "wire-proxy",
-      "api": "openai-codex-responses",
-      "models": [
-        {
-          "id": "gpt-5.5-pro",
-          "name": "GPT-5.5 Pro",
-          "reasoning": false,
-          "contextWindow": 200000,
-          "maxTokens": 65536
-        }
-      ]
-    },
-    "google": {
-      "baseUrl": "http://127.0.0.1:19516/wire/YOUR-WIRE-HASH/gemini-cli/vertex",
-      "apiKey": "wire-proxy",
-      "api": "google-vertex",
-      "models": [
-        {
-          "id": "gemini-3.5-flash",
-          "name": "Gemini 3.5 Flash",
-          "reasoning": false,
-          "contextWindow": 1048576,
-          "maxTokens": 65536
-        },
-        {
-          "id": "gemini-3.1-pro-preview",
-          "name": "Gemini 3.1 Pro",
-          "reasoning": true,
-          "contextWindow": 2000000,
-          "maxTokens": 65536
+          "reasoning": true
         }
       ]
     },
     "llama-cpp": {
-      "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",
       "apiKey": "none",
+      "baseUrl": "http://localhost:8080/v1",
       "compat": {
         "supportsDeveloperRole": false,
         "supportsReasoningEffort": false,
@@ -183,25 +37,122 @@
       },
       "models": [
         {
+          "contextWindow": 65536,
           "id": "qwen3.8-27b",
+          "maxTokens": 8192,
           "name": "Qwen3.8 27B Dense (Local)",
-          "reasoning": true,
-          "contextWindow": 65536,
-          "maxTokens": 8192
+          "reasoning": true
         },
         {
+          "contextWindow": 65536,
           "id": "mellum2-12b-a2.5b",
+          "maxTokens": 8192,
           "name": "Mellum2 12B-A2.5B (Local)",
-          "reasoning": true,
-          "contextWindow": 65536,
-          "maxTokens": 8192
+          "reasoning": true
         },
         {
-          "id": "gemma-4-26b-a4b",
-          "name": "Gemma 4 26B-A4B MoE (Local)",
-          "reasoning": true,
           "contextWindow": 65536,
-          "maxTokens": 8192
+          "id": "gemma-4-26b-a4b",
+          "maxTokens": 8192,
+          "name": "Gemma 4 26B-A4B MoE (Local)",
+          "reasoning": true
+        }
+      ]
+    },
+    "mimo": {
+      "api": "openai-completions",
+      "apiKey": "sk-your-mimo-key-here",
+      "baseUrl": "https://api.xiaomimimo.com/v1",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "contextWindow": 1048576,
+          "id": "mimo-v2.5",
+          "maxTokens": 32768,
+          "name": "MiMo V2.5 (Omni)",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 1048576,
+          "id": "mimo-v2.5-pro",
+          "maxTokens": 32768,
+          "name": "MiMo V2.5 Pro",
+          "reasoning": true
+        }
+      ]
+    },
+    "minimax": {
+      "api": "openai-completions",
+      "apiKey": "sk-your-minimax-key-here",
+      "baseUrl": "https://api.minimax.io/v1",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "contextWindow": 1048576,
+          "id": "MiniMax-M3",
+          "maxTokens": 32768,
+          "name": "MiniMax M3",
+          "reasoning": true
+        }
+      ]
+    },
+    "moonshot": {
+      "api": "openai-completions",
+      "apiKey": "sk-your-moonshot-key-here",
+      "baseUrl": "https://api.moonshot.ai/v1",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "contextWindow": 262128,
+          "id": "kimi-k2.6",
+          "maxTokens": 32768,
+          "name": "Kimi K2.6",
+          "reasoning": true
+        }
+      ]
+    },
+    "neuralwatt": {
+      "api": "openai-completions",
+      "apiKey": "sk-your-neuralwatt-key-here",
+      "baseUrl": "https://api.neuralwatt.com/v1",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsUsageInStreaming": false
+      },
+      "models": [
+        {
+          "contextWindow": 202736,
+          "id": "zai-org/GLM-5.1-FP8",
+          "maxTokens": 32768,
+          "name": "GLM 5.1 FP8",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 131056,
+          "id": "Qwen/Qwen3.6-35B-A3B",
+          "maxTokens": 32768,
+          "name": "Qwen3.6 35B A3B",
+          "reasoning": true
+        },
+        {
+          "contextWindow": 262128,
+          "id": "mistralai/Devstral-Small-2-24B-Instruct-2512",
+          "maxTokens": 4096,
+          "name": "Devstral Small 2 24B",
+          "reasoning": false
         }
       ]
     }

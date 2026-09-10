@@ -275,12 +275,10 @@ The config registers four providers. Select any model via `/model` inside pi.dev
 | `moonshot` | Kimi K2.6 | Requires `MOONSHOT_API_KEY` — replace placeholder key in file |
 | `deepseek` | V4 Flash, V4 Pro | Requires `DEEPSEEK_API_KEY` — replace placeholder key in file |
 | `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |
-| `anthropic` | Claude models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
-| `openai` | Codex models (dynamic) | JBCentral proxy — replace `YOUR-WIRE-HASH` |
-| `google` | Gemini 3.5 Flash | JBCentral proxy — replace `YOUR-WIRE-HASH` |
 | `llama-cpp` | Qwen3.8-27B, Mellum2 12B-A2.5B, Gemma 4 26B-A4B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
 
-The wire hash comes from JetBrains Central; see `jbcentral/setup.md`.
+`anthropic`, `openai` and `google` are not listed: pi's built-in catalog activates them from an
+exported API key alone.
 
 ## LSP Configuration
 
