@@ -11,14 +11,16 @@ not intent. **Docker remains documented but unverified.**
 |---|---|---|---|
 | llama.cpp | `22397c31a`, build 10881, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) | not checked |
 | Qwen3.8-27B | **served, 19.1 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) | - |
-| Mellum2 12B-A2.5B | downloaded, served, 79-80 t/s gen | launcher installed, **not yet benchmarked** | - |
+| Mellum2 12B-A2.5B | **removed 2026-09-10** | launcher installed, **not yet benchmarked** | - |
 | Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked | - |
 | Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) | - |
 
 Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
 
-The macOS Mellum2 figure (79-80 t/s) still dates from 2026-09-09 and has not been re-measured since.
+macOS now runs **Qwen3.8-27B only**. Mellum2 was removed from the Mac on 2026-09-10 — weights
+deleted, launcher uninstalled, pi model entry dropped. It remains a Fedora model. Its last measured
+macOS figure was 79-80 t/s on 2026-09-09, kept here only as history.
 
 opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
 configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
@@ -37,15 +39,15 @@ pi.
 | Model | Type | Params | Use case | Platform |
 |-------|------|--------|----------|----------|
 | [Qwen3.8-27B](https://huggingface.co/collections/unsloth/qwen38) | 27B dense | 27B | General + reasoning + vision | Mac, Fedora |
-| [Mellum2 12B-A2.5B](https://huggingface.co/collections/JetBrains/mellum-2) | 12B MoE | 2.5B active | Coding | Mac, Fedora* |
+| [Mellum2 12B-A2.5B](https://huggingface.co/collections/JetBrains/mellum-2) | 12B MoE | 2.5B active | Coding | Fedora* |
 | [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Fedora |
 | [LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) | 350M dense | 350M | Lightweight automation | Docker server |
 
-macOS runs **only Qwen3.8-27B and Mellum2**; Gemma 4 is Fedora-only. Qwen3.6 has been retired from
+macOS runs **only Qwen3.8-27B**; Mellum2 and Gemma 4 are Fedora-only. Qwen3.6 has been retired from
 both machines — the `unsloth/qwen38` collection ships only the 27B dense model and a 2.4T-A95B MoE
 far too large for either box, so both platforms run the 27B at different quants.
 
-\* Mellum2 is now *installed* on Fedora too (the `mellum` launcher is no longer mac-only), but it
+\* Mellum2 is *installed* on Fedora (the `mellum` launcher is Fedora-only since the Mac dropped it), but it
 has **not been benchmarked or run there yet**. Its Q8_0 weights are 12.9 GB, so it should fit the
 16 GB card, and the `q4_0` KV finding below may or may not transfer — it is a different
 architecture and deserves its own sweep before anyone trusts a number.
@@ -55,7 +57,7 @@ architecture and deserves its own sweep before anyone trusts a number.
 | Model | Mac (64GB) | Fedora (16GB VRAM) | Docker (CPU, 24GB RAM) |
 |-------|------------|--------------------|------------------------|
 | Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | UD-IQ3_XXS (10.93 GB) | -- |
-| Mellum2 12B-A2.5B Thinking | Q8_0 (12.9 GB) | -- | -- |
+| Mellum2 12B-A2.5B Thinking | -- | Q8_0 (12.9 GB) | -- |
 | Gemma 4 26B-A4B | -- | Q3_K_XL (13 GB) | -- |
 | LFM2.5-350M | -- | -- | Q8_0 (379 MB) |
 
@@ -256,12 +258,12 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
 
 2. **Install launcher scripts**:
    ```bash
-   cp llama-cpp/scripts/qwen llama-cpp/scripts/mellum ~/.local/bin/
-   chmod +x ~/.local/bin/qwen ~/.local/bin/mellum
+   cp llama-cpp/scripts/qwen ~/.local/bin/
+   chmod +x ~/.local/bin/qwen
    ```
-   `qwen` runs Qwen3.8-27B (UD-Q6_K_XL); `mellum` runs Mellum2 12B-A2.5B Thinking (Q8_0).
-   `gemma-moe` is Fedora-only — do not install it on macOS. `qwen` is shared: it picks the right
-   quant and flags from `uname`.
+   `qwen` runs Qwen3.8-27B (UD-Q6_K_XL) and is the only local model on macOS.
+   `mellum` and `gemma-moe` are Fedora-only — do not install them on macOS. `qwen` is shared: it
+   picks the right quant and flags from `uname`.
 
 3. **Add shell config**:
    ```bash
@@ -283,14 +285,11 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
    ```
 
-6. **Run** (one at a time — both default to port 8080):
+6. **Run**:
    ```bash
    qwen                 # Qwen3.8-27B server on port 8080
    qwen chat            # interactive chat, thinking on
    qwen chat-fast       # interactive chat, thinking off (instruct params)
-   mellum               # Mellum2 12B-A2.5B Thinking server on port 8080
-   mellum chat          # interactive coding chat
-   mellum server 8081   # run alongside qwen on a second port
    ```
 
 See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for detailed hardware info and model selection.
@@ -320,7 +319,7 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `pi-dev/models-fedora.json`
 - macOS: `pi-dev/models-mac.json`
 
-Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp (Qwen3.8-27B + Mellum2 on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora). Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
+Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp (Qwen3.8-27B on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora). Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
 
 > The local provider **must be named `llama-cpp`** in `models.json` — `pi-qwen` hardcodes
 > `PROVIDER="llama-cpp"`. `models-fedora.json` used to call it `local-fedora`, which meant
@@ -349,8 +348,10 @@ NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setu
 pi-qwen            # start Qwen3.8-27B if needed, then run pi on it
 pi-qwen stop       # stop the background server (frees ~26 GB mac, ~14 GB Fedora)
 pi-qwen status     # show what is on the port
-pi-mellum          # same, for Mellum2 on port 8081 (alias in zshrc-snippet.sh)
 ```
+
+`pi-qwen` is the only local shorthand on macOS. Fedora additionally has the `pi-mellum` alias in
+[zshrc-snippet.sh](zshrc-snippet.sh).
 
 See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for how `pi-qwen` reuses an already-loaded
 model and what it refuses to do.
@@ -362,7 +363,7 @@ are driven through `pi-qwen` now. To point Claude Code at a running local server
 and set the base URL:
 
 ```bash
-qwen                                        # or: mellum / gemma-moe (Fedora)
+qwen                                        # macOS; on Fedora also: mellum / gemma-moe
 ANTHROPIC_BASE_URL=http://localhost:8080/v1 \
 ANTHROPIC_API_KEY=sk-no-key-required \
   claude --model qwen3.8-27b

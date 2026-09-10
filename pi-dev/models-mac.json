@@ -29,13 +29,6 @@
           "maxTokens": 8192,
           "name": "Qwen3.8 27B Dense (Local)",
           "reasoning": true
-        },
-        {
-          "contextWindow": 65536,
-          "id": "mellum2-12b-a2.5b",
-          "maxTokens": 8192,
-          "name": "JetBrains Mellum2 12B-A2.5B Thinking (Local)",
-          "reasoning": true
         }
       ]
     },

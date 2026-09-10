@@ -56,14 +56,15 @@ export GOOGLE_VERTEX_PROJECT=default-project
 # LLAMA_CACHE only if you want them somewhere else, e.g. an external volume:
 # export LLAMA_CACHE="$HOME/models"
 export PATH="$HOME/llama.cpp/build/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"   # qwen, mellum, pi-qwen launchers
+export PATH="$HOME/.local/bin:$PATH"   # qwen, pi-qwen launchers (+ mellum on Fedora)
 
 # Local models are driven through pi, not Claude Code aliases.
 #   pi-qwen            start llama-server with Qwen3.8-27B if needed, then run pi on it
 #   pi-qwen stop       stop the background server (frees ~25 GB)
 #   pi-qwen status     show what is on the port
 #
-# Mellum2 twin - different port, so both can run side by side:
+# Mellum2 twin - Fedora only, different port so both can run side by side.
+# macOS dropped Mellum2 on 2026-09-10 and runs Qwen3.8-27B alone.
 alias pi-mellum='PI_LOCAL_LAUNCHER=mellum PI_LOCAL_MODEL=mellum2-12b-a2.5b PI_LOCAL_PORT=8081 pi-qwen'
 #
 # Fedora also has gemma-moe; to point Claude Code at any local server:
