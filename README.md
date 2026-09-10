@@ -334,27 +334,13 @@ model and what it refuses to do.
 
 ### Claude Code
 
-The dedicated `claude-qwen` / `claude-mellum` aliases were removed in September 2026 - local models
-are driven through `pi-qwen` now. To point Claude Code at a running local server anyway, start one
-and set the base URL:
+**Local models are driven through pi, not Claude Code.** Pointing Claude Code at a local
+llama-server via `ANTHROPIC_BASE_URL` used to be documented here and was removed in September 2026:
+Claude Code is built around Anthropic models, and driving a non-Anthropic model through it gave
+consistently poor results in practice. Use `pi-qwen` for local models; keep Claude Code on
+Anthropic models.
 
-```bash
-qwen                                        # macOS; on Fedora also: mellum / gemma-moe
-ANTHROPIC_BASE_URL=http://localhost:8080/v1 \
-ANTHROPIC_API_KEY=sk-no-key-required \
-  claude --model qwen3.8-27b
-```
-
-Set in `~/.claude/settings.json` to prevent KV cache invalidation:
-```json
-{
-  "env": {
-    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
-    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-  }
-}
-```
+Claude Code is still used in this setup — see the skill below.
 
 ## Claude Code skills
 

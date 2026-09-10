@@ -293,18 +293,6 @@ See [docs/lsp.md](../../docs/lsp.md) for the per-language install commands (Fedo
 
 llama-server includes a built-in web UI. After starting a server, open `http://localhost:8080` in a browser.
 
-## Claude Code with Local Models
-
-Start a server (`gemma-moe` or `qwen`), then point Claude Code at it:
-
-```bash
-ANTHROPIC_BASE_URL=http://localhost:8080/v1 \
-ANTHROPIC_API_KEY=sk-no-key-required \
-  claude --model qwen3.8-27b
-```
-
-`zshrc-snippet.sh` carries a commented `claude-local` alias for this.
-
 ## Troubleshooting
 
 **"Cannot find ROCm device library":**

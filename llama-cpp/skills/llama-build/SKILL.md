@@ -1,6 +1,6 @@
 ---
 name: llama-build
-description: "Build llama.cpp from source, run local LLM inference with GPU acceleration, and configure coding agents to use local models. Use this skill whenever the user wants to: compile llama.cpp, set up local AI inference, run GGUF models locally, configure llama-server or llama-cli, create model launcher scripts, work with Unsloth quantized models, or connect coding tools (Claude Code, pi.dev, Continue, Cursor) to a local llama.cpp server. Triggers on mentions of llama.cpp, GGUF, local LLM serving, Metal/ROCm/HIP/CUDA GPU backends, model quantization (Q4, Q3, IQ3, Q8, etc), MTP/Multi-Token Prediction, or running models from Hugging Face locally. Also triggers when the user asks about using local models with Claude Code, pi.dev, or any OpenAI-compatible API client."
+description: "Build llama.cpp from source, run local LLM inference with GPU acceleration, and configure coding agents to use local models. Use this skill whenever the user wants to: compile llama.cpp, set up local AI inference, run GGUF models locally, configure llama-server or llama-cli, create model launcher scripts, work with Unsloth quantized models, or connect coding tools (pi.dev, Continue, Cursor) to a local llama.cpp server. Triggers on mentions of llama.cpp, GGUF, local LLM serving, Metal/ROCm/HIP/CUDA GPU backends, model quantization (Q4, Q3, IQ3, Q8, etc), MTP/Multi-Token Prediction, or running models from Hugging Face locally. Also triggers when the user asks about using local models with pi.dev or any OpenAI-compatible API client, or about pointing Claude Code at a local server (the skill explains why not to)."
 ---
 
 # llama-build
@@ -247,40 +247,10 @@ attach if the port is serving a different model. See `llama-cpp/scripts/pi-qwen`
 
 ### Claude Code
 
-#### Shell aliases (`~/.zshrc`)
-
-```bash
-alias claude-local='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model <model-alias>'
-```
-
-For fully autonomous mode (use with care):
-```bash
-alias claude-local-auto='ANTHROPIC_BASE_URL=http://localhost:8080/v1 ANTHROPIC_API_KEY=sk-no-key-required claude --model <model-alias> --dangerously-skip-permissions'
-```
-
-#### settings.json (`~/.claude/settings.json`) — CRITICAL
-
-Claude Code sends attribution headers that **invalidate the KV cache** on every request, causing ~90% slower inference. This must be disabled in `settings.json` — setting it via environment variable does NOT work.
-
-```json
-{
-  "env": {
-    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
-    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-  }
-}
-```
-
-#### First-run onboarding (if Claude Code prompts for sign-in)
-
-Add to `~/.claude.json`:
-```json
-{
-  "hasCompletedOnboarding": true,
-  "primaryApiKey": "sk-dummy-key"
-}
-```
+**Do not point Claude Code at a local llama-server.** It is built around Anthropic models, and
+driving a non-Anthropic model through it performs poorly in practice. Configure local models in
+pi.dev instead (above). This guidance replaced an `ANTHROPIC_BASE_URL` recipe removed in
+September 2026.
 
 ### API key protection (for remote/public servers)
 
@@ -293,7 +263,6 @@ If the llama-server is exposed over the network (e.g., via Cloudflare Tunnel), s
 External references:
 - llama.cpp build guide: https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md
 - ROCm quick start: https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html
-- Unsloth Claude Code guide: https://unsloth.ai/docs/basics/claude-code
 - Unsloth Gemma 4: https://unsloth.ai/docs/models/gemma-4
 - Unsloth Qwen3.6: https://unsloth.ai/docs/models/qwen3.6
 - Unsloth Qwen3.8: https://unsloth.ai/docs/models/qwen3.8
