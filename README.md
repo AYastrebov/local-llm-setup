@@ -272,7 +272,7 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    source ~/.zshrc
    ```
 
-4. **Set up JetBrains Central** (for Claude Opus, GPT-5.5, Gemini):
+4. **Set up JetBrains Central** (optional — for Claude Code etc., not pi):
    ```bash
    # Install from https://central-cli.labs.jb.gg
    jbcentral login
@@ -319,7 +319,14 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `pi-dev/models-fedora.json`
 - macOS: `pi-dev/models-mac.json`
 
-Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B), JB Central proxy (Claude Opus 4.7, GPT-5.5 Pro, Gemini 3.1 Pro), and local llama.cpp (Qwen3.8-27B on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora). Replace `YOUR-WIRE-HASH` with your hash from `~/.wire/config.json` and set your NeuralWatt key.
+Both configs register NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B) and local llama.cpp
+(Qwen3.8-27B on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora); `models-fedora.json` adds a few
+direct vendor endpoints. Set your NeuralWatt key.
+
+> **JB Central is no longer a pi provider.** The `jbcentral-local` block (a LiteLLM proxy at
+> `litellm.labs.jb.gg`) was removed on 2026-09-10. The `jbcentral` CLI itself is untouched and is
+> still how Claude Code and other tools reach Claude Opus / GPT-5.5 / Gemini — see
+> [jbcentral/setup.md](jbcentral/setup.md). It is simply not wired into pi any more.
 
 > The local provider **must be named `llama-cpp`** in `models.json` — `pi-qwen` hardcodes
 > `PROVIDER="llama-cpp"`. `models-fedora.json` used to call it `local-fedora`, which meant
@@ -339,8 +346,7 @@ macOS also copies `pi-dev/settings-mac.json` to `~/.pi/agent/settings.json`:
 pi ships a built-in provider catalog and activates each entry when its API key is present in the
 environment: `MOONSHOT_API_KEY` -> `moonshotai`, `OPENROUTER_API_KEY` -> `openrouter`,
 `DEEPSEEK_API_KEY` -> `deepseek`, and so on (`pi --help` lists them all). Those providers are **not**
-listed in `models.json`. Only custom endpoints go there: `llama-cpp`, `neuralwatt`, and
-`jbcentral-local`.
+listed in `models.json`. Only custom endpoints go there: `llama-cpp` and `neuralwatt`.
 
 `enabledModels` is an **allowlist**, so setting it defeats that discovery — a provider whose key you
 later export stays invisible until you also add it to the list. It was dropped on 2026-09-10 for
@@ -351,7 +357,7 @@ The cost is a long Ctrl+P list (~485 models here, most of them OpenRouter's). If
 unwieldy, re-add `enabledModels` with narrow patterns — but then remember to extend it whenever you
 add a provider key.
 
-NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). JB Central needs `jbcentral login` (see [jbcentral/setup.md](jbcentral/setup.md)). LSP setup for Go, TypeScript, Rust, Vue, and Kotlin is in [docs/lsp.md](docs/lsp.md).
+NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). LSP setup for Go, TypeScript, Rust, Vue, and Kotlin is in [docs/lsp.md](docs/lsp.md).
 
 ### Local models through pi
 

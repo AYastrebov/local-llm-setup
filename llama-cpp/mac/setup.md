@@ -173,8 +173,9 @@ different model, rather than silently talking to the wrong one.
 
 ### pi provider settings
 
-`pi-dev/models-mac.json` registers three providers: `llama-cpp` (local, Qwen3.8 only), `neuralwatt`, and
-`jbcentral-local`. pi also ships a built-in catalog (`moonshotai`, `openrouter`, `deepseek`,
+`pi-dev/models-mac.json` registers two providers: `llama-cpp` (local, Qwen3.8 only) and
+`neuralwatt`. The `jbcentral-local` LiteLLM proxy was removed on 2026-09-10 — the `jbcentral` CLI
+still exists for other tools, it is just not a pi provider. pi also ships a built-in catalog (`moonshotai`, `openrouter`, `deepseek`,
 `minimax`, `xiaomi`, ...) that needs only the matching API key in the environment - those do not
 appear in `models.json` at all.
 

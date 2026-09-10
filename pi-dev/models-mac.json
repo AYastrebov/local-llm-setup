@@ -1,18 +1,5 @@
 {
   "providers": {
-    "jbcentral-local": {
-      "api": "openai-completions",
-      "apiKey": "sk-your-jbcentral-litellm-key-here",
-      "authHeader": true,
-      "baseUrl": "https://litellm.labs.jb.gg/v1",
-      "models": [
-        {
-          "id": "hetzner/Qwen/Qwen3.6-27B-FP8",
-          "name": "hetzner/Qwen/Qwen3.6-27B-FP8",
-          "reasoning": false
-        }
-      ]
-    },
     "llama-cpp": {
       "api": "openai-completions",
       "apiKey": "none",

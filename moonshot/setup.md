@@ -36,5 +36,5 @@ Then enable it in `~/.pi/agent/settings.json`:
 "enabledModels": ["moonshotai/*"]
 ```
 
-Only custom endpoints (`llama-cpp`, `neuralwatt`, `jbcentral-local`) need an entry in
+Only custom endpoints (`llama-cpp`, `neuralwatt`) need an entry in
 `models.json`, where the key is stored literally rather than read from the environment.
