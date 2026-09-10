@@ -90,8 +90,11 @@ Confirmed on this build: **q8_0 KV cache works with flash attention on the hybri
 (896 MB), not the F16 file — do not fetch F16 by hand, it will sit unused. Pass `--no-mmproj` to
 skip vision entirely.
 
-> There is **no MTP GGUF** for Qwen3.8-27B (unlike Qwen3.6-27B-MTP), so the launcher carries no
-> `--spec-type draft-mtp` flags. Speculative decoding returns if unsloth publishes an `-MTP-` repo.
+> **MTP is on by default.** An earlier version of this doc claimed no MTP GGUF exists for
+> Qwen3.8-27B — that was wrong. `unsloth/Qwen3.8-27B-GGUF` ships the NextN block inside the main
+> GGUF (`blk.64.nextn.*`, present in UD-Q6_K_XL), and llama.cpp builds the draft context from the
+> target model itself. The launcher passes `--spec-type draft-mtp --spec-draft-n-max 4`, worth a
+> measured **1.7x** here. Disable with `QWEN_MTP=0`, retune with `QWEN_MTP_NMAX=N`.
 
 **Sampling parameters** (per the [Qwen3.8 model card](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF)):
 
@@ -174,7 +177,7 @@ mellum server 8081   # coding
 | General model | Qwen3.8-27B dense, UD-Q6_K_XL (25.9 GB) | Qwen3.6 35B-A3B MoE MTP, IQ3_XXS (~14 GB) |
 | Coding model | Mellum2 12B-A2.5B Thinking, Q8_0 (12.9 GB) | — |
 | Multimodal | Gemma 4 26B-A4B (Fedora only) | Gemma 4 26B-A4B, Q3_K_XL (13 GB) |
-| Speculative decoding | none (no Qwen3.8 MTP GGUF) | `--spec-type draft-mtp` |
+| Speculative decoding | `--spec-type draft-mtp --spec-draft-n-max 4` | `--spec-type draft-mtp --spec-draft-n-max 4` |
 | KV cache quantization | q8_0 | q8_0 |
 | Build flags | `-DGGML_METAL=ON -DGGML_NATIVE=ON` | `-DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON` |
 
@@ -252,9 +255,14 @@ Mellum2 activating only 2.5B params per token.
 |--------|-------|
 | Model load | 6 s (warm page cache) |
 | Prompt eval | 46.6 t/s |
-| Generation | 11.6 t/s |
+| Generation, no MTP | 11.6 t/s |
+| **Generation, MTP `-n-max 4`** | **19.1 t/s** |
 
-Roughly **7x slower generation than Mellum2** — exactly the dense-vs-MoE gap, since Qwen3.8
-activates all 27B params per token against Mellum2's 2.5B. Use Mellum2 for interactive agent loops;
+The MTP row was measured 2026-09-10 at ctx 8192 with q8_0 KV over a 160-token generation:
+11.3 t/s off, 19.0 at depth 3, **19.1 at depth 4**, 17.2 at depth 6 — the same optimum Fedora found,
+though the Metal curve is flatter than ROCm's.
+
+Even with MTP this is roughly **4x slower generation than Mellum2** — exactly the dense-vs-MoE
+gap, since Qwen3.8 activates all 27B params per token against Mellum2's 2.5B. Use Mellum2 for interactive agent loops;
 reach for Qwen3.8 when you need stronger reasoning, the larger context, or vision, which Mellum2
 does not have at all.

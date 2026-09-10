@@ -4,19 +4,21 @@ Config files, launcher scripts, and coding agent settings for a self-hosted AI c
 
 ## Status (2026-09-10)
 
-macOS numbers were verified 2026-09-09. **Fedora was verified 2026-09-10** — the numbers below are
-measured on that box, not intent. **Docker remains documented but unverified.**
+Both **macOS and Fedora were verified 2026-09-10** — the numbers below are measured on those boxes,
+not intent. **Docker remains documented but unverified.**
 
 | | macOS (M2 Max, 64 GB) | Fedora (RX 9060 XT, 16 GB) | Docker |
 |---|---|---|---|
 | llama.cpp | `22397c31a`, build 10881, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) | not checked |
-| Qwen3.8-27B | downloaded, served, 11.6 t/s gen | **served, 34.2 t/s gen with MTP** (14.8 without) | - |
+| Qwen3.8-27B | **served, 19.1 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) | - |
 | Mellum2 12B-A2.5B | downloaded, served, 79-80 t/s gen | launcher installed, **not yet benchmarked** | - |
 | Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked | - |
 | Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) | - |
 
 Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
+
+The macOS Mellum2 figure (79-80 t/s) still dates from 2026-09-09 and has not been re-measured since.
 
 opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
 configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
@@ -59,8 +61,8 @@ architecture and deserves its own sweep before anyone trusts a number.
 
 ### MTP (Multi-Token Prediction)
 
-MTP enables speculative decoding. **On Fedora it is a measured 2.3x on Qwen3.8-27B** and is enabled
-by default in the `qwen` launcher:
+MTP enables speculative decoding, and is enabled by default in the `qwen` launcher on **both**
+platforms — a measured **2.3x on Fedora** and **1.7x on macOS**:
 
 ```bash
 --spec-type draft-mtp --spec-draft-n-max 4
@@ -87,6 +89,20 @@ Draft depth matters a lot. Measured on the RX 9060 XT, ctx 65536, q4_0 KV, media
 
 Acceptance collapses past 4, so deeper drafts cost more than they win — the old `-n-max 6` was
 leaving ~40% on the table. Disable MTP entirely with `QWEN_MTP=0`, or retune with `QWEN_MTP_NMAX=N`.
+
+**`n-max 4` is now measured on macOS too, not inherited from Fedora.** M2 Max, UD-Q6_K_XL, ctx 8192,
+q8_0 KV, 160-token generation:
+
+| `--spec-draft-n-max` | tok/s |
+|---|---|
+| off (no MTP) | 11.3 |
+| 3 | 19.0 |
+| **4** | **19.1** |
+| 6 | 17.2 |
+
+The Metal speedup is smaller than ROCm's (1.7x vs 2.3x) and the curve is flatter, but the optimum
+sits at the same depth. The Mac's UD-Q6_K_XL GGUF carries the same `blk.64.nextn.*` block as the
+Fedora IQ3_XXS, so no extra download is involved.
 
 ### Sampling parameters (quick reference)
 
