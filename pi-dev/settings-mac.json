@@ -9,12 +9,5 @@
     "npm:pi-web-access",
     "npm:pi-subagents",
     "npm:pi-mcp-adapter"
-  ],
-  "enabledModels": [
-    "neuralwatt/*",
-    "llama-cpp/*",
-    "jbcentral-local/**",
-    "moonshotai/*",
-    "openrouter/*"
   ]
 }

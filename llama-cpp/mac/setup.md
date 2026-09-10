@@ -178,6 +178,22 @@ different model, rather than silently talking to the wrong one.
 `minimax`, `xiaomi`, ...) that needs only the matching API key in the environment - those do not
 appear in `models.json` at all.
 
+`settings-mac.json` deliberately sets **no `enabledModels`**. That key is an allowlist, and any
+provider you enable later by exporting its key would stay hidden until you also added it there.
+Without it, discovery is automatic. Measured on this Mac with `MOONSHOT_API_KEY`,
+`OPENROUTER_API_KEY` and `NEURALWATT_API_KEY` exported:
+
+| Provider | Models | Source |
+|---|---|---|
+| openrouter | 372 | env key |
+| huggingface | 71 | env key |
+| neuralwatt | 20 | `models.json` |
+| moonshotai (+ `-cn`) | 20 | env key |
+| llama-cpp | 1 | `models.json` |
+
+The default (`moonshotai` / `kimi-k3`) resolves against that set — `kimi-k3` also exists under
+`neuralwatt`, and `defaultProvider` is what disambiguates the two.
+
 The `llama-cpp` `compat` block is set from what this llama.cpp build actually accepts:
 
 | Flag | Value | Why |

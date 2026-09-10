@@ -326,19 +326,30 @@ Both configs register four providers: NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.
 > `pi-qwen` failed on Fedora with an unknown-provider error while working fine on Mac. Fixed
 > 2026-09-10; if you have an older `~/.pi/agent/models.json`, rename that key.
 
-macOS also copies `pi-dev/settings-mac.json` to `~/.pi/agent/settings.json`, which sets the
-defaults and the enabled-model patterns:
+macOS also copies `pi-dev/settings-mac.json` to `~/.pi/agent/settings.json`:
 
 | Setting | Value |
 |---------|-------|
 | `defaultProvider` / `defaultModel` | `moonshotai` / `kimi-k3` (needs `MOONSHOT_API_KEY`) |
 | `defaultThinkingLevel` | `high` |
-| `enabledModels` | `neuralwatt/*`, `llama-cpp/*`, `jbcentral-local/**`, `moonshotai/*`, `openrouter/*` |
+| `enabledModels` | **not set** — see below |
 
-pi ships a built-in provider catalog (`moonshotai`, `openrouter`, `deepseek`, `minimax`, `xiaomi`,
-`anthropic`, `google`, `openai`, ...). Those need only the matching API key exported - they are not
-listed in `models.json`. Only custom endpoints go in `models.json`: `llama-cpp`, `neuralwatt`, and
+### Provider discovery
+
+pi ships a built-in provider catalog and activates each entry when its API key is present in the
+environment: `MOONSHOT_API_KEY` -> `moonshotai`, `OPENROUTER_API_KEY` -> `openrouter`,
+`DEEPSEEK_API_KEY` -> `deepseek`, and so on (`pi --help` lists them all). Those providers are **not**
+listed in `models.json`. Only custom endpoints go there: `llama-cpp`, `neuralwatt`, and
 `jbcentral-local`.
+
+`enabledModels` is an **allowlist**, so setting it defeats that discovery — a provider whose key you
+later export stays invisible until you also add it to the list. It was dropped on 2026-09-10 for
+exactly that reason. Verified: with no allowlist, exporting `DEEPSEEK_API_KEY` makes `deepseek`
+appear in `pi --list-models` with no config change at all.
+
+The cost is a long Ctrl+P list (~485 models here, most of them OpenRouter's). If that gets
+unwieldy, re-add `enabledModels` with narrow patterns — but then remember to extend it whenever you
+add a provider key.
 
 NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). JB Central needs `jbcentral login` (see [jbcentral/setup.md](jbcentral/setup.md)). LSP setup for Go, TypeScript, Rust, Vue, and Kotlin is in [docs/lsp.md](docs/lsp.md).
 
