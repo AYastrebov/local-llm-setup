@@ -100,7 +100,17 @@ case "${1:-}" in
     if [ -n "$m" ]; then echo "pi-qwen: port $PORT serving '$m'"
     elif port_busy;   then echo "pi-qwen: port $PORT busy, but not a llama.cpp server"
     else                   echo "pi-qwen: nothing on port $PORT"; fi
-    [ -f "$PID_FILE" ] && echo "pi-qwen: tracked pid $(cat "$PID_FILE"), log $LOG_FILE"
+    # Only report a pid that is actually alive. A server can die outside
+    # `pi-qwen stop` (crash, OOM, stray pkill, reboot), and the stale file would
+    # otherwise be reported as "tracked" forever.
+    if [ -f "$PID_FILE" ]; then
+      if kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+        echo "pi-qwen: tracked pid $(cat "$PID_FILE"), log $LOG_FILE"
+      else
+        rm -f "$PID_FILE"
+        [ -f "$LOG_FILE" ] && echo "pi-qwen: last server exited; log $LOG_FILE"
+      fi
+    fi
     exit 0 ;;
   logs)
     [ -f "$LOG_FILE" ] || die "no log at $LOG_FILE"
