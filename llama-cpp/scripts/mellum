@@ -1,5 +1,5 @@
 #!/bin/bash
-# Launch JetBrains Mellum2 12B-A2.5B via llama.cpp — macOS / Apple Silicon.
+# Launch JetBrains Mellum2 12B-A2.5B via llama.cpp.
 #
 # MoE: 64 experts, 8 active per token (~2.5B active), 12B total.
 # Sliding-window + full attention, native 131K context. Apache 2.0.

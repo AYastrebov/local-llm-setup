@@ -2,42 +2,66 @@
 # Launch Qwen3.8-27B (dense, vision-language) via llama.cpp.
 #
 # 27B dense params, hybrid Gated DeltaNet + Gated Attention, native 262K context.
-# Thinking mode is ON by default and can be toggled per mode below.
-# Platform is auto-detected; override MODEL/CTX_SIZE via the env vars below.
+# Platform is auto-detected; override MODEL/CTX/reasoning via the env vars below.
 #
 #   macOS  M2 Max 64 GB unified : UD-Q6_K_XL  (25.9 GB) + mmproj -> vision enabled
-#   Fedora RX 9060 XT 16 GB VRAM: UD-IQ3_XXS  (11.9 GB) + --no-mmproj to protect VRAM
+#   Fedora RX 9060 XT 16 GB VRAM: UD-IQ3_XXS  (10.9 GB) + --no-mmproj to protect VRAM
 #
-# NOTE: there is no MTP GGUF published for Qwen3.8-27B, so this launcher carries no
-# --spec-type flags on either platform. Re-add them if unsloth publishes an -MTP- repo.
+# MTP (multi-token prediction) is ON. The main GGUF already carries the NextN/MTP
+# block (blk.64.nextn.*), so llama.cpp builds the draft context from the target
+# model itself -- no separate -MTP- repo or sidecar download is needed.
+# Measured on the RX 9060 XT: 14.8 t/s without MTP -> 34.5 t/s with it (~2.3x).
 #
 # Usage:
 #   qwen              -> start server (default, port 8080)
 #   qwen chat         -> interactive CLI, thinking on  (temp 1.0)
-#   qwen chat-fast    -> interactive CLI, thinking off (temp 0.7, instruct params)
+#   qwen chat-fast    -> interactive CLI, thinking OFF (temp 0.7, instruct params)
 #   qwen server 8001  -> start server on custom port
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
   MODEL="${QWEN_MODEL:-unsloth/Qwen3.8-27B-GGUF:UD-Q6_K_XL}"
   CTX_SIZE="${QWEN_CTX:-65536}"
   # -hf pulls mmproj-F16.gguf (~0.9 GB) automatically, which enables image input.
-  PLATFORM_FLAGS=""
+  PLATFORM_FLAGS="--fit-target 4096"
+  # 64 GB unified leaves room for the higher-quality KV cache.
+  KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
 else
   MODEL="${QWEN_MODEL:-unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS}"
   CTX_SIZE="${QWEN_CTX:-65536}"
-  # 11.9 GB weights + ~2.1 GB q8_0 KV at 65536 ctx leaves ~2 GB of the 16 GB VRAM.
-  # The 0.9 GB mmproj would eat that, so vision is off here. To enable it instead,
-  # run: QWEN_CTX=32768 qwen --mmproj-auto
-  PLATFORM_FLAGS="--no-mmproj"
+  # The 0.9 GB mmproj would eat the headroom, so vision is off here.
+  # To enable it instead, run: QWEN_CTX=32768 qwen --mmproj-auto
+  #
+  # --fit-target 2560 keeps ~2.3 GB of the 16 GB free. The desktop (gnome-shell,
+  # Xwayland, terminal) alone holds ~1.9 GB; at the default 1024 margin llama fills
+  # to 98% and the compositor OOMs the GPU ("amdgpu: Not enough memory for command
+  # submission"), which kills the terminal out from under whatever is running.
+  PLATFORM_FLAGS="--no-mmproj --fit-target 2560"
+  # q4_0 is not just a VRAM saving here: the ROCm/RDNA4 flash-attention kernel has
+  # a fast path for it. Measured at fixed 2560 margin, ctx 65536, MTP on:
+  #   q4_0/q4_0 34.2 t/s | q5_1/q4_0 18.7 | q8_0/q4_0 16.7 | q8_0/q8_0 13.4
+  KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
 fi
 
-KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
+# MTP draft depth. Measured sweep (median t/s): 2->29.2, 3->33.1, 4->34.5,
+# 6->21.5, 8->15.8. Acceptance falls off past 4, so deeper drafts cost more than
+# they win. Set QWEN_MTP=0 to disable speculative decoding entirely.
+MTP_NMAX="${QWEN_MTP_NMAX:-4}"
+if [[ "${QWEN_MTP:-1}" == "0" ]]; then
+  MTP=""
+else
+  MTP="--spec-type draft-mtp --spec-draft-n-max $MTP_NMAX"
+fi
 
-# Per the Qwen3.8 model card:
+# Per the Qwen3.8 model card (repetition_penalty 1.0 is llama.cpp's default):
 #   thinking mode : temp 1.0, top-p 0.95, top-k 20, min-p 0.0, presence-penalty 0.0
 #   instruct mode : temp 0.7, top-p 0.80, top-k 20, min-p 0.0, presence-penalty 1.5
 SAMPLING_THINK="--temp 1.0 --top-p 0.95 --top-k 20 --min-p 0.0 --presence-penalty 0.0"
 SAMPLING_FAST="--temp 0.7 --top-p 0.80 --top-k 20 --min-p 0.0 --presence-penalty 1.5"
+
+# Reasoning depth. The Qwen3.8 chat template accepts only xhigh (its own default),
+# medium and low -- passing "none" raises a Jinja exception, so true non-thinking
+# comes from llama.cpp's --reasoning off instead (used by chat-fast below).
+QWEN_REASONING="${QWEN_REASONING:-medium}"
 
 MODE="${1:-server}"
 shift 2>/dev/null
@@ -49,10 +73,11 @@ case "$MODE" in
       --ctx-size "$CTX_SIZE" \
       --conversation \
       --jinja \
-      --chat-template-kwargs '{"enable_thinking":true}' \
+      --reasoning-effort "$QWEN_REASONING" \
       --flash-attn on \
       $PLATFORM_FLAGS \
       $KV_CACHE \
+      $MTP \
       $SAMPLING_THINK \
       "$@"
     ;;
@@ -62,10 +87,11 @@ case "$MODE" in
       --ctx-size "$CTX_SIZE" \
       --conversation \
       --jinja \
-      --chat-template-kwargs '{"enable_thinking":false}' \
+      --reasoning off \
       --flash-attn on \
       $PLATFORM_FLAGS \
       $KV_CACHE \
+      $MTP \
       $SAMPLING_FAST \
       "$@"
     ;;
@@ -73,12 +99,12 @@ case "$MODE" in
     PORT="${1:-8080}"
     shift 2>/dev/null
     echo "Starting Qwen3.8-27B (dense, VL) on http://localhost:$PORT"
-    echo "  model: $MODEL   ctx: $CTX_SIZE"
+    echo "  model: $MODEL   ctx: $CTX_SIZE   reasoning: $QWEN_REASONING   mtp: ${MTP:-off}"
     exec llama-server \
       -hf "$MODEL" \
       --ctx-size "$CTX_SIZE" \
       --jinja \
-      --chat-template-kwargs '{"enable_thinking":true}' \
+      --reasoning-effort "$QWEN_REASONING" \
       --alias "qwen3.8-27b" \
       --port "$PORT" \
       --flash-attn on \
@@ -86,6 +112,7 @@ case "$MODE" in
       -np 1 \
       $PLATFORM_FLAGS \
       $KV_CACHE \
+      $MTP \
       $SAMPLING_THINK \
       "$@"
     ;;
@@ -97,7 +124,9 @@ case "$MODE" in
     echo "  chat         Interactive CLI, thinking on  (temp 1.0)"
     echo "  chat-fast    Interactive CLI, thinking off (temp 0.7, instruct params)"
     echo ""
-    echo "Env: QWEN_MODEL (override -hf ref), QWEN_CTX (override context size)"
+    echo "Env: QWEN_MODEL (override -hf ref), QWEN_CTX (context size),"
+    echo "     QWEN_REASONING=xhigh|medium|low, QWEN_MTP=0 (disable MTP),"
+    echo "     QWEN_MTP_NMAX=N (draft depth, default 4)"
     exit 1
     ;;
 esac
