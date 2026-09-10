@@ -5,11 +5,11 @@ Config files, launcher scripts, and coding agent settings for a self-hosted AI c
 ## Status (2026-09-10)
 
 Both **macOS and Fedora were verified 2026-09-10** — the numbers below are measured on those boxes,
-not intent. **Docker remains documented but unverified.**
+not intent.
 
-| | macOS (M2 Max, 64 GB) | Fedora (RX 9060 XT, 16 GB) | Docker |
-|---|---|---|---|
-| llama.cpp | `22397c31a`, build 10881, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) | not checked |
+| | macOS (M2 Max, 64 GB) | Fedora (RX 9060 XT, 16 GB) |
+|---|---|---|
+| llama.cpp | `22397c31a`, build 10881, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) |
 | Qwen3.8-27B | **served, 19.1 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) | - |
 | Mellum2 12B-A2.5B | **removed 2026-09-10** | launcher installed, **not yet benchmarked** | - |
 | Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked | - |
@@ -32,7 +32,6 @@ pi.
 |----------|----------|-------|
 | **Fedora** | Intel i5-14600K, RX 9060 XT (16GB), 32GB RAM | [llama-cpp/fedora/setup.md](llama-cpp/fedora/setup.md) |
 | **macOS** | Apple M2 Max, 64GB unified memory | [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) |
-| **Docker** | Intel i3-6100T, 24GB RAM, no GPU (home server) | [llama-cpp/docker/setup.md](llama-cpp/docker/setup.md) |
 
 ## Local models
 
@@ -41,7 +40,6 @@ pi.
 | [Qwen3.8-27B](https://huggingface.co/collections/unsloth/qwen38) | 27B dense | 27B | General + reasoning + vision | Mac, Fedora |
 | [Mellum2 12B-A2.5B](https://huggingface.co/collections/JetBrains/mellum-2) | 12B MoE | 2.5B active | Coding | Fedora* |
 | [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Fedora |
-| [LFM2.5-350M](https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF) | 350M dense | 350M | Lightweight automation | Docker server |
 
 macOS runs **only Qwen3.8-27B**; Mellum2 and Gemma 4 are Fedora-only. Qwen3.6 has been retired from
 both machines — the `unsloth/qwen38` collection ships only the 27B dense model and a 2.4T-A95B MoE
@@ -54,12 +52,11 @@ architecture and deserves its own sweep before anyone trusts a number.
 
 ### Quantization per platform
 
-| Model | Mac (64GB) | Fedora (16GB VRAM) | Docker (CPU, 24GB RAM) |
-|-------|------------|--------------------|------------------------|
-| Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | UD-IQ3_XXS (10.93 GB) | -- |
-| Mellum2 12B-A2.5B Thinking | -- | Q8_0 (12.9 GB) | -- |
-| Gemma 4 26B-A4B | -- | Q3_K_XL (13 GB) | -- |
-| LFM2.5-350M | -- | -- | Q8_0 (379 MB) |
+| Model | Mac (64GB) | Fedora (16GB VRAM) |
+|-------|------------|--------------------|
+| Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | UD-IQ3_XXS (10.93 GB) |
+| Mellum2 12B-A2.5B Thinking | -- | Q8_0 (12.9 GB) |
+| Gemma 4 26B-A4B | -- | Q3_K_XL (13 GB) |
 
 ### MTP (Multi-Token Prediction)
 
@@ -294,23 +291,6 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
 
 See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for detailed hardware info and model selection.
 
-## Quick start (Docker — home server)
-
-No build needed. See [llama-cpp/docker/setup.md](llama-cpp/docker/setup.md) for full details.
-
-```bash
-mkdir -p ~/services/llama/models
-
-# Download LFM2.5-350M (379 MB)
-wget -O ~/services/llama/models/LFM2.5-350M-Q8_0.gguf \
-  'https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF/resolve/main/LFM2.5-350M-Q8_0.gguf'
-
-# Copy docker-compose.yml from llama-cpp/docker/setup.md, then:
-cd ~/services/llama && docker compose up -d
-```
-
-Good for lightweight automation: log analysis, Home Assistant NLP, commit messages, text summarization.
-
 ## Coding agent integration
 
 ### pi.dev
@@ -416,12 +396,12 @@ Invoke with `/llama-build` in Claude Code.
 
 ## Hardware tested
 
-| | Fedora | macOS | Docker (home server) |
-|---|---|---|---|
-| CPU | Intel Core i5-14600K | Apple M2 Max (12 cores) | Intel Core i3-6100T |
-| GPU | AMD Radeon RX 9060 XT (16GB, RDNA4) | Apple M2 Max (30 cores, Metal 3) | None (CPU-only) |
-| RAM | 32 GB | 64 GB unified | 24 GB |
-| OS | Fedora 44, kernel 7.0.12+ | macOS Sequoia 15.7 | Ubuntu 24.04 (Docker) |
+| | Fedora | macOS |
+|---|---|---|
+| CPU | Intel Core i5-14600K | Apple M2 Max (12 cores) |
+| GPU | AMD Radeon RX 9060 XT (16GB, RDNA4) | Apple M2 Max (30 cores, Metal 3) |
+| RAM | 32 GB | 64 GB unified |
+| OS | Fedora 44, kernel 7.0.12+ | macOS Sequoia 15.7 |
 
 ## License
 
