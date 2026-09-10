@@ -47,7 +47,7 @@ The architecture used here must be present in your build — verify with:
 grep '"qwen35"' ~/llama.cpp/src/llama-arch.cpp
 ```
 
-**Last verified build** (2026-09-09): llama.cpp `22397c31a`, build 10881, version 0.4.0-dev,
+**Last verified build** (2026-09-10): llama.cpp `41fc7584f`, build 10895, version 0.4.0-dev,
 ggml 0.23.0, AppleClang 21.0.0 (Xcode 26.6), macOS Tahoe 26.6.2. Configure line used:
 
 ```bash
@@ -115,8 +115,14 @@ qwen chat-fast    # interactive CLI, thinking off (instruct params)
 
 ## Memory ceiling
 
-Metal reports a **49,152 MiB working set** on this machine, not the full 64 GB. That is the real
-number to budget against. Qwen3.8-27B at UD-Q6_K_XL leaves plenty of room even at full context:
+Metal reports a **53,084 MiB** working set on this machine, not the full 64 GB. That is
+`recommendedMaxWorkingSetSize`, read the same way by both `llama-server --list-devices` and Metal
+itself; ggml stores it as `max_working_set_size` in `ggml-metal-device.m`. It is a soft
+recommendation -- the ggml source notes allocation beyond it is possible -- so treat it as the
+number to budget against, not a hard wall.
+
+(An earlier revision of this file claimed 49,152 MiB, i.e. exactly 48 GiB. That was never measured
+on this machine and understated the ceiling by ~4 GB.) Qwen3.8-27B at UD-Q6_K_XL leaves plenty of room even at full context:
 
 | Context | KV cache (q8_0) | Total RSS |
 |---------|-----------------|-----------|
@@ -216,8 +222,8 @@ the JS-based servers) and `pi-dev/pi-lsp.json` for the server map.
 |--------|-------|
 | Model load | 6 s (warm page cache) |
 | Prompt eval | 46.6 t/s |
-| Generation, no MTP | 11.6 t/s |
-| **Generation, MTP `-n-max 4`** | **19.1 t/s** |
+| Generation, no MTP | 11.3 t/s |
+| **Generation, MTP `-n-max 4`** | **19.3 t/s** |
 
 The MTP row was measured 2026-09-10 at ctx 8192 with q8_0 KV over a 160-token generation:
 11.3 t/s off, 19.0 at depth 3, **19.1 at depth 4**, 17.2 at depth 6 — the same optimum Fedora found,
