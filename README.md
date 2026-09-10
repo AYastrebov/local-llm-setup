@@ -1,6 +1,6 @@
 # Local LLM Setup
 
-Config files, launcher scripts, and coding agent settings for a self-hosted AI coding setup. Runs llama.cpp on AMD ROCm and Apple Silicon, with NeuralWatt and JetBrains Central as cloud providers. Driven through pi.dev, plus Claude Code.
+Config files, launcher scripts, and coding agent settings for a self-hosted AI coding setup. Runs llama.cpp on AMD ROCm and Apple Silicon, with NeuralWatt as the cloud provider. Driven through pi.dev, plus Claude Code.
 
 ## Status (2026-09-10)
 
@@ -182,10 +182,6 @@ costs nothing in throughput.
 
 OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral Small 2. See [neuralwatt/setup.md](neuralwatt/setup.md) for API key setup and the `nw-usage` script.
 
-### JetBrains Central
-
-Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBrains AI Platform. Supports Anthropic (Claude Opus 4.7, Sonnet 4.6), OpenAI (GPT-5.5 Pro, Codex), and Google Vertex (Gemini 3.1 Pro). See [jbcentral/setup.md](jbcentral/setup.md) for wire hash setup and dummy API keys.
-
 ## Quick start (Fedora)
 
 1. **Install ROCm** (Fedora 44+):
@@ -217,19 +213,13 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    source ~/.zshrc
    ```
 
-5. **Set up JetBrains Central** (for Claude Opus, GPT-5.5, Gemini):
-   ```bash
-   # Install from https://central-cli.labs.jb.gg
-   jbcentral login
-   ```
-
-6. **Configure coding agents:**
+5. **Configure coding agents:**
    ```bash
    cp pi-dev/models-fedora.json ~/.pi/agent/models.json
-   # Edit: replace YOUR-WIRE-HASH with value from ~/.wire/config.json
+   # Edit: fill in the placeholder API keys
    ```
 
-7. **Run** (one at a time — all default to port 8080):
+6. **Run** (one at a time — all default to port 8080):
    ```bash
    qwen               # Qwen3.8-27B server + web UI at localhost:8080
    qwen chat          # interactive chat, thinking on
@@ -269,13 +259,7 @@ Local proxy at `127.0.0.1:19516` that routes coding agent requests to the JetBra
    source ~/.zshrc
    ```
 
-4. **Set up JetBrains Central** (optional — for Claude Code etc., not pi):
-   ```bash
-   # Install from https://central-cli.labs.jb.gg
-   jbcentral login
-   ```
-
-5. **Configure coding agents:**
+4. **Configure coding agents:**
    ```bash
    cp pi-dev/models-mac.json   ~/.pi/agent/models.json     # fill in the placeholder keys
    cp pi-dev/settings-mac.json ~/.pi/agent/settings.json
@@ -302,11 +286,6 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 Both configs register NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B) and local llama.cpp
 (Qwen3.8-27B on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora); `models-fedora.json` adds a few
 direct vendor endpoints. Set your NeuralWatt key.
-
-> **JB Central is no longer a pi provider.** The `jbcentral-local` block (a LiteLLM proxy at
-> `litellm.labs.jb.gg`) was removed on 2026-09-10. The `jbcentral` CLI itself is untouched and is
-> still how Claude Code and other tools reach Claude Opus / GPT-5.5 / Gemini — see
-> [jbcentral/setup.md](jbcentral/setup.md). It is simply not wired into pi any more.
 
 > The local provider **must be named `llama-cpp`** in `models.json` — `pi-qwen` hardcodes
 > `PROVIDER="llama-cpp"`. `models-fedora.json` used to call it `local-fedora`, which meant

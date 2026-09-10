@@ -8,7 +8,7 @@ This repo covers a full AI coding assistant setup across two machines:
 - **Fedora Linux** — Intel i5-14600K + AMD RX 9060 XT (16GB VRAM, ROCm/HIP)
 - **macOS** — Apple M2 Max (64GB unified memory, Metal)
 
-It combines local LLM inference (llama.cpp) with cloud providers (NeuralWatt, JetBrains Central, Moonshot) and configs for two coding agents: pi.dev and Claude Code. opencode was removed in September 2026 - do not reintroduce it.
+It combines local LLM inference (llama.cpp) with cloud providers (NeuralWatt, Moonshot) and configs for two coding agents: pi.dev and Claude Code. opencode was removed in September 2026 - do not reintroduce it. JetBrains Central was removed in September 2026 as an internal-only tool - do not reintroduce it.
 
 There is no build system, test suite, or linter — this is a collection of shell scripts, JSON configs, and documentation.
 
@@ -22,8 +22,6 @@ llama-cpp/          local inference — scripts, build instructions, skill
   scripts/          launcher scripts (qwen = both platforms, auto-detected; mellum = macOS; gemma-moe = Fedora)
   skills/llama-build/  Claude Code skill for building llama.cpp
 
-jbcentral/          JetBrains Central proxy setup
-  setup.md          wire hash, env vars, dummy keys, provider paths
 
 neuralwatt/         NeuralWatt cloud provider setup
   setup.md          API key, nw-usage install, agent config
@@ -48,7 +46,7 @@ pi-dev/             pi.dev model configs per platform
 docs/               misc docs not tied to a specific topic
   lsp.md
 
-zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
+zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 ```
 
 ## Architecture
@@ -69,9 +67,7 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 
 **pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
 
-**JetBrains Central** — A local proxy on `127.0.0.1:19516`. The proxy requires dummy API keys set as env vars (`ANTHROPIC_API_KEY=sk-ant-dummy` etc.) — it strips them and injects the real JWT. In `pi-dev/models-*.json` the wire hash is a `YOUR-WIRE-HASH` placeholder; never commit the real one.
-
-**Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH, JB Central wire env vars (`JB_WIRE_SECRET`, `JB_WIRE_BASE` derived from `~/.wire/config.json`), dummy API keys for proxied providers, and aliases for running Claude Code against local models.
+**Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH, provider API keys, and aliases for running Claude Code against local models.
 
 **Claude Code skills** — `llama-cpp/skills/llama-build/` (build llama.cpp).
 
