@@ -9,11 +9,11 @@ not intent.
 
 | | macOS (M2 Max, 64 GB) | Fedora (RX 9060 XT, 16 GB) |
 |---|---|---|
-| llama.cpp | `22397c31a`, build 10881, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) |
-| Qwen3.8-27B | **served, 19.1 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) | - |
-| Mellum2 12B-A2.5B | **removed 2026-09-10** | launcher installed, **not yet benchmarked** | - |
-| Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked | - |
-| Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) | - |
+| llama.cpp | `41fc7584f`, build 10895, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) |
+| Qwen3.8-27B | **served, 19.3 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) |
+| Mellum2 12B-A2.5B | **removed 2026-09-10** | launcher installed, **not yet benchmarked** |
+| Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked |
+| Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) |
 
 Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
