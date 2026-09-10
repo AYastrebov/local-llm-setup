@@ -14,7 +14,6 @@ Build llama.cpp for local GPU-accelerated inference, set up model serving, and c
 | macOS (Apple Silicon) | Metal | `-DGGML_METAL=ON` | Yes (default) |
 | Linux (AMD Radeon) | HIP/ROCm | `-DGGML_HIP=ON` | No |
 | Linux (NVIDIA) | CUDA | `-DGGML_CUDA=ON` | No |
-| CPU-only (Docker) | None | N/A | N/A |
 
 ## Step 1: Detect hardware and environment
 
@@ -83,44 +82,6 @@ cmake --build build --config Release -j $(nproc)
 ```
 
 Useful env vars: `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1` (swap to RAM), `GGML_CUDA_P2P=1` (multi-GPU).
-
-### Docker (CPU-only, no build needed)
-
-For headless servers without a GPU:
-
-```yaml
-# docker-compose.yml
-services:
-  llama:
-    image: ghcr.io/ggml-org/llama.cpp:server
-    container_name: llama
-    ports:
-      - 8080:8080
-    volumes:
-      - ./models:/models
-    env_file:
-      - .env    # LLAMA_API_KEY for auth
-    command: >
-      --model /models/<model-file>.gguf
-      --host 0.0.0.0 --port 8080
-      --alias <model-alias>
-      --jinja --reasoning off
-      --ctx-size 16384
-      --fit on
-    deploy:
-      resources:
-        limits:
-          memory: 12G
-    restart: unless-stopped
-```
-
-Pre-download the model (the `-hf` flag is unreliable inside Docker):
-```bash
-wget -O models/<model-file>.gguf \
-  'https://huggingface.co/<org>/<repo>/resolve/main/<filename>.gguf'
-```
-
-For CPU inference, use small dense models (Gemma 4 E4B Q8 at 8.7 GB is a good choice). MoE models are slow on CPU because all expert weights must be loaded per token even though only a few are active.
 
 ## Step 3: Add to PATH
 
@@ -331,7 +292,6 @@ If the llama-server is exposed over the network (e.g., via Cloudflare Tunnel), s
 
 External references:
 - llama.cpp build guide: https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md
-- llama.cpp Docker guide: https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md
 - ROCm quick start: https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html
 - Unsloth Claude Code guide: https://unsloth.ai/docs/basics/claude-code
 - Unsloth Gemma 4: https://unsloth.ai/docs/models/gemma-4
