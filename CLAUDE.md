@@ -66,7 +66,7 @@ zshrc-snippet.sh    shell environment (API keys, JB Central wire vars, aliases)
 
 **Qwen3.8 is dense** — on Fedora it replaced a 35B-A3B MoE that activated ~3B params per token, so it is markedly slower there. That tradeoff is deliberate and documented in `llama-cpp/fedora/setup.md`; do not "fix" it by silently swapping back.
 
-**pi settings** (`pi-dev/settings-mac.json`) — Sets `defaultProvider`/`defaultModel` (`moonshotai`/`kimi-k3`) and the `enabledModels` patterns. pi has a built-in provider catalog, so `moonshotai`, `openrouter`, `deepseek` and friends work from an exported API key alone and must NOT be added to `models.json`; only custom endpoints (`llama-cpp`, `neuralwatt`, `jbcentral-local`) belong there.
+**pi settings** (`pi-dev/settings-mac.json`) — Sets `defaultProvider`/`defaultModel` (`moonshotai`/`kimi-k3`). It deliberately sets **no `enabledModels`**: that key is an allowlist and would defeat pi's env-key provider discovery. pi has a built-in provider catalog, so `moonshotai`, `openrouter`, `deepseek` and friends work from an exported API key alone and must NOT be added to `models.json`; only custom endpoints (`llama-cpp`, `neuralwatt`) belong there.
 
 **pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
 
