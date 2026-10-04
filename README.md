@@ -17,12 +17,6 @@ not intent.
 Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
 
-**Mellum2 12B-A2.5B is gone from this setup.** Removed from the Mac on 2026-09-10 and from Fedora
-the same day. On Fedora it had only ever been a launcher and a pi entry — the weights were never
-downloaded, so it was never benchmarked there. Its last measured macOS figure was 79-80 t/s on
-2026-09-09. The `mellum` launcher and the `pi-mellum` alias are deleted; both are in git history if
-either machine wants it back.
-
 opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
 configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
 pi.

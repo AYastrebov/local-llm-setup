@@ -5,11 +5,6 @@ Setup guide for running local LLM inference on Apple Silicon Macs with Metal GPU
 This Mac runs exactly one local model: **Qwen3.8-27B** (general + reasoning + vision). Gemma 4 is
 Fedora-only — see [../fedora/setup.md](../fedora/setup.md).
 
-> Mellum2 12B-A2.5B was removed from this Mac on 2026-09-10 — weights deleted, `mellum` launcher
-> uninstalled, pi model entry dropped. It was faster (79 t/s vs Qwen3.8's 19.9) but the setup is
-> deliberately single-model now. Fedora dropped it the same day, so the `mellum` launcher is gone
-> from the repo entirely; it remains in git history.
-
 ## Hardware tested
 
 | Component | Spec |
@@ -229,9 +224,8 @@ The MTP row was measured 2026-09-10 at ctx 8192 with q8_0 KV over a 160-token ge
 11.3 t/s off, 19.0 at depth 3, **19.1 at depth 4**, 17.2 at depth 6 — the same optimum Fedora found,
 though the Metal curve is flatter than ROCm's.
 
-This is a dense 27B, so every token activates all 27B params — the removed Mellum2 managed 79 t/s
-on the same box off 2.5B active. That speed is the cost of running one model that also reasons,
-handles 262K context, and sees images.
+This is a dense 27B, so every token activates all 27B params. That speed is the cost of running one
+model that also reasons, handles 262K context, and sees images.
 
 **KV cache type does not matter on Metal.** Fedora's dramatic `q4_0` result is a ROCm/RDNA4
 flash-attention quirk. Measured here at ctx 8192, MTP `-n-max 4`, medians of 3: f16/f16 20.0,

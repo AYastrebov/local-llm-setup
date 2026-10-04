@@ -57,7 +57,7 @@ zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 
 **Model families are distinct** — Qwen3.8 and Gemma 4 have different sampling parameters and completely different thinking-mode controls. Never mix them. Qwen3.8 uses llama.cpp's `--reasoning-effort` (`xhigh`/`medium`/`low` only; `none` raises a Jinja exception) and `--reasoning off` for genuine non-thinking. Gemma 4 disables thinking with `--chat-template-kwargs '{"enable_thinking":false}'` and enables it with a `<|think|>` token at the start of the system prompt.
 
-**macOS runs one model** — Qwen3.8-27B (`qwen`). Gemma 4 is Fedora-only; do not reintroduce it into `pi-dev/models-mac.json` or `llama-cpp/mac/setup.md`. Mellum2 was removed from both machines on 2026-09-10.
+**macOS runs one model** — Qwen3.8-27B (`qwen`). Gemma 4 is Fedora-only; do not reintroduce it into `pi-dev/models-mac.json` or `llama-cpp/mac/setup.md`.
 
 **`qwen` is the one cross-platform launcher** — it branches on `uname`: macOS gets `UD-Q6_K_XL` (25.9 GB) with vision, Linux gets `UD-IQ3_XXS` (10.93 GB) plus `--no-mmproj` to stay inside 16 GB VRAM. Override with `QWEN_MODEL` / `QWEN_CTX` rather than editing the script.
 

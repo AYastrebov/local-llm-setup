@@ -60,6 +60,5 @@ export PATH="$HOME/.local/bin:$PATH"   # qwen, pi-qwen launchers (+ gemma-moe on
 # needed. On Fedora, to put Gemma 4 on a second port alongside Qwen3.8:
 #   PI_LOCAL_LAUNCHER=gemma-moe PI_LOCAL_MODEL=gemma-4-26b-a4b PI_LOCAL_PORT=8081 pi-qwen
 #
-# Mellum2 was removed from both machines on 2026-09-10; the pi-mellum alias is gone.
 # Note: no claude-local alias. Local models go through pi; Claude Code stays on
 # Anthropic models -- driving a non-Anthropic model through it works badly.
