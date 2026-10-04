@@ -1,6 +1,6 @@
 {
   "_comment": "Template .pi-lsp.json \u2014 copy to your project root and remove languages you don't use.",
-  "_comment2": "go/rust have working built-in defaults. typescript/javascript are built in too, but their diagnostics do not reach pi (docs/lsp.md).",
+  "_comment2": "go/rust/typescript/javascript (TS 7 auto-detected) have working built-in defaults with the pi-lsp-extension fork (docs/lsp.md).",
   "servers": {
     "kotlin": {
       "command": "kotlin-lsp",
