@@ -44,12 +44,14 @@ pi-dev/             pi.dev model + settings configs per platform
   models-fedora.json
   settings-mac.json
   settings-fedora.json
+  mcp.json            MCP servers (github, context7, tavily, playwright, jetbrains); env-var/OAuth auth, no secrets
   extensions/router.ts   router/auto virtual model (NeuralWatt qualifier picks glm-5.3 vs glm-5.3-flash)
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
   install-skills.sh   installs those + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 
 docs/               misc docs not tied to a specific topic
   lsp.md
+  mcp.md            pi-native MCP setup (pi-mcp-adapter is obsolete)
 
 zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 ```

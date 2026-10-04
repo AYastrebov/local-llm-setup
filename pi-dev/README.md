@@ -10,6 +10,7 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 | `models-fedora.json` | Fedora (RX 9060 XT, ROCm) | `~/.pi/agent/models.json` |
 | `settings-mac.json` | macOS | `~/.pi/agent/settings.json` |
 | `settings-fedora.json` | Fedora | `~/.pi/agent/settings.json` |
+| `mcp.json` | both | `~/.pi/agent/mcp.json` — see [docs/mcp.md](../docs/mcp.md) |
 | `extensions/router.ts` | both | `~/.pi/agent/extensions/router.ts` |
 | `skills/` + `install-skills.sh` | both | `~/.pi/agent/skills/` (run the script) |
 
@@ -23,7 +24,8 @@ cp pi-dev/models-mac.json ~/.pi/agent/models.json
 cp pi-dev/models-fedora.json   ~/.pi/agent/models.json
 cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 
-# Both: router virtual model + plan/implement skills
+# Both: MCP servers, router virtual model, skills
+cp pi-dev/mcp.json ~/.pi/agent/mcp.json && chmod 600 ~/.pi/agent/mcp.json
 mkdir -p ~/.pi/agent/extensions
 cp pi-dev/extensions/router.ts ~/.pi/agent/extensions/
 pi-dev/install-skills.sh   # workflow skills + vetted upstream skills

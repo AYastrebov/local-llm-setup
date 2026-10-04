@@ -7,8 +7,7 @@
     "npm:pi-lsp-extension",
     "npm:pi-antigravity",
     "npm:pi-web-access",
-    "npm:pi-subagents",
-    "npm:pi-mcp-adapter"
+    "npm:pi-subagents"
   ],
   "enabledModels": [
     "router/auto",

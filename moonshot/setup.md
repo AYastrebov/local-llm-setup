@@ -1,6 +1,6 @@
 # Moonshot (Kimi) Setup
 
-Direct API access to Kimi K2.6 from Moonshot AI. Cheaper than NeuralWatt for this model at the cost of one more key to manage.
+Direct API access to Kimi (K3, K2.7 Code) from Moonshot AI. Cheaper than NeuralWatt for this model at the cost of one more key to manage.
 
 ## API key
 
@@ -14,9 +14,14 @@ printf '%s' 'sk-...' | secret-tool store --label='Moonshot API key' service moon
 
 ## Models
 
-| Model ID   | Context | Max Output | Notes         |
-|------------|---------|------------|---------------|
-| `kimi-k2.6`| 262K    | 32768      | Thinking on by default |
+| Model ID | Context | Notes |
+|---|---|---|
+| `kimi-k3` | 1M | Current flagship; macOS default (`settings-mac.json`) |
+| `kimi-k2.7-code` | 262K | Coding-tuned |
+| `kimi-k2.7-code-highspeed` | 262K | Faster variant |
+| `kimi-k2.6` | 262K | Previous generation |
+
+From pi's built-in catalog (`pi --list-models moonshotai`), 2026-10-04.
 
 Base URL: `https://api.moonshot.ai/v1` (OpenAI-compatible).
 
@@ -30,11 +35,15 @@ pi ships a built-in provider catalog, and `moonshotai` is in it - so there is no
 export MOONSHOT_API_KEY=...      # pi reads this directly
 ```
 
-Then enable it in `~/.pi/agent/settings.json`:
+The models already appear in `/model` (press Tab for the full list). To pin one into the short
+list, **add** its exact ID to the existing `enabledModels` array in `~/.pi/agent/settings.json`:
 
 ```json
-"enabledModels": ["moonshotai/*"]
+"moonshotai/kimi-k3"
 ```
 
-Only custom endpoints (`llama-cpp`, `neuralwatt`) need an entry in
-`models.json`, where the key is stored literally rather than read from the environment.
+Prefer exact IDs over `<provider>/*`: model IDs are also matched, so e.g. `moonshotai/*` pulls in
+`openrouter/moonshotai/...` too.
+
+Only custom endpoints (`llama-cpp`, `neuralwatt`) need an entry in `models.json`; their keys are
+read from the environment too (`"apiKey": "$NAME"`).

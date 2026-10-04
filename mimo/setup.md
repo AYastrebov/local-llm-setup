@@ -32,11 +32,15 @@ pi ships a built-in provider catalog, and `xiaomi` is in it - so there is nothin
 export XIAOMI_API_KEY=...      # pi reads this directly
 ```
 
-Then enable it in `~/.pi/agent/settings.json`:
+The models already appear in `/model` (press Tab for the full list). To pin one into the short
+list, **add** its exact ID to the existing `enabledModels` array in `~/.pi/agent/settings.json`:
 
 ```json
-"enabledModels": ["xiaomi/*"]
+"xiaomi/mimo-v2.5-pro"
 ```
 
-Only custom endpoints (`llama-cpp`, `neuralwatt`) need an entry in
-`models.json`, where the key is stored literally rather than read from the environment.
+Prefer exact IDs over `<provider>/*`: model IDs are also matched, so e.g. `moonshotai/*` pulls in
+`openrouter/moonshotai/...` too.
+
+Only custom endpoints (`llama-cpp`, `neuralwatt`) need an entry in `models.json`; their keys are
+read from the environment too (`"apiKey": "$NAME"`).

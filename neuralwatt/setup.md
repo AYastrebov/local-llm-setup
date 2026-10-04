@@ -99,87 +99,8 @@ automatically).
 Select a model at runtime with `pi --provider neuralwatt --model <id>`, or `/model` in a session.
 
 
-## GitHub MCP
-
-The official GitHub MCP server provides agents with direct access to repos, issues, PRs, Actions, and code search. Uses the remote HTTP server hosted by GitHub (the npm package `@modelcontextprotocol/server-github` was deprecated April 2025).
-
-### Install
-
-MCP servers are configured through pi's `pi-mcp-adapter` package (see `pi list`):
-
-```jsonc
-"github": {
-  "type": "remote",
-  "url": "https://api.githubcopilot.com/mcp/",
-  "headers": {
-    "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-  },
-  "enabled": true
-}
-```
-
-Add the token to `~/.zshrc`:
-
-```bash
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...
-```
-
-The PAT needs at least `repo` scope.
-
-## Playwright CLI
-
-[Playwright CLI](https://github.com/microsoft/playwright-cli) provides browser automation as a skill rather than an MCP server. For coding agents, CLI + SKILLS is more token-efficient than MCP — it avoids loading large tool schemas and accessibility trees into context.
-
-### Install
-
-```bash
-npm install -g @playwright/cli@latest
-playwright-cli install --skills
-```
-
-`install --skills` installs the skill files into `.claude/skills/playwright-cli/` in the current project. For global availability across all projects, run it from `~/.claude/skills/`.
-
-### Usage
-
-Agents pick up the skill automatically. For explicit invocation:
-
-```
-Test the login flow on https://example.com using playwright-cli.
-```
-
-To monitor running browser sessions:
-
-```bash
-playwright-cli show
-```
-
-## Context7 MCP
-
-[Context7](https://context7.com) is an MCP server that injects up-to-date library documentation directly into agent context. When an agent needs to know an API, it resolves the latest docs rather than relying on training data.
-
-### Install
-
-MCP servers are configured through pi's `pi-mcp-adapter` package (see `pi list`):
-
-```jsonc
-"context7": {
-  "type": "local",
-  "command": ["npx", "-y", "@upstash/context7-mcp"],
-  "enabled": true
-}
-```
-
-No API key required. The server starts on demand via `npx` and communicates over stdio.
-
-### Usage
-
-Once enabled, agents can call Context7 tools automatically. You can also prompt explicitly:
-
-```
-use context7 — how do I configure retry logic in Ktor?
-```
-
-Context7 resolves the library, fetches current docs, and injects them into the response.
+MCP servers (GitHub, Context7, Tavily, Playwright, JetBrains) are configured in pi directly — see
+[docs/mcp.md](../docs/mcp.md).
 
 ## nw-usage script
 
