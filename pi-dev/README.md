@@ -98,6 +98,20 @@ clean (the Svelte worker also correctly followed SvelteKit 3's `#lib` subpath im
 **Running pi from scripts:** `pi -p` prepends piped stdin to the prompt and waits for it to close.
 From a background job or another agent, always add `< /dev/null`, or it can hang with no output.
 
+### /review and /simplify
+
+Prompt templates (`pi-dev/prompts/`, installed to `~/.pi/agent/prompts/` by `install-skills.sh`),
+pi's equivalent of Claude Code's `/code-review` and `/simplify`:
+
+| Command | What it does |
+|---|---|
+| `/review [base] [focus…]` | Diff vs `base` (default: uncommitted changes). Runs a **fresh read-only** `pi -p --tools read,bash` on `glm-5.3:high` so the review is not biased by the session; correctness first, then spec fidelity (`.scratch/` plan, referenced issue) and missing tests; every finding needs a failure scenario and is re-checked before it is reported. Edits nothing. |
+| `/simplify [base]` | Reuse, needless complexity (speculative generality, middle men, dead code), clarity and simple efficiency fixes in the changed code only; applies them, then runs the language gate to prove behaviour is unchanged. |
+
+Verified on a Go change: `/review` caught a planted `&&`/`||` bug with a concrete failing input and
+confirmed it by running the tests; `/simplify` removed a planted dead pass-through wrapper and
+re-ran gopls diagnostics, vet, tests and gofmt.
+
 ### Supporting skills
 
 `pi-dev/install-skills.sh` installs the three workflow skills from this repo plus these, fetched

@@ -50,7 +50,8 @@ pi-dev/             pi.dev model + settings configs per platform
   skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
   skills/frontend-checks   Vue/Svelte/Vite gate + browser check; framework skills come from upstream via install-skills.sh
   extensions/neuralwatt.ts   footer balance + /nw usage stats
-  install-skills.sh   installs those + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
+  prompts/{review,simplify}.md   /review (fresh read-only reviewer) and /simplify (apply cleanups) commands
+  install-skills.sh   installs those + prompts, + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 
 docs/               misc docs not tied to a specific topic
   lsp.md

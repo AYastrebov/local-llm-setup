@@ -7,6 +7,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$DEST"
 
+mkdir -p "$(dirname "$DEST")/prompts" && cp "$HERE"/prompts/*.md "$(dirname "$DEST")/prompts/"
 cp -r "$HERE/skills/plan" "$HERE/skills/implement" "$HERE/skills/grill-me" "$HERE/skills/rust" "$HERE/skills/go" "$HERE/skills/frontend-checks" "$DEST/"
 
 # go: keep the hand-written header, refresh the body from the installed gopls.
