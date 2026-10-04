@@ -8,7 +8,8 @@ pi gets LSP from the `pi-lsp-extension` package, listed in both `pi-dev/settings
 `lsp_*` tools it appends compile errors to every `edit`/`write` result once the server for that
 language is running (errors only, max 10 lines). For Go, pi additionally uses gopls's official MCP
 server (see [mcp.md](mcp.md)) and the `go` skill. Go, Rust,
-TypeScript and JavaScript have built-in defaults and need no configuration. Anything else goes in a
+TypeScript and JavaScript have built-in defaults (but see the status table: diagnostics do not work for
+them through pi today). Anything else goes in a
 per-project `.pi-lsp.json` - see `pi-dev/pi-lsp.json` for a template, which currently adds Kotlin:
 
 ```json
@@ -33,6 +34,26 @@ scratch. Point it somewhere stable and the index survives restarts.
 > stop working with no warning.
 
 
+## Verified status (pi 1.0.2 + pi-lsp-extension 1.4.0, 2026-10-04)
+
+Tested by planting a type error per language and calling `lsp_diagnostics` through pi:
+
+| Language | Result | Notes |
+|---|---|---|
+| Go (gopls) | ✅ reports the error | after warm-up; pi also has gopls's own MCP server (`docs/mcp.md`) |
+| Rust (rust-analyzer) | ✅ reports the error | after warm-up (indexing takes ~20-30 s on first use) |
+| TypeScript / JavaScript | ❌ reports "clean" | `typescript-language-server` answers LSP requests standalone, but no diagnostics reach pi (TS 6). TypeScript 7 dropped `lib/tsserver.js`, so it cannot work there at all; TS 7's own `tsc --lsp --stdio` also returned "clean" (it uses pull diagnostics) |
+| Vue / Svelte | ❌ / not mapped | `.vue` → "clean" with both Vue setups tried; `.svelte` has no mapping |
+| Kotlin | ❌ installed build expired | `LS-262.7569.0` prints "This build of intellij-server has expired" — see below |
+
+**Warm-up trap:** the first `lsp_*` call for a language *starts* its server and answers from the
+tree-sitter fallback (`[tree-sitter — syntax only, no type checking]`), which looks final. Wait and
+call again. Auto-diagnostics after `edit`/`write` only appear once the server is running.
+
+**So:** for TS/JS/Vue/Svelte the type-check commands (`tsc --noEmit`, `vue-tsc`, `svelte-check`) are
+the source of truth — the `frontend-checks` skill runs them. The language servers below are still
+worth installing for editors.
+
 ## Install commands
 
 ### Fedora
@@ -44,7 +65,7 @@ go install golang.org/x/tools/gopls@latest
 # Rust — system Rust is installed via dnf, so rust-analyzer goes through dnf too
 sudo dnf install rust-analyzer
 
-# TypeScript / JavaScript / Vue
+# TypeScript / JavaScript / Vue — for editors; not usable for diagnostics in pi (see status above)
 npm install -g typescript-language-server typescript @vue/language-server
 
 # Kotlin — see "Kotlin LSP builds expire" below; the GitHub releases page lags the current build
@@ -68,7 +89,7 @@ go install golang.org/x/tools/gopls@latest
 # Rust
 brew install rust-analyzer
 
-# TypeScript / JavaScript / Vue
+# TypeScript / JavaScript / Vue — for editors; not usable for diagnostics in pi (see status above)
 npm install -g typescript-language-server typescript @vue/language-server
 
 # Kotlin — see "Kotlin LSP builds expire" below FIRST; brew may hand you a dead binary

@@ -1,16 +1,16 @@
 {
   "_comment": "Template .pi-lsp.json \u2014 copy to your project root and remove languages you don't use.",
-  "_comment2": "go/rust/typescript/javascript have built-in defaults and don't need entries here.",
+  "_comment2": "go/rust have working built-in defaults. typescript/javascript are built in too, but their diagnostics do not reach pi (docs/lsp.md).",
   "servers": {
     "kotlin": {
       "command": "kotlin-lsp",
       "args": [
         "--stdio",
         "--system-path",
-        "/Users/<you>/.cache/kotlin-lsp"
+        "<HOME>/.cache/kotlin-lsp"
       ]
     }
   },
   "autoStart": [],
-  "_comment3": "kotlin-lsp builds expire on a hard date - see docs/lsp.md before installing."
+  "_comment3": "kotlin-lsp builds expire on a hard date - see docs/lsp.md before installing. Replace <HOME> with your home directory."
 }

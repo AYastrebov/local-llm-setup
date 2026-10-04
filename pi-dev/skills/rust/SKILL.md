@@ -10,6 +10,9 @@ Code intelligence comes from rust-analyzer through `pi-lsp-extension`: `lsp_symb
 After every `edit`/`write`, compile errors for that file are appended to the result once the server
 is running — read them before moving on.
 
+**Warm-up:** the first `lsp_*` call starts the server and may answer from the tree-sitter fallback
+(`syntax only, no type checking`). That is not a clean result: wait ~20 s and call again.
+
 ## Read workflow
 
 1. `cargo metadata --no-deps --format-version 1` (or read `Cargo.toml`) to learn crates, features

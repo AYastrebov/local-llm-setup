@@ -20,8 +20,8 @@ change is done.
 
 ## 1. Gate (run before declaring a change done)
 
-`lsp_diagnostics` is **not** reliable for `.vue` / `.svelte` files (it can report "clean" with type
-errors present); the type-check step below is the source of truth.
+`lsp_diagnostics` is **not** reliable for `.ts` / `.js` / `.vue` / `.svelte` files (verified: it reports
+"clean" with type errors present); the type-check step below is the source of truth.
 
 | Step | Vue | Svelte / SvelteKit |
 |---|---|---|

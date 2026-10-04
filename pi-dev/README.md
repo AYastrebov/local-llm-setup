@@ -143,7 +143,7 @@ Built-in defaults (work automatically, no config needed):
 
 | Language | Server |
 |----------|--------|
-| TypeScript / JavaScript | `typescript-language-server` |
+| TypeScript / JavaScript | `typescript-language-server` — **diagnostics do not reach pi**; see [docs/lsp.md](../docs/lsp.md#verified-status-pi-102--pi-lsp-extension-140-2026-10-04) |
 | Go | `gopls serve` |
 | Rust | `rust-analyzer` |
 | Python | `pyright-langserver` |

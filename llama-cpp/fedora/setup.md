@@ -252,7 +252,8 @@ carry hand-written blocks for the first four; they were dropped on 2026-10-04.)
 
 ## LSP Configuration
 
-LSP comes from pi's `pi-lsp-extension`. Go, Rust, TypeScript and JavaScript work out of the box;
+LSP comes from pi's `pi-lsp-extension`. Go and Rust work out of the box (TypeScript/JavaScript are configured
+but their diagnostics do not reach pi — see docs/lsp.md);
 anything else goes in a per-project `.pi-lsp.json` (see `pi-dev/pi-lsp.json`). A missing binary just
 means that language has no LSP, so install only the servers you use.
 

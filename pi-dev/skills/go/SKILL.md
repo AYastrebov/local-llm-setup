@@ -12,6 +12,9 @@ description: Go development with the official gopls MCP tools and quality gates.
   a headless gopls on the file system, so call `go_diagnostics` after every edit as described below.
 - `pi-lsp-extension` also appends compile errors to `edit`/`write` results once gopls is running;
   treat those as a hint and still run `go_diagnostics`.
+
+**Warm-up:** the first `lsp_*` call starts the server and may answer from the tree-sitter fallback
+(`syntax only, no type checking`). That is not a clean result: wait ~20 s and call again.
 - **Override:** the instructions below say to run `go_vulncheck` at session start. Skip that unless the
   task touches dependencies or security; always run it
   whenever `go.mod` changes.
