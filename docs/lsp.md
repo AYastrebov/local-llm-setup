@@ -42,13 +42,18 @@ Tested by planting a type error per language and calling `lsp_diagnostics` throu
 |---|---|---|
 | Go (gopls) | ✅ reports the error | after warm-up; pi also has gopls's own MCP server (`docs/mcp.md`) |
 | Rust (rust-analyzer) | ✅ reports the error | after warm-up (indexing takes ~20-30 s on first use) |
-| TypeScript / JavaScript | ❌ reports "clean" | `typescript-language-server` answers LSP requests standalone, but no diagnostics reach pi (TS 6). TypeScript 7 dropped `lib/tsserver.js`, so it cannot work there at all; TS 7's own `tsc --lsp --stdio` also returned "clean" (it uses pull diagnostics) |
+| TypeScript / JavaScript | ❌ reports "clean" | The server is fine — a direct probe (`docs/lsp-probe.cjs`) receives the error via push — but pi-lsp-extension 1.4.0 never surfaces it, even after pi reads the file (TS 6). TypeScript 7 dropped `lib/tsserver.js`, so it cannot work there at all; TS 7's own `tsc --lsp --stdio` also returned "clean" (it uses pull diagnostics) |
 | Vue / Svelte | ❌ / not mapped | `.vue` → "clean" with both Vue setups tried; `.svelte` has no mapping |
-| Kotlin | ❌ installed build expired | `LS-262.7569.0` prints "This build of intellij-server has expired" — see below |
+| Kotlin | ❌ reports "clean" | `kotlin-lsp` 263.6379.0 (installed 2026-10-04) is healthy: the direct probe gets "Return type mismatch" via both push and pull diagnostics, in a Gradle project. pi-lsp-extension 1.4.0 does not surface it. The previous build `LS-262.7569.0` had expired ("This build of intellij-server has expired") |
 
 **Warm-up trap:** the first `lsp_*` call for a language *starts* its server and answers from the
 tree-sitter fallback (`[tree-sitter — syntax only, no type checking]`), which looks final. Wait and
 call again. Auto-diagnostics after `edit`/`write` only appear once the server is running.
+
+Go and Rust work because gopls and rust-analyzer analyze the whole workspace; TypeScript and Kotlin
+report diagnostics for opened documents, which is the path that does not reach pi. To check a server
+independently of pi: `FILE=<file> LANG_ID=<lang> node docs/lsp-probe.cjs <server> [args]` prints
+pushed and pulled diagnostics.
 
 **So:** for TS/JS/Vue/Svelte the type-check commands (`tsc --noEmit`, `vue-tsc`, `svelte-check`) are
 the source of truth — the `frontend-checks` skill runs them. The language servers below are still
@@ -68,11 +73,14 @@ sudo dnf install rust-analyzer
 # TypeScript / JavaScript / Vue — for editors; not usable for diagnostics in pi (see status above)
 npm install -g typescript-language-server typescript @vue/language-server
 
-# Kotlin — see "Kotlin LSP builds expire" below; the GitHub releases page lags the current build
-# https://github.com/Kotlin/kotlin-lsp/releases
-KOTLIN_LSP_DIR=~/tools/kotlin-lsp   # or wherever you extract it
-chmod +x $KOTLIN_LSP_DIR/bin/intellij-server
-ln -s $KOTLIN_LSP_DIR/bin/intellij-server ~/.local/bin/kotlin-lsp
+# Kotlin — standalone archive from https://github.com/Kotlin/kotlin-lsp/releases (see "builds expire")
+V=263.6379.0   # latest as of 2026-10-03
+U=https://download.jetbrains.com/language-server/kotlin-server/$V
+curl -fLO $U/kotlin-server-$V.tar.gz && curl -fLO $U/kotlin-server-$V.tar.gz.sha256
+echo "$(cut -d' ' -f1 kotlin-server-$V.tar.gz.sha256)  kotlin-server-$V.tar.gz" | sha256sum -c
+mkdir -p ~/VibeProjects/LSP && tar -xzf kotlin-server-$V.tar.gz -C ~/VibeProjects/LSP
+ln -sfn ~/VibeProjects/LSP/kotlin-server-$V/bin/intellij-server ~/.local/bin/kotlin-lsp
+kotlin-lsp --stdio </dev/null; echo "exit=$?"   # 0 = good, 7 = expired
 ```
 
 Note `kotlin-lsp.sh` is deprecated as of the 263 builds - it prints a warning and just execs
