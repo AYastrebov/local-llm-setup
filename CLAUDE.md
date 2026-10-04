@@ -45,7 +45,8 @@ pi-dev/             pi.dev model + settings configs per platform
   settings-mac.json
   settings-fedora.json
   extensions/router.ts   router/auto virtual model (NeuralWatt qualifier picks glm-5.3 vs glm-5.3-flash)
-  skills/plan, skills/implement   lean plan -> implement workflow (explicit /skill: commands only)
+  skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
+  install-skills.sh   installs those + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 
 docs/               misc docs not tied to a specific topic
   lsp.md

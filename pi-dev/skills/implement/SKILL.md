@@ -1,72 +1,71 @@
 ---
 name: implement
-description: Execute a plan from docs/plans/ task by task with fresh pi workers, verify each task, then run one final review. Use when the user runs /skill:implement <plan path>.
+description: Implement the tickets in a .scratch/<feature>/ plan one at a time with fresh pi workers, verify and commit each, then run one final review. Use when the user runs /skill:implement <feature dir>.
 disable-model-invocation: true
 ---
 
 # Implement
 
-You are the coordinator. You do not write the code yourself; workers do. You verify, track progress, and report.
+You coordinate; workers write the code. You pick tickets, verify, commit, and report.
 
 Models (edit here to change):
-- Worker: `router/auto` — a cheap qualifier (`nw-flash`) rates each task; hard ones start on `glm-5.3`, everything else runs on `glm-5.3-flash`
+- Worker: `router/auto` — a cheap qualifier (`nw-flash`) rates each ticket; hard ones start on `glm-5.3`, everything else runs on `glm-5.3-flash`
 - Reviewer: `neuralwatt/glm-5.3:high`
 
 ## 0. Start
 
-- Read the plan given as the argument. Stop and ask if it has no `## Tasks` checklist.
-- Require a clean git tree (`git status --porcelain` empty) except for the plan file itself; otherwise ask the user first.
-- Record the base commit: `git rev-parse HEAD`. You need it for the review.
+- Argument: the feature directory (`.scratch/<feature-slug>`). Read `plan.md` and every file in `issues/`.
+- The working tree must be clean apart from `.scratch/` (`git status --porcelain -- . ':!.scratch'` empty);
+  otherwise ask the user first.
+- Record the base commit: `git rev-parse HEAD`.
 
-## 1. For each unchecked task, in order
+## 1. Work the frontier
 
-1. Write the worker prompt to a temp file (`mktemp`):
+Repeat until no ticket has `Status: ready`:
+
+1. Pick the **lowest-numbered** ticket with `Status: ready` whose `Blocked by` tickets are all `Status: done`.
+   If ready tickets remain but none is unblocked, stop and report the cycle.
+2. Run a fresh worker with bash and wait (point to files, don't paste them):
 
    ```
-   You are implementing one task of a larger plan. Do only this task.
-
-   Plan context (read for decisions, do not edit the plan): <plan path>, section "Decisions".
-
-   Task:
-   <the task's full text: title, Files, Change, Verify>
-
-   Rules:
-   - Stay within the listed files unless the change truly requires another; say so if it does.
-   - Follow the existing code style. No unrelated refactors, no new dependencies unless the task says so.
-   - Run the Verify command and fix until it passes.
-   - Do not commit. Do not edit the plan.
-   - End with: files changed, the Verify command, and its result (pass/fail with the key output lines).
+   pi -p --no-skills --model router/auto "Implement ticket <ticket path> of the plan <plan path>.
+   Read both first; follow the plan's Decisions and test at its Test seams.
+   Work test-first: read and follow ~/.pi/agent/skills/tdd/SKILL.md.
+   Stay within the ticket's scope; no unrelated refactors or new dependencies unless the ticket says so.
+   Run single test files and any typecheck as you go, and the ticket's Verify command before finishing.
+   Do not commit and do not edit anything under .scratch/.
+   End with: files changed, the Verify command, and its result."
    ```
 
-2. Run it with bash and wait:
-   `pi -p --no-skills --model router/auto "$(cat <prompt file>)"`
-3. **Run the task's Verify command yourself.** Do not rely on the worker's report.
-4. Pass → tick the box in the plan (`- [x]`) and continue.
-   Fail → run one more worker with the same prompt plus the failing output appended. If it still fails, stop and report to the user with the output. Do not attempt a third time.
+3. **Run the ticket's Verify command yourself**; do not rely on the worker's report.
+4. Pass →
+   - Tick the ticket's Acceptance boxes, set `Status: done`.
+   - Commit the code (never `.scratch/`): `git add -A -- . ':!.scratch'` then
+     `git commit -m "<NN>: <ticket title>"`. If the commit fails (e.g. a signing prompt), retry once,
+     then stop and report.
+5. Fail → run one more worker with the same prompt plus the failing output appended. If it still
+   fails, set `Status: blocked`, stop, and report the output. Never a third attempt.
 
-Keep your own messages short between tasks: one line per task (`3/7 ✓ <title>`).
+One line per ticket in your messages (`02/05 ✓ <title> (abc1234)`).
 
-## 2. Final review (once, after all tasks pass)
+## 2. Final review (once)
 
-Run a read-only reviewer:
-
-`pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "<prompt>"`
-
-with this prompt (fill in base commit and plan path):
+After the last ticket, run the full test suite / checks from `Done when`, then a read-only reviewer:
 
 ```
-Review the change `git diff <base>` (run it) against the plan <plan path>.
-Report only real problems: bugs, missed requirements from Goal/Done when, decisions that were not followed,
-security issues, missing tests for new behaviour. No style nits.
-For each: severity (high/medium/low), file:line, what is wrong, suggested fix (1-2 lines).
-If nothing is wrong, say "No findings".
+pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "Review `git diff <base>..HEAD`
+(run it) against <plan path> and the tickets in <issues dir>. Two axes: (1) spec fidelity: missed
+acceptance criteria or Done-when items, Decisions not followed, tests not at the agreed seams;
+(2) correctness: bugs, security issues, missing tests for new behaviour. No style nits. For each:
+severity (high/medium/low), file:line, what is wrong, suggested fix (1-2 lines). If nothing is wrong,
+say 'No findings'."
 ```
 
-- High/medium findings → append them to the plan under `## Review fixes` as new tasks (same shape, with `Verify:`), and run them through step 1. Do not review a second time.
-- Low findings → list them for the user; do not fix automatically.
+- High/medium findings → write them as new tickets (next free numbers, `Blocked by: None`,
+  `Status: ready`) and work them through step 1. Do not review a second time.
+- Low findings → list them for the user only.
 
 ## 3. Report
 
-- Tasks done, retries used, review findings and what was fixed.
-- Run the plan's `Done when` command(s) and show the result.
-- `git diff --stat <base>`. Do not commit — the user decides.
+Tickets done/blocked, retries used, commits (`git log --oneline <base>..HEAD`), review findings and
+what was fixed, and the result of the `Done when` checks. Do not push.
