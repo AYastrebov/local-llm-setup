@@ -101,14 +101,12 @@ Verify: `which llama-cli && llama-cli --version`
 
 ```bash
 # Interactive chat
-llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL \
-    --jinja --chat-template-kwargs '{"enable_thinking":true}' \
-    --flash-attn on --ctx-size 32768
+llama-cli -hf unsloth/Qwen3.8-27B-GGUF:UD-Q6_K_XL \
+    --jinja --flash-attn on --ctx-size 32768
 
 # OpenAI-compatible server with web UI
-llama-server -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q8_K_XL \
-    --jinja --chat-template-kwargs '{"enable_thinking":true}' \
-    --flash-attn on --fit on --ctx-size 32768 --port 8080
+llama-server -hf unsloth/Qwen3.8-27B-GGUF:UD-Q6_K_XL \
+    --jinja --flash-attn on --fit on --ctx-size 32768 --port 8080
 ```
 
 ### Key server flags
@@ -130,7 +128,7 @@ MTP enables speculative decoding for ~1.4–2.2x faster generation. Requires spe
 
 Dense models benefit significantly more from MTP than MoE models (1.4–2.2x vs 1.15–1.25x). When a dense MTP variant is available (e.g., Qwen3.6-27B-MTP), prefer it over MoE for quality and MTP speedup.
 
-MTP does not always need a separate `-MTP-` repo: Qwen3.8-27B carries the NextN block inside the main GGUF (`blk.64.nextn.*`) and Gemma 4 26B-A4B ships a sidecar under `MTP/` that `-hf` fetches automatically. Both are enabled with the flags above; measured 2.3x on ROCm and 1.7x on Metal for Qwen3.8.
+MTP does not always need a separate `-MTP-` repo: Qwen3.8-27B carries the NextN block inside the main GGUF (`blk.64.nextn.*`). It is enabled with the flags above; measured 2.3x on ROCm and 1.7x on Metal for Qwen3.8.
 
 ### Quantization guide
 
@@ -156,7 +154,7 @@ Use `q4_0` only when VRAM is very tight (e.g. 16GB with a large model).
 
 ### Thinking mode
 
-Models that support thinking (Gemma 4, Qwen3.x) require `--jinja` and:
+Models that support thinking (Qwen3.x) require `--jinja` and:
 ```bash
 --chat-template-kwargs '{"enable_thinking":true}'   # enable
 --chat-template-kwargs '{"enable_thinking":false}'  # disable
@@ -263,6 +261,5 @@ If the llama-server is exposed over the network (e.g., via Cloudflare Tunnel), s
 External references:
 - llama.cpp build guide: https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md
 - ROCm quick start: https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html
-- Unsloth Gemma 4: https://unsloth.ai/docs/models/gemma-4
 - Unsloth Qwen3.6: https://unsloth.ai/docs/models/qwen3.6
 - Unsloth Qwen3.8: https://unsloth.ai/docs/models/qwen3.8

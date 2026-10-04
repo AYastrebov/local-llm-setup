@@ -10,13 +10,12 @@ These are the models in `pi-dev/models-*.json`:
 
 | Model ID | Currently runs | Context | $ in | $ out | Images | Notes |
 |----------|----------------|---------|------|-------|--------|-------|
-| `nw-flash` | DeepSeek V4.1 Flash | 1M | $0.15 | $0.60 | ✅ | **pi default** — cheap and fast |
+| `nw-flash` | DeepSeek V4.1 Flash | 1M | $0.15 | $0.60 | ✅ | Cheap and fast |
 | `nw-small` | Qwen3.8 27B | 262K | $0.45 | $3.20 | ✅ | |
 | `nw-large` | Kimi K3 | 1M | $3.00 | $15.00 | ✅ | Hardest tasks |
 | `glm-5.3` | GLM 5.3 | 1M | $1.45 | $4.50 | ❌ | Always reasons — no "off" |
-| `glm-5.3-flash` | GLM 5.3 Flash | 1M | $0.15 | $0.50 | ✅ | Always reasons — no "off" |
-| `kimi-k2.7-code` | Kimi K2.7 Code | 262K | $0.95 | $4.00 | ✅ | Coding-tuned; always reasons, ignores `reasoning_effort` |
-| `qwen3.6-35b` | Qwen3.6 35B A3B | 262K | $0.29 | $1.15 | ✅ | Thinking is on/off only |
+| `glm-5.3-flash` | GLM 5.3 Flash | 1M | $0.15 | $0.50 | ✅ | **pi default (Fedora)** — best quality per dollar, lowest energy; always reasons |
+| `mimo-v2.6-pro` | MiMo V2.6 Pro | 1M | $0.87 | $1.74 | ✅ | Thinking on/off only; ~2x OpenRouter's price for the same model |
 
 **`nw-flash` / `nw-small` / `nw-large` are tracking aliases.** NeuralWatt re-points them at newer
 models as the catalog changes (with notice), at the target's price. Use them when you want "the cheap
@@ -91,11 +90,11 @@ templates contain the same block:
   footer works (each model carries its `cost`).
 - **`thinkingLevelMap`** — translates pi's levels to the efforts each model supports (from
   `reasoning.supported_efforts` in `/v1/models`). `null` marks a level as unsupported, e.g. `off`
-  for GLM 5.3, which always reasons. `kimi-k2.7-code` sets per-model
-  `compat.supportsReasoningEffort: false` instead.
+  for GLM 5.3, which always reasons.
 
-On Fedora, `pi-dev/settings-fedora.json` makes `neuralwatt` / `nw-flash` the default. Do not add
-`enabledModels` — it is an allowlist and hides env-key providers.
+On Fedora, `pi-dev/settings-fedora.json` makes `neuralwatt` / `glm-5.3-flash` the default and scopes
+the model picker with `enabledModels` (`neuralwatt/*` is included, so new entries here show up
+automatically).
 
 Select a model at runtime with `pi --provider neuralwatt --model <id>`, or `/model` in a session.
 

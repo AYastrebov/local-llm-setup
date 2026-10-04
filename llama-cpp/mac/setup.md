@@ -2,8 +2,8 @@
 
 Setup guide for running local LLM inference on Apple Silicon Macs with Metal GPU acceleration.
 
-This Mac runs exactly one local model: **Qwen3.8-27B** (general + reasoning + vision). Gemma 4 is
-Fedora-only — see [../fedora/setup.md](../fedora/setup.md).
+This Mac runs exactly one local model: **Qwen3.8-27B** (general + reasoning + vision), the same as
+Fedora — see [../fedora/setup.md](../fedora/setup.md).
 
 ## Hardware tested
 
@@ -135,7 +135,6 @@ The cache stays small because only **17 of 65 layers are attention** (4 KV heads
 |---|---|---|
 | GPU backend | Metal | HIP/ROCm |
 | General model | Qwen3.8-27B dense, UD-Q6_K_XL (25.9 GB) | Qwen3.8-27B dense, UD-IQ3_XXS (10.93 GB) |
-| Multimodal | — (Qwen3.8 sees images) | Gemma 4 26B-A4B, UD-Q3_K_XL (12.91 GB) |
 | Speculative decoding | `--spec-type draft-mtp --spec-draft-n-max 4` | `--spec-type draft-mtp --spec-draft-n-max 4` |
 | KV cache quantization | q8_0 | q8_0 |
 | Build flags | `-DGGML_METAL=ON -DGGML_NATIVE=ON` | `-DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON` |
@@ -169,8 +168,7 @@ from a non-login shell (cron, Raycast, scripts). It refuses to run if the port i
 different model, rather than silently talking to the wrong one.
 
 `pi-qwen` is the only local shorthand on either machine. Its vars are env-overridable
-(`PI_LOCAL_LAUNCHER`, `PI_LOCAL_MODEL`, `PI_LOCAL_PORT`), which is how Fedora points it at Gemma 4
-on a second port — see [zshrc-snippet.sh](../../zshrc-snippet.sh).
+(`PI_LOCAL_LAUNCHER`, `PI_LOCAL_MODEL`, `PI_LOCAL_PORT`) — see [zshrc-snippet.sh](../../zshrc-snippet.sh).
 
 ### pi provider settings
 
@@ -179,16 +177,16 @@ on a second port — see [zshrc-snippet.sh](../../zshrc-snippet.sh).
 `minimax`, `xiaomi`, ...) that needs only the matching API key in the environment - those do not
 appear in `models.json` at all.
 
-`settings-mac.json` deliberately sets **no `enabledModels`**. That key is an allowlist, and any
-provider you enable later by exporting its key would stay hidden until you also added it there.
-Without it, discovery is automatic. Measured on this Mac with `MOONSHOT_API_KEY`,
+`settings-mac.json` sets an `enabledModels` short list. In pi 1.0.2 it is a default view, not an
+allowlist: `/model` opens on the scoped list and **Tab** switches to every discovered model, so a
+newly exported key still works. Without the scope the picker is dominated by OpenRouter. Measured on this Mac with `MOONSHOT_API_KEY`,
 `OPENROUTER_API_KEY` and `NEURALWATT_API_KEY` exported:
 
 | Provider | Models | Source |
 |---|---|---|
 | openrouter | 372 | env key |
 | huggingface | 71 | env key |
-| neuralwatt | 7 | `models.json` |
+| neuralwatt | 6 | `models.json` |
 | moonshotai (+ `-cn`) | 20 | env key |
 | llama-cpp | 1 | `models.json` |
 

@@ -10,8 +10,8 @@
 # (loading the model costs ~1 min and ~25 GB of RAM). Use `pi-qwen stop`
 # to reclaim it.
 #
-# To drive another local model, set the three PI_LOCAL_* vars below, e.g.:
-#   PI_LOCAL_LAUNCHER=gemma-moe PI_LOCAL_MODEL=gemma-4-26b-a4b PI_LOCAL_PORT=8081 pi-qwen
+# To drive another local model, set the three PI_LOCAL_* vars below
+# (launcher script, model alias, port).
 
 set -uo pipefail
 

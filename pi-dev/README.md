@@ -33,14 +33,14 @@ do not copy that file back into the repo.
 
 | Provider | Models | Notes |
 |----------|--------|-------|
-| `neuralwatt` | `nw-flash`, `nw-small`, `nw-large`, GLM 5.3 (+ Flash), Kimi K2.7 Code, Qwen3.6 35B — see [neuralwatt/setup.md](../neuralwatt/setup.md#models) | Requires `NEURALWATT_API_KEY` in the environment |
-| `llama-cpp` | mac: Qwen3.8-27B — fedora: Qwen3.8-27B, Gemma 4 26B-A4B | Local llama.cpp at `localhost:8080` — start `qwen` (mac) or `qwen`/`gemma-moe` (fedora) first |
+| `neuralwatt` | GLM 5.3 Flash, GLM 5.3, MiMo V2.6 Pro, `nw-flash`, `nw-small`, `nw-large` — see [neuralwatt/setup.md](../neuralwatt/setup.md#models) | Requires `NEURALWATT_API_KEY` in the environment |
+| `llama-cpp` | Qwen3.8-27B | Local llama.cpp at `localhost:8080` — start `qwen` (or use `pi-qwen`) first |
 
 ## What differs between mac and fedora
 
-- **`llama-cpp` models**: mac has Qwen3.8-27B only; fedora has Qwen3.8-27B + Gemma 4 26B-A4B.
+- **`llama-cpp` models**: same model (Qwen3.8-27B) on both; only the launcher's quant differs.
 - **Default model** (`settings-*.json`): mac uses `moonshotai` / `kimi-k3`; fedora uses
-  `neuralwatt` / `nw-flash`.
+  `neuralwatt` / `glm-5.3-flash`. Both share the same `enabledModels` short list.
 
 The `neuralwatt` block is identical in both files — change it in both.
 

@@ -67,12 +67,10 @@ Models are stored as plain GGUF files in `~/models/`.
 
 | Model | Quant | Size | VRAM fit? |
 |-------|-------|------|-----------|
-| Gemma 4 26B-A4B (MoE) | UD-Q3_K_XL | 12.9 GB | Yes (~2 GB for KV cache) |
 | Qwen3.8-27B (dense, VL) | UD-IQ3_XXS | 10.93 GB | Yes — 14269/16304 MiB used, ~2.0 GiB free at tuned settings |
 
 Download models:
 ```bash
-llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL -n 0 -p ""
 llama-cli -hf unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS -n 0 -p ""
 ```
 
@@ -127,20 +125,6 @@ backend that HIP compiles from, and is only disabled on MUSA.
 ## Launcher Scripts
 
 Located in `~/.local/bin/`. All default to server mode on port 8080.
-
-### gemma-moe (Gemma 4 26B-A4B)
-
-```bash
-gemma-moe              # server on port 8080
-gemma-moe server 9090  # server on custom port
-gemma-moe chat         # interactive CLI, thinking enabled
-```
-
-Configure for Fedora by editing the MODEL line in the script:
-```bash
-MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
-KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
-```
 
 ### qwen (Qwen3.8-27B dense)
 
@@ -211,8 +195,8 @@ pi-qwen stop        # stop the background server (frees ~14 GB)
 pi-qwen status      # show what is on the port
 pi-qwen logs        # follow the server log
 
-# pi-qwen drives any launcher via three env vars; Gemma 4 on a second port:
-#   PI_LOCAL_LAUNCHER=gemma-moe PI_LOCAL_MODEL=gemma-4-26b-a4b PI_LOCAL_PORT=8081 pi-qwen
+# Launcher, model alias and port are env-overridable:
+#   PI_LOCAL_LAUNCHER, PI_LOCAL_MODEL, PI_LOCAL_PORT
 ```
 
 The server is left running after pi exits, so the next launch is instant. Measured on Fedora: **~14 s
@@ -225,15 +209,13 @@ passes `--provider llama-cpp` to pi.
 
 | Model | Mode | temp | top-p | top-k | min-p | presence |
 |-------|------|------|-------|-------|-------|----------|
-| Gemma 4 26B-A4B | all | 1.0 | 0.95 | 64 | — | — |
 | Qwen3.8-27B | Thinking (chat) | 1.0 | 0.95 | 20 | 0.0 | 0.0 |
 | Qwen3.8-27B | Instruct (chat-fast) | 0.7 | 0.80 | 20 | 0.0 | 1.5 |
 
 `repetition_penalty` is 1.0 for Qwen3.8 in both modes, which is llama.cpp's default, so it is not
 passed explicitly.
 
-Context window: 65536 tokens. Qwen3.8 uses `q4_0` KV (see the performance section above); Gemma 4
-still uses `q8_0` and has not been re-benchmarked against `q4_0`.
+Context window: 65536 tokens. Qwen3.8 uses `q4_0` KV (see the performance section above).
 
 ### Reasoning effort
 
@@ -261,8 +243,8 @@ cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 
 | Provider | Models | Notes |
 |---|---|---|
-| `neuralwatt` | `nw-flash` (default), `nw-small`, `nw-large`, GLM 5.3 (+ Flash), Kimi K2.7 Code, Qwen3.6 35B | Reads `NEURALWATT_API_KEY` from the environment — see [neuralwatt/setup.md](../../neuralwatt/setup.md) |
-| `llama-cpp` | Qwen3.8-27B, Gemma 4 26B-A4B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
+| `neuralwatt` | GLM 5.3 Flash (default), GLM 5.3, MiMo V2.6 Pro, `nw-flash`, `nw-small`, `nw-large` | Reads `NEURALWATT_API_KEY` from the environment — see [neuralwatt/setup.md](../../neuralwatt/setup.md) |
+| `llama-cpp` | Qwen3.8-27B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
 
 DeepSeek, Moonshot, MiniMax, MiMo, `anthropic`, `openai`, `google` and the rest are not listed:
 pi's built-in catalog activates them from an exported API key alone. (`models-fedora.json` used to

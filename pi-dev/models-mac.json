@@ -143,39 +143,19 @@
           }
         },
         {
-          "id": "kimi-k2.7-code",
-          "name": "Kimi K2.7 Code",
+          "id": "mimo-v2.6-pro",
+          "name": "MiMo V2.6 Pro",
           "reasoning": true,
           "input": [
             "text",
             "image"
           ],
-          "contextWindow": 262128,
-          "maxTokens": 32768,
+          "contextWindow": 1048560,
+          "maxTokens": 65536,
           "cost": {
-            "input": 0.95,
-            "output": 4.0,
-            "cacheRead": 0.095,
-            "cacheWrite": 0
-          },
-          "compat": {
-            "supportsReasoningEffort": false
-          }
-        },
-        {
-          "id": "qwen3.6-35b",
-          "name": "Qwen3.6 35B A3B",
-          "reasoning": true,
-          "input": [
-            "text",
-            "image"
-          ],
-          "contextWindow": 262128,
-          "maxTokens": 32768,
-          "cost": {
-            "input": 0.29,
-            "output": 1.15,
-            "cacheRead": 0.029,
+            "input": 0.87,
+            "output": 1.74,
+            "cacheRead": 0.036,
             "cacheWrite": 0
           },
           "thinkingLevelMap": {
