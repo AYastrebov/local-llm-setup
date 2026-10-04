@@ -49,17 +49,17 @@ export CONTEXT7_API_KEY=$(secret-tool lookup service context7 user "$USER")
 # LLAMA_CACHE only if you want them somewhere else, e.g. an external volume:
 # export LLAMA_CACHE="$HOME/models"
 export PATH="$HOME/llama.cpp/build/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"   # qwen, pi-qwen launchers (+ mellum on Fedora)
+export PATH="$HOME/.local/bin:$PATH"   # qwen, pi-qwen launchers (+ gemma-moe on Fedora)
 
 # Local models are driven through pi.
 #   pi-qwen            start llama-server with Qwen3.8-27B if needed, then run pi on it
-#   pi-qwen stop       stop the background server (frees ~25 GB)
+#   pi-qwen stop       stop the background server (frees ~26 GB mac, ~14 GB Fedora)
 #   pi-qwen status     show what is on the port
 #
-# Mellum2 twin - Fedora only, different port so both can run side by side.
-# macOS dropped Mellum2 on 2026-09-10 and runs Qwen3.8-27B alone.
-alias pi-mellum='PI_LOCAL_LAUNCHER=mellum PI_LOCAL_MODEL=mellum2-12b-a2.5b PI_LOCAL_PORT=8081 pi-qwen'
+# pi-qwen drives any launcher through three env vars, so no per-model alias is
+# needed. On Fedora, to put Gemma 4 on a second port alongside Qwen3.8:
+#   PI_LOCAL_LAUNCHER=gemma-moe PI_LOCAL_MODEL=gemma-4-26b-a4b PI_LOCAL_PORT=8081 pi-qwen
 #
-# Fedora also has gemma-moe.
+# Mellum2 was removed from both machines on 2026-09-10; the pi-mellum alias is gone.
 # Note: no claude-local alias. Local models go through pi; Claude Code stays on
 # Anthropic models -- driving a non-Anthropic model through it works badly.

@@ -45,13 +45,6 @@
         },
         {
           "contextWindow": 65536,
-          "id": "mellum2-12b-a2.5b",
-          "maxTokens": 8192,
-          "name": "Mellum2 12B-A2.5B (Local)",
-          "reasoning": true
-        },
-        {
-          "contextWindow": 65536,
           "id": "gemma-4-26b-a4b",
           "maxTokens": 8192,
           "name": "Gemma 4 26B-A4B MoE (Local)",

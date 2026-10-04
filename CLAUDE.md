@@ -19,7 +19,7 @@ llama-cpp/          local inference — scripts, build instructions, skill
   mac/setup.md      macOS build guide
   fedora/setup.md   Fedora/ROCm build guide
   fedora/build.sh   ROCm build script (uses hipconfig)
-  scripts/          launcher scripts (qwen = both platforms, auto-detected; mellum = macOS; gemma-moe = Fedora)
+  scripts/          launcher scripts (qwen = both platforms, auto-detected; gemma-moe = Fedora)
   skills/llama-build/  Claude Code skill for building llama.cpp
 
 
@@ -53,13 +53,13 @@ zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 
 **Launcher scripts** (`llama-cpp/scripts/`) — Bash scripts that wrap `llama-cli` and `llama-server` with per-model defaults (quantization, sampling params, KV cache settings). Each script supports `server` (default), `chat`, and optionally `chat-think` modes. They use `-hf` for automatic HuggingFace model download.
 
-**Model families are distinct** — Qwen3.8, Qwen3.6, Gemma 4, and Mellum2 each have their own sampling parameters and thinking-mode controls. Never mix them. Qwen3.8 accepts `enable_thinking`, `reasoning_effort`, and `preserve_thinking` via `--chat-template-kwargs`; Qwen3.6 accepts `enable_thinking`; Mellum2 emits `<think>` blocks unconditionally in its Thinking variant and never in Instruct.
+**Model families are distinct** — Qwen3.8 and Gemma 4 have different sampling parameters and completely different thinking-mode controls. Never mix them. Qwen3.8 uses llama.cpp's `--reasoning-effort` (`xhigh`/`medium`/`low` only; `none` raises a Jinja exception) and `--reasoning off` for genuine non-thinking. Gemma 4 disables thinking with `--chat-template-kwargs '{"enable_thinking":false}'` and enables it with a `<|think|>` token at the start of the system prompt.
 
-**macOS runs only two models** — Qwen3.8-27B (`qwen`) and Mellum2 12B-A2.5B (`mellum`). Gemma 4 is Fedora-only; do not reintroduce it into `pi-dev/models-mac.json` or `llama-cpp/mac/setup.md`.
+**macOS runs one model** — Qwen3.8-27B (`qwen`). Gemma 4 is Fedora-only; do not reintroduce it into `pi-dev/models-mac.json` or `llama-cpp/mac/setup.md`. Mellum2 was removed from both machines on 2026-09-10.
 
-**`qwen` is the one cross-platform launcher** — it branches on `uname`: macOS gets `UD-Q6_K_XL` (25.9 GB) with vision, Linux gets `UD-IQ3_XXS` (11.9 GB) plus `--no-mmproj` to stay inside 16 GB VRAM. Override with `QWEN_MODEL` / `QWEN_CTX` rather than editing the script.
+**`qwen` is the one cross-platform launcher** — it branches on `uname`: macOS gets `UD-Q6_K_XL` (25.9 GB) with vision, Linux gets `UD-IQ3_XXS` (10.93 GB) plus `--no-mmproj` to stay inside 16 GB VRAM. Override with `QWEN_MODEL` / `QWEN_CTX` rather than editing the script.
 
-**No MTP anywhere** — neither Qwen3.8-27B nor Mellum2 has a published `-MTP-` GGUF, and Qwen3.6-35B-A3B-MTP has been retired, so no launcher passes `--spec-type`. The `qwen-mtp` script was deleted; it is in git history if Fedora ever reverts.
+**MTP is ON for Qwen3.8 on both platforms** — `--spec-type draft-mtp --spec-draft-n-max 4`, measured 2.3x on Fedora and 1.7x on macOS. No `-MTP-` repo is needed: the NextN block ships *inside* the main GGUF as `blk.64.nextn.*`. An earlier revision of this file said "No MTP anywhere" — that was wrong, and the `unused tensor blk.64.nextn.*` lines in the server log were the idle draft head, not a defect. Gemma 4 has MTP too, but as a separate sidecar (`MTP/mtp-gemma-4-26B-A4B-it.gguf`) that llama.cpp fetches automatically; `gemma-moe` does not yet enable it.
 
 **Qwen3.8 is dense** — on Fedora it replaced a 35B-A3B MoE that activated ~3B params per token, so it is markedly slower there. That tradeoff is deliberate and documented in `llama-cpp/fedora/setup.md`; do not "fix" it by silently swapping back.
 
@@ -67,14 +67,14 @@ zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 
 **pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
 
-**Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH, provider API keys, and aliases for running Claude Code against local models.
+**Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH and provider API keys. Local models are driven through `pi-qwen`, not Claude Code.
 
 **Claude Code skills** — `llama-cpp/skills/llama-build/` (build llama.cpp).
 
 ## Key conventions
 
 - All launcher scripts default to port 8080 and use `exec` to replace the shell process
-- KV cache quantization (`--cache-type-k q8_0 --cache-type-v q8_0`) is standard across all launchers
-- Context size is 65536 tokens for all models (Qwen3.8 supports 262144 and Mellum2 131072 natively; 65536 is the deliberate default)
-- Models are sourced from Unsloth's GGUF quantizations on HuggingFace, except Mellum2, which uses JetBrains' own GGUF repos (`JetBrains/Mellum2-12B-A2.5B-{Thinking,Instruct}-GGUF-Q8_0`)
+- KV cache quantization varies by platform and backend: Fedora/ROCm uses `q4_0` for Qwen3.8 (a flash-attention fast path worth ~2x there), macOS/Metal and `gemma-moe` use `q8_0`. Do not unify these — the difference is measured, see `llama-cpp/fedora/setup.md`
+- Context size is 65536 tokens for all models (Qwen3.8 supports 262144 natively; 65536 is the deliberate default)
+- Models are sourced from Unsloth's GGUF quantizations on HuggingFace
 - `llama-cpp/fedora/build.sh` is Fedora/ROCm-specific (uses `hipconfig`); macOS builds use plain cmake with `-DGGML_METAL=ON`

@@ -130,7 +130,7 @@ MTP enables speculative decoding for ~1.4–2.2x faster generation. Requires spe
 
 Dense models benefit significantly more from MTP than MoE models (1.4–2.2x vs 1.15–1.25x). When a dense MTP variant is available (e.g., Qwen3.6-27B-MTP), prefer it over MoE for quality and MTP speedup.
 
-Check that an `-MTP-` GGUF repo actually exists before adding these flags — Qwen3.8-27B and Mellum2 have none, so the macOS launchers (`qwen`, `mellum`) run without speculative decoding.
+MTP does not always need a separate `-MTP-` repo: Qwen3.8-27B carries the NextN block inside the main GGUF (`blk.64.nextn.*`) and Gemma 4 26B-A4B ships a sidecar under `MTP/` that `-hf` fetches automatically. Both are enabled with the flags above; measured 2.3x on ROCm and 1.7x on Metal for Qwen3.8.
 
 ### Quantization guide
 
@@ -156,7 +156,7 @@ Use `q4_0` only when VRAM is very tight (e.g. 16GB with a large model).
 
 ### Thinking mode
 
-Models that support thinking (Gemma 4, Qwen3.x, Mellum2 Thinking) require `--jinja` and:
+Models that support thinking (Gemma 4, Qwen3.x) require `--jinja` and:
 ```bash
 --chat-template-kwargs '{"enable_thinking":true}'   # enable
 --chat-template-kwargs '{"enable_thinking":false}'  # disable
@@ -266,4 +266,3 @@ External references:
 - Unsloth Gemma 4: https://unsloth.ai/docs/models/gemma-4
 - Unsloth Qwen3.6: https://unsloth.ai/docs/models/qwen3.6
 - Unsloth Qwen3.8: https://unsloth.ai/docs/models/qwen3.8
-- JetBrains Mellum 2 collection: https://huggingface.co/collections/JetBrains/mellum-2

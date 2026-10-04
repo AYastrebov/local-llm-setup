@@ -202,18 +202,6 @@ and you land back at a login screen. 2560 MiB costs nothing in throughput and le
 | 6 | 21.5 | 55% |
 | 8 | 15.8 | 43% |
 
-### mellum (Mellum2 12B-A2.5B)
-
-```bash
-mellum              # server on port 8080
-mellum server 8081  # second port, alongside qwen
-mellum chat         # interactive coding chat
-```
-
-Installed on Fedora as of 2026-09-10 so the box matches the macOS setup, but **not yet run or
-benchmarked here** — Q8_0 is 12.9 GB and should fit the 16 GB card, but that is an expectation, not
-a measurement. It also still uses `q8_0` KV; whether the `q4_0` fast path above transfers to this
-architecture has not been tested.
 
 ### pi-qwen (run pi against a local model)
 
@@ -222,7 +210,9 @@ pi-qwen             # start Qwen3.8-27B if needed, then run pi on it
 pi-qwen stop        # stop the background server (frees ~14 GB)
 pi-qwen status      # show what is on the port
 pi-qwen logs        # follow the server log
-pi-mellum           # same for Mellum2 on port 8081 (alias in zshrc-snippet.sh)
+
+# pi-qwen drives any launcher via three env vars; Gemma 4 on a second port:
+#   PI_LOCAL_LAUNCHER=gemma-moe PI_LOCAL_MODEL=gemma-4-26b-a4b PI_LOCAL_PORT=8081 pi-qwen
 ```
 
 The server is left running after pi exits, so the next launch is instant. Measured on Fedora: **~14 s
@@ -275,7 +265,7 @@ The config registers four providers. Select any model via `/model` inside pi.dev
 | `moonshot` | Kimi K2.6 | Requires `MOONSHOT_API_KEY` — replace placeholder key in file |
 | `deepseek` | V4 Flash, V4 Pro | Requires `DEEPSEEK_API_KEY` — replace placeholder key in file |
 | `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |
-| `llama-cpp` | Qwen3.8-27B, Mellum2 12B-A2.5B, Gemma 4 26B-A4B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
+| `llama-cpp` | Qwen3.8-27B, Gemma 4 26B-A4B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
 
 `anthropic`, `openai` and `google` are not listed: pi's built-in catalog activates them from an
 exported API key alone.

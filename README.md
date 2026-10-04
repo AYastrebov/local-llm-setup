@@ -11,16 +11,17 @@ not intent.
 |---|---|---|
 | llama.cpp | `41fc7584f`, build 10895, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) |
 | Qwen3.8-27B | **served, 19.3 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) |
-| Mellum2 12B-A2.5B | **removed 2026-09-10** | launcher installed, **not yet benchmarked** |
 | Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked |
 | Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) |
 
 Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
 
-macOS now runs **Qwen3.8-27B only**. Mellum2 was removed from the Mac on 2026-09-10 — weights
-deleted, launcher uninstalled, pi model entry dropped. It remains a Fedora model. Its last measured
-macOS figure was 79-80 t/s on 2026-09-09, kept here only as history.
+**Mellum2 12B-A2.5B is gone from this setup.** Removed from the Mac on 2026-09-10 and from Fedora
+the same day. On Fedora it had only ever been a launcher and a pi entry — the weights were never
+downloaded, so it was never benchmarked there. Its last measured macOS figure was 79-80 t/s on
+2026-09-09. The `mellum` launcher and the `pi-mellum` alias are deleted; both are in git history if
+either machine wants it back.
 
 opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
 configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
@@ -38,25 +39,18 @@ pi.
 | Model | Type | Params | Use case | Platform |
 |-------|------|--------|----------|----------|
 | [Qwen3.8-27B](https://huggingface.co/collections/unsloth/qwen38) | 27B dense | 27B | General + reasoning + vision | Mac, Fedora |
-| [Mellum2 12B-A2.5B](https://huggingface.co/collections/JetBrains/mellum-2) | 12B MoE | 2.5B active | Coding | Fedora* |
 | [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Fedora |
 
-macOS runs **only Qwen3.8-27B**; Mellum2 and Gemma 4 are Fedora-only. Qwen3.6 has been retired from
+macOS runs **only Qwen3.8-27B**; Gemma 4 is Fedora-only. Qwen3.6 has been retired from
 both machines — the `unsloth/qwen38` collection ships only the 27B dense model and a 2.4T-A95B MoE
 far too large for either box, so both platforms run the 27B at different quants.
-
-\* Mellum2 is *installed* on Fedora (the `mellum` launcher is Fedora-only since the Mac dropped it), but it
-has **not been benchmarked or run there yet**. Its Q8_0 weights are 12.9 GB, so it should fit the
-16 GB card, and the `q4_0` KV finding below may or may not transfer — it is a different
-architecture and deserves its own sweep before anyone trusts a number.
 
 ### Quantization per platform
 
 | Model | Mac (64GB) | Fedora (16GB VRAM) |
 |-------|------------|--------------------|
 | Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | UD-IQ3_XXS (10.93 GB) |
-| Mellum2 12B-A2.5B Thinking | -- | Q8_0 (12.9 GB) |
-| Gemma 4 26B-A4B | -- | Q3_K_XL (13 GB) |
+| Gemma 4 26B-A4B | -- | UD-Q3_K_XL (12.91 GB) |
 
 ### MTP (Multi-Token Prediction)
 
@@ -109,7 +103,6 @@ Fedora IQ3_XXS, so no extra download is involved.
 |-------|------|-------|-------|-------|----------|
 | Qwen3.8-27B (thinking) | 1.0 | 0.95 | 20 | 0.0 | 0.0 |
 | Qwen3.8-27B (instruct) | 0.7 | 0.80 | 20 | 0.0 | 1.5 |
-| Mellum2 12B-A2.5B | 0.6 | 0.95 | 20 | -- | -- |
 | Gemma 4 26B-A4B | 1.0 | 0.95 | 64 | -- | -- |
 
 `repetition_penalty` is 1.0 for Qwen3.8 in both modes, which is already llama.cpp's default
@@ -199,8 +192,8 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
 
 3. **Install launcher scripts**:
    ```bash
-   cp llama-cpp/scripts/{qwen,gemma-moe,mellum,pi-qwen} ~/.local/bin/
-   chmod +x ~/.local/bin/{qwen,gemma-moe,mellum,pi-qwen}
+   cp llama-cpp/scripts/{qwen,gemma-moe,pi-qwen} ~/.local/bin/
+   chmod +x ~/.local/bin/{qwen,gemma-moe,pi-qwen}
    # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
    # qwen auto-detects the platform — on Linux it picks Qwen3.8-27B UD-IQ3_XXS,
    # --no-mmproj, q4_0 KV, --fit-target 2560 and MTP at --spec-draft-n-max 4
@@ -249,7 +242,7 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
    chmod +x ~/.local/bin/qwen
    ```
    `qwen` runs Qwen3.8-27B (UD-Q6_K_XL) and is the only local model on macOS.
-   `mellum` and `gemma-moe` are Fedora-only — do not install them on macOS. `qwen` is shared: it
+   `gemma-moe` is Fedora-only — do not install it on macOS. `qwen` is shared: it
    picks the right quant and flags from `uname`.
 
 3. **Add shell config**:
@@ -284,7 +277,7 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - macOS: `pi-dev/models-mac.json`
 
 Both configs register NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B) and local llama.cpp
-(Qwen3.8-27B on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora); `models-fedora.json` adds a few
+(Qwen3.8-27B on Mac; Qwen3.8-27B + Gemma 4 on Fedora); `models-fedora.json` adds a few
 direct vendor endpoints. Set your NeuralWatt key.
 
 > The local provider **must be named `llama-cpp`** in `models.json` — `pi-qwen` hardcodes
@@ -326,8 +319,12 @@ pi-qwen stop       # stop the background server (frees ~26 GB mac, ~14 GB Fedora
 pi-qwen status     # show what is on the port
 ```
 
-`pi-qwen` is the only local shorthand on macOS. Fedora additionally has the `pi-mellum` alias in
-[zshrc-snippet.sh](zshrc-snippet.sh).
+`pi-qwen` is the only local shorthand on either machine. To point it at Gemma 4 on Fedora, set the
+three `PI_LOCAL_*` variables it reads:
+
+```bash
+PI_LOCAL_LAUNCHER=gemma-moe PI_LOCAL_MODEL=gemma-4-26b-a4b PI_LOCAL_PORT=8081 pi-qwen
+```
 
 See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for how `pi-qwen` reuses an already-loaded
 model and what it refuses to do.

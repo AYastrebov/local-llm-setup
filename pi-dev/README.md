@@ -32,7 +32,7 @@ The repo templates use placeholders to avoid committing real credentials.
 | Provider | Models | Notes |
 |----------|--------|-------|
 | `neuralwatt` | Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B | Requires NeuralWatt API key |
-| `llama-cpp` | mac: Qwen3.8-27B, Mellum2 12B-A2.5B — fedora: Qwen3.8-27B, Gemma 4 26B-A4B | Local llama.cpp at `localhost:8080` — start `qwen`/`mellum` (mac) or `qwen`/`gemma-moe` (fedora) first |
+| `llama-cpp` | mac: Qwen3.8-27B — fedora: Qwen3.8-27B, Gemma 4 26B-A4B | Local llama.cpp at `localhost:8080` — start `qwen` (mac) or `qwen`/`gemma-moe` (fedora) first |
 
 ## What differs between mac and fedora
 
