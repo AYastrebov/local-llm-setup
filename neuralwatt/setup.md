@@ -124,8 +124,27 @@ Statusline-style callers (tmux, conky) often run outside an interactive shell wh
 ### Usage
 
 ```bash
-nw-usage            # human-readable: date, requests, Wh
-nw-usage --tmux     # compact for statusline (cached 5 min): ↗42 ⚡17Wh
-nw-usage --json     # raw JSON from API
+nw-usage            # balance + runway, today / 7 days / 30 days, cache-hit rate
+nw-usage --tmux     # compact for statusline (cached): $3.97 ↗234 ⚡18Wh
+nw-usage --json     # {"balance", "energy", "summary"} raw API responses
 ```
+
+```
+Neuralwatt usage (UTC 2026-10-04)
+  Balance:  $3.97  (~249 days at $0.02/day, 7-day avg)
+  Today:    234 req, 1.5M tokens, $0.06, 18Wh, 5.7g CO2
+  7 days:   285 req, 3M tokens, $0.11, 30Wh
+  30 days:  1354 req, 60.2M tokens, $1.31, 330Wh, 45g CO2
+  Cache:    91% of 30-day tokens were prompt-cache hits
+```
+
+Sources: `GET /v1/billing/balance`, `GET /v1/usage/summary` (cost, tokens, cached tokens, consumed
+vs charged kWh), `GET /v1/usage/energy` (energy, CO2 per day) — see
+[docs.neuralwatt.com/api/usage](https://docs.neuralwatt.com/api/usage). Dates are UTC.
+
+### Inside pi
+
+`pi-dev/extensions/neuralwatt.ts` shows `NW $<balance>` in pi's footer (refreshed at session start
+and after each run, at most once a minute) and adds `/nw`, which prints the same report as
+`nw-usage`. It reads `NEURALWATT_API_KEY` from the environment.
 

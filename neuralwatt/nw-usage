@@ -1,5 +1,5 @@
 #!/bin/bash
-# Neuralwatt API usage - shows today's request count and energy consumption
+# Neuralwatt API usage - balance, today's requests/tokens/cost/energy, 7- and 30-day totals, runway
 #
 # Usage:
 #   nw-usage                       # Human-readable output (always fresh)
@@ -69,10 +69,12 @@ else
     exit 1
   fi
 
-  data=$(curl -s -H "Authorization: Bearer $api_key" \
-    https://api.neuralwatt.com/v1/usage/energy 2>/dev/null)
+  fetch() { curl -s --max-time 10 -H "Authorization: Bearer $api_key" "https://api.neuralwatt.com/v1/$1" 2>/dev/null; }
+  energy=$(fetch usage/energy); summary=$(fetch usage/summary); balance=$(fetch billing/balance)
+  data=$(jq -n --argjson e "${energy:-null}" --argjson s "${summary:-null}" --argjson b "${balance:-null}" \
+    '{energy: $e, summary: $s, balance: $b}' 2>/dev/null || true)
 
-  if [[ -z "$data" ]] || ! echo "$data" | jq -e '.totals' >/dev/null 2>&1; then
+  if [[ -z "$data" ]] || ! echo "$data" | jq -e '.energy.totals and .summary.totals' >/dev/null 2>&1; then
     echo "Error: Failed to fetch usage data" >&2
     exit 1
   fi
@@ -81,17 +83,24 @@ else
 fi
 
 # Format output
+# Shared jq helpers: today's/7-day figures by date (API dates are UTC), balance and runway.
+JQ_DEFS='
+  def today: (now | strftime("%Y-%m-%d"));
+  def since(n): ((now - n*86400) | strftime("%Y-%m-%d"));
+  def sum_s(from): [.summary.time_series[] | select(.date >= from)] | {req: (map(.requests)|add // 0), tok: (map(.total_tokens)|add // 0), cost: (map(.cost_usd)|add // 0)};
+  def sum_e(from): [.energy.daily[] | select(.date >= from)] | {wh: ((map(.energy_kwh)|add // 0) * 1000), co2: (map(.carbon_g_co2eq // 0)|add // 0)};
+  def usd: if . < 0.01 and . > 0 then (. * 10000 | round / 10000 | tostring) else (. * 100 | round / 100 | tostring) end | "$" + .;
+  def tok: if . >= 1e6 then ((. / 1e5 | round) / 10 | tostring) + "M" elif . >= 1e3 then ((. / 1e3 | round) | tostring) + "K" else tostring end;
+  def bal: (.balance.dollar_balance // null);
+'
 case "$FORMAT" in
   json)
     echo "$data"
     ;;
   tmux)
-    output=$(jq -r '
-      if (.daily | length) > 0 then
-        .daily[0] | "↗\(.requests) ⚡\(.energy_kwh * 1000 | round)Wh"
-      else
-        .totals | "↗\(.requests) ⚡\(.energy_kwh * 1000 | round)Wh"
-      end' <<< "$data")
+    output=$(jq -r "$JQ_DEFS"'
+      sum_s(today) as $t | sum_e(today) as $e
+      | [ (bal | if . == null then empty else usd end), "↗\($t.req)", "⚡\($e.wh | round)Wh" ] | join(" ")' <<< "$data")
     if [[ -n "$COLOR" ]]; then
       printf "\033[%sm%s\033[0m\n" "$COLOR" "$output"
     else
@@ -99,11 +108,15 @@ case "$FORMAT" in
     fi
     ;;
   human)
-    jq -r '
-      if (.daily | length) > 0 then
-        .daily[0] | "Neuralwatt Usage for \(.date)\n  Requests: \(.requests)\n  Energy: \(.energy_kwh * 1000 | round)Wh (\(.energy_joules | round)J)"
-      else
-        "Neuralwatt Usage (\(.period.start) – \(.period.end))\n  Requests: \(.totals.requests)\n  Energy: \(.totals.energy_kwh * 1000 | round)Wh (\(.totals.energy_joules | round)J)"
-      end' <<< "$data"
+    jq -r "$JQ_DEFS"'
+      sum_s(today) as $t | sum_e(today) as $te | sum_s(since(6)) as $w | sum_e(since(6)) as $we
+      | .summary.totals as $m | .energy.totals as $me
+      | ($w.cost / 7) as $per_day
+      | "Neuralwatt usage (UTC \(today))",
+        "  Balance:  \(bal | if . == null then "n/a" else usd end)" + (if $per_day > 0 and bal != null then "  (~\(bal / $per_day | floor) days at \($per_day | usd)/day, 7-day avg)" else "" end),
+        "  Today:    \($t.req) req, \($t.tok | tok) tokens, \($t.cost | usd), \($te.wh | round)Wh, \($te.co2 * 10 | round / 10)g CO2",
+        "  7 days:   \($w.req) req, \($w.tok | tok) tokens, \($w.cost | usd), \($we.wh | round)Wh",
+        "  30 days:  \($m.requests) req, \($m.total_tokens | tok) tokens, \($m.total_cost_usd | usd), \($me.energy_kwh * 1000 | round)Wh, \(($me.carbon_g_co2eq // 0) | round)g CO2",
+        "  Cache:    \(if $m.total_tokens > 0 then (($m.cached_tokens // 0) / $m.total_tokens * 100 | round) else 0 end)% of 30-day tokens were prompt-cache hits"' <<< "$data"
     ;;
 esac

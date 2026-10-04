@@ -29,6 +29,14 @@
     "tavily": {
       "url": "https://mcp.tavily.com/mcp/",
       "description": "Web search and page extraction (Tavily): current information, docs, news, reading URLs"
+    },
+    "gopls": {
+      "command": "gopls",
+      "args": [
+        "mcp"
+      ],
+      "exposure": "direct",
+      "description": "Go workspace intelligence from gopls (official): workspace layout, symbol search, file context, package API, references, diagnostics, vulncheck"
     }
   }
 }

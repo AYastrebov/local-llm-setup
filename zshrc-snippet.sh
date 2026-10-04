@@ -49,6 +49,7 @@ export CONTEXT7_API_KEY=$(secret-tool lookup service context7 user "$USER")
 # LLAMA_CACHE only if you want them somewhere else, e.g. an external volume:
 # export LLAMA_CACHE="$HOME/models"
 export PATH="$HOME/llama.cpp/build/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"   # cargo-nextest, cargo-deny (cargo install)
 export PATH="$HOME/.local/bin:$PATH"   # qwen, pi-qwen launchers
 
 # Local models are driven through pi.

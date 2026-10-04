@@ -14,6 +14,7 @@ pi mcp list          # connects to every server and prints state, tools and erro
 | `context7` | `https://mcp.context7.com/mcp` | `CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}` header | Current library docs (`resolve-library-id`, `query-docs`) |
 | `tavily` | `https://mcp.tavily.com/mcp/` | OAuth: run `pi mcp login tavily` once | `tavily_search`, `_extract`, `_crawl`, `_map`, `_research`; token stored in `~/.pi/agent/mcp-auth.json`. Tavily's separate agent skills need its CLI + an API key and add nothing beyond this |
 | `playwright` | stdio: `npx -y @playwright/mcp@latest` | none | Browser automation (~25 tools) |
+| `gopls` | stdio: `gopls mcp` (gopls ≥ v0.20) | none | Official Go team server, 8 tools (`go_workspace`, `go_search`, `go_file_context`, `go_package_api`, `go_symbol_references`, `go_diagnostics`, `go_rename_symbol`, `go_vulncheck`). `exposure: "direct"` so the model calls them by name, as gopls's own instructions (the `go` skill) expect |
 | `jetbrains` | `http://127.0.0.1:64342/stream` | none | Needs a running JetBrains IDE (2025.2+) with Settings → Tools → MCP Server enabled; check the port there |
 
 Rules that matter (from pi's `docs/mcp.md`):

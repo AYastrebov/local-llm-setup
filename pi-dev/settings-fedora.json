@@ -15,5 +15,8 @@
     "openrouter/xiaomi/mimo-v2.6-pro",
     "openrouter/qwen/qwen3.8-27b:free",
     "openrouter/nvidia/nemotron-3.5-lightning:free"
+  ],
+  "packages": [
+    "npm:pi-lsp-extension"
   ]
 }

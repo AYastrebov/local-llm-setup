@@ -4,7 +4,10 @@ LSP (Language Server Protocol) servers give coding agents real code intelligence
 symbol search, completion context, and live diagnostics. Without them an agent can still read files,
 but it loses the structured signal ("this symbol is unused", "the type doesn't match here").
 
-pi gets LSP from the `pi-lsp-extension` package listed in `pi-dev/settings-mac.json`. Go, Rust,
+pi gets LSP from the `pi-lsp-extension` package, listed in both `pi-dev/settings-*.json`. Besides the
+`lsp_*` tools it appends compile errors to every `edit`/`write` result once the server for that
+language is running (errors only, max 10 lines). For Go, pi additionally uses gopls's official MCP
+server (see [mcp.md](mcp.md)) and the `go` skill. Go, Rust,
 TypeScript and JavaScript have built-in defaults and need no configuration. Anything else goes in a
 per-project `.pi-lsp.json` - see `pi-dev/pi-lsp.json` for a template, which currently adds Kotlin:
 

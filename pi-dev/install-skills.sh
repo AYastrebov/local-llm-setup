@@ -7,7 +7,13 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$DEST"
 
-cp -r "$HERE/skills/plan" "$HERE/skills/implement" "$HERE/skills/grill-me" "$DEST/"
+cp -r "$HERE/skills/plan" "$HERE/skills/implement" "$HERE/skills/grill-me" "$HERE/skills/rust" "$HERE/skills/go" "$DEST/"
+
+# go: keep the hand-written header, refresh the body from the installed gopls.
+if command -v gopls >/dev/null 2>&1; then
+  sed -n '1,/^# The gopls MCP server$/p' "$HERE/skills/go/SKILL.md" | sed '$d' > "$DEST/go/SKILL.md"
+  gopls mcp -instructions >> "$DEST/go/SKILL.md"
+fi
 
 clone() { git clone -q --depth 1 "https://github.com/$1.git" "$TMP/$2"; }
 clone anthropics/skills anthropic

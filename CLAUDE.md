@@ -47,6 +47,8 @@ pi-dev/             pi.dev model + settings configs per platform
   mcp.json            MCP servers (github, context7, tavily, playwright, jetbrains); env-var/OAuth auth, no secrets
   extensions/router.ts   router/auto virtual model (NeuralWatt qualifier picks glm-5.3 vs glm-5.3-flash)
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
+  skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
+  extensions/neuralwatt.ts   footer balance + /nw usage stats
   install-skills.sh   installs those + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 
 docs/               misc docs not tied to a specific topic

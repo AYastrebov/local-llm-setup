@@ -31,13 +31,20 @@ Repeat until no ticket has `Status: ready`:
    pi -p --no-skills --model router/auto "Implement ticket <ticket path> of the plan <plan path>.
    Read both first; follow the plan's Decisions and test at its Test seams.
    Work test-first: read and follow ~/.pi/agent/skills/tdd/SKILL.md.
+   Language rules: in a Go module read ~/.pi/agent/skills/go/SKILL.md, in a Cargo project read
+   ~/.pi/agent/skills/rust/SKILL.md, and pass its Quality gate before finishing.
    Stay within the ticket's scope; no unrelated refactors or new dependencies unless the ticket says so.
    Run single test files and any typecheck as you go, and the ticket's Verify command before finishing.
    Do not commit and do not edit anything under .scratch/.
-   End with: files changed, the Verify command, and its result."
+   End with: files changed, the Verify command, and its result." < /dev/null
    ```
 
-3. **Run the ticket's Verify command yourself**; do not rely on the worker's report.
+   Always redirect stdin from `/dev/null`: `pi -p` prepends piped stdin to the prompt and otherwise
+   waits for it to close, which hangs when stdin is an open pipe.
+
+3. **Run the ticket's Verify command yourself**; do not rely on the worker's report. In a Go or Rust
+   project also run that language skill's Quality gate (scoped to the changed packages/crates); a gate
+   failure counts as a failed ticket.
 4. Pass →
    - Tick the ticket's Acceptance boxes, set `Status: done`.
    - Commit the code (never `.scratch/`): `git add -A -- . ':!.scratch'` then
@@ -58,7 +65,7 @@ pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "Review `git
 acceptance criteria or Done-when items, Decisions not followed, tests not at the agreed seams;
 (2) correctness: bugs, security issues, missing tests for new behaviour. No style nits. For each:
 severity (high/medium/low), file:line, what is wrong, suggested fix (1-2 lines). If nothing is wrong,
-say 'No findings'."
+say 'No findings'." < /dev/null
 ```
 
 - High/medium findings → write them as new tickets (next free numbers, `Blocked by: None`,
