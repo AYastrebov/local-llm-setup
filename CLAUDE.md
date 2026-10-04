@@ -48,6 +48,7 @@ pi-dev/             pi.dev model + settings configs per platform
   extensions/router.ts   router/auto virtual model (NeuralWatt qualifier picks glm-5.3 vs glm-5.3-flash)
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
   skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
+  skills/frontend-checks   Vue/Svelte/Vite gate + browser check; framework skills come from upstream via install-skills.sh
   extensions/neuralwatt.ts   footer balance + /nw usage stats
   install-skills.sh   installs those + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 

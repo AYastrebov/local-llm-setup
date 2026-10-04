@@ -80,6 +80,21 @@ Verified on a throwaway module and crate: the Go worker used `go_workspace` →
 `go_symbol_references` → edit → `go_diagnostics`; the Rust worker used `lsp_references` before
 changing a public fn; both passed the gates independently re-run.
 
+### Vue and Svelte
+
+| Layer | Vue | Svelte / SvelteKit |
+|---|---|---|
+| Framework skill (auto) | `vue-best-practices` (+ pinia, router, testing) from [vuejs-ai/skills](https://github.com/vuejs-ai/skills), community, "early experiment" | official `svelte-core-bestpractices` + `svelte-code-writer` from [sveltejs/ai-tools](https://github.com/sveltejs/ai-tools) |
+| Framework checker | — | `npx @sveltejs/mcp svelte-autofixer <file>` (official; runes, Svelte 4 leftovers, a11y) |
+| Gate (`frontend-checks` skill) | project scripts first; else `vue-tsc --noEmit`, ESLint or `oxlint`, `vitest run`, `vite build` at the end | project scripts first; else `svelte-check`, autofixer, ESLint or `oxlint`, `vitest run`, build |
+| Browser | `chrome-devtools` MCP (console, network, Lighthouse) + `playwright` MCP (flows) | same |
+
+No LSP for `.vue`/`.svelte`: both `vue-language-server` alone and `typescript-language-server` with
+`@vue/typescript-plugin` returned "No diagnostics (clean)" for a file with a type error, so the
+type-check commands are the source of truth (the skill says so). Verified on a Vite + Vue 3 app and a
+SvelteKit 3 app: skills auto-loaded, gates and an in-browser console check ran, independent re-runs
+clean (the Svelte worker also correctly followed SvelteKit 3's `#lib` subpath imports).
+
 **Running pi from scripts:** `pi -p` prepends piped stdin to the prompt and waits for it to close.
 From a background job or another agent, always add `< /dev/null`, or it can hang with no output.
 
@@ -90,7 +105,9 @@ from upstream rather than vendored:
 
 | Skill | Source | Loads |
 |---|---|---|
-| `go`, `rust` | this repo (`go` body from `gopls mcp -instructions`) | auto in Go / Cargo projects |
+| `go`, `rust`, `frontend-checks` | this repo (`go` body from `gopls mcp -instructions`) | auto in Go / Cargo / JS frontend projects |
+| `svelte-code-writer`, `svelte-core-bestpractices` | sveltejs/ai-tools (official) | auto in Svelte projects |
+| `vue-best-practices`, `vue-{pinia,router,testing}-best-practices` | vuejs-ai/skills | auto in Vue projects |
 | `tdd` | mattpocock/skills | auto; workers read it directly |
 | `diagnosing-bugs` | mattpocock/skills | auto |
 | `writing-for-agents` | mattpocock/skills | auto (writing skills, `AGENTS.md`); used instead of Anthropic's `skill-creator`, whose eval loop needs Claude-style sub-agents |

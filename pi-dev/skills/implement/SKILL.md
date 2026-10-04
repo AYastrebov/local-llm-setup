@@ -32,7 +32,9 @@ Repeat until no ticket has `Status: ready`:
    Read both first; follow the plan's Decisions and test at its Test seams.
    Work test-first: read and follow ~/.pi/agent/skills/tdd/SKILL.md.
    Language rules: in a Go module read ~/.pi/agent/skills/go/SKILL.md, in a Cargo project read
-   ~/.pi/agent/skills/rust/SKILL.md, and pass its Quality gate before finishing.
+   ~/.pi/agent/skills/rust/SKILL.md, in a Vue/Svelte/Vite project read
+   ~/.pi/agent/skills/frontend-checks/SKILL.md (and the framework skill it names), and pass its
+   gate before finishing.
    Stay within the ticket's scope; no unrelated refactors or new dependencies unless the ticket says so.
    Run single test files and any typecheck as you go, and the ticket's Verify command before finishing.
    Do not commit and do not edit anything under .scratch/.
@@ -42,8 +44,8 @@ Repeat until no ticket has `Status: ready`:
    Always redirect stdin from `/dev/null`: `pi -p` prepends piped stdin to the prompt and otherwise
    waits for it to close, which hangs when stdin is an open pipe.
 
-3. **Run the ticket's Verify command yourself**; do not rely on the worker's report. In a Go or Rust
-   project also run that language skill's Quality gate (scoped to the changed packages/crates); a gate
+3. **Run the ticket's Verify command yourself**; do not rely on the worker's report. In a Go, Rust or
+   frontend project also run that skill's gate (scoped to the changed packages/crates); a gate
    failure counts as a failed ticket.
 4. Pass →
    - Tick the ticket's Acceptance boxes, set `Status: done`.

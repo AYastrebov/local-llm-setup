@@ -37,6 +37,16 @@
       ],
       "exposure": "direct",
       "description": "Go workspace intelligence from gopls (official): workspace layout, symbol search, file context, package API, references, diagnostics, vulncheck"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--headless",
+        "--isolated"
+      ],
+      "description": "Chrome DevTools (official): console, network requests, performance traces, Lighthouse-style audits, screenshots of a page"
     }
   }
 }
