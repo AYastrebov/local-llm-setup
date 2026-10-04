@@ -1,0 +1,6 @@
+{
+  "defaultProvider": "neuralwatt",
+  "defaultModel": "nw-flash",
+  "defaultThinkingLevel": "medium",
+  "theme": "dark"
+}

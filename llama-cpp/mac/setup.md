@@ -150,7 +150,7 @@ The cache stays small because only **17 of 65 layers are attention** (4 KV heads
 macOS drives local models through **pi** only. opencode is no longer installed here.
 
 ```bash
-cp pi-dev/models-mac.json    ~/.pi/agent/models.json     # then fill in the placeholder keys
+cp pi-dev/models-mac.json    ~/.pi/agent/models.json     # reads $NEURALWATT_API_KEY
 cp pi-dev/settings-mac.json  ~/.pi/agent/settings.json
 cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
 ```
@@ -193,7 +193,7 @@ Without it, discovery is automatic. Measured on this Mac with `MOONSHOT_API_KEY`
 |---|---|---|
 | openrouter | 372 | env key |
 | huggingface | 71 | env key |
-| neuralwatt | 20 | `models.json` |
+| neuralwatt | 7 | `models.json` |
 | moonshotai (+ `-cn`) | 20 | env key |
 | llama-cpp | 1 | `models.json` |
 

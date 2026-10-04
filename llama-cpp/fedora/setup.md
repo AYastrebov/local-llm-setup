@@ -250,25 +250,23 @@ True non-thinking comes from `--reasoning off`, which `qwen chat-fast` uses — 
 
 ## pi.dev Configuration
 
-Config file: `~/.pi/agent/models.json` (copy from `pi-dev/models-fedora.json`)
+Config files: `~/.pi/agent/models.json` and `~/.pi/agent/settings.json`
 
 ```bash
-cp pi-dev/models-fedora.json ~/.pi/agent/models.json
+cp pi-dev/models-fedora.json   ~/.pi/agent/models.json
+cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 ```
 
-The config registers four providers. Select any model via `/model` inside pi.dev:
+`models.json` registers the two custom endpoints. Select any model via `/model` inside pi.dev:
 
 | Provider | Models | Notes |
 |---|---|---|
-| `minimax` | MiniMax M3 | Requires `MINIMAX_API_KEY` — replace placeholder key in file |
-| `mimo` | MiMo V2.5, V2.5 Pro | Requires `MIMO_API_KEY` — replace placeholder key in file |
-| `moonshot` | Kimi K2.6 | Requires `MOONSHOT_API_KEY` — replace placeholder key in file |
-| `deepseek` | V4 Flash, V4 Pro | Requires `DEEPSEEK_API_KEY` — replace placeholder key in file |
-| `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |
+| `neuralwatt` | `nw-flash` (default), `nw-small`, `nw-large`, GLM 5.3 (+ Flash), Kimi K2.7 Code, Qwen3.6 35B | Reads `NEURALWATT_API_KEY` from the environment — see [neuralwatt/setup.md](../../neuralwatt/setup.md) |
 | `llama-cpp` | Qwen3.8-27B, Gemma 4 26B-A4B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
 
-`anthropic`, `openai` and `google` are not listed: pi's built-in catalog activates them from an
-exported API key alone.
+DeepSeek, Moonshot, MiniMax, MiMo, `anthropic`, `openai`, `google` and the rest are not listed:
+pi's built-in catalog activates them from an exported API key alone. (`models-fedora.json` used to
+carry hand-written blocks for the first four; they were dropped on 2026-10-04.)
 
 ## LSP Configuration
 

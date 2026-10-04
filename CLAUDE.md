@@ -39,9 +39,11 @@ mimo/               Xiaomi MiMo cloud provider setup
 minimax/            MiniMax cloud provider setup
   setup.md          API key, model IDs, agent config
 
-pi-dev/             pi.dev model configs per platform
+pi-dev/             pi.dev model + settings configs per platform
   models-mac.json
   models-fedora.json
+  settings-mac.json
+  settings-fedora.json
 
 docs/               misc docs not tied to a specific topic
   lsp.md
@@ -63,9 +65,9 @@ zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 
 **Qwen3.8 is dense** — on Fedora it replaced a 35B-A3B MoE that activated ~3B params per token, so it is markedly slower there. That tradeoff is deliberate and documented in `llama-cpp/fedora/setup.md`; do not "fix" it by silently swapping back.
 
-**pi settings** (`pi-dev/settings-mac.json`) — Sets `defaultProvider`/`defaultModel` (`moonshotai`/`kimi-k3`). It deliberately sets **no `enabledModels`**: that key is an allowlist and would defeat pi's env-key provider discovery. pi has a built-in provider catalog, so `moonshotai`, `openrouter`, `deepseek` and friends work from an exported API key alone and must NOT be added to `models.json`; only custom endpoints (`llama-cpp`, `neuralwatt`) belong there.
+**pi settings** (`pi-dev/settings-{mac,fedora}.json`) — Sets `defaultProvider`/`defaultModel` (mac: `moonshotai`/`kimi-k3`; fedora: `neuralwatt`/`nw-flash`). Neither sets **`enabledModels`**: that key is an allowlist and would defeat pi's env-key provider discovery. pi has a built-in provider catalog, so `moonshotai`, `openrouter`, `deepseek` and friends work from an exported API key alone and must NOT be added to `models.json`; only custom endpoints (`llama-cpp`, `neuralwatt`) belong there.
 
-**pi.dev configs** (`pi-dev/`) — Same pattern: cloud sections are identical, local model section differs per platform.
+**pi.dev configs** (`pi-dev/`) — The `neuralwatt` block is identical in both `models-*.json` files; only `llama-cpp` differs per platform. NeuralWatt uses `"apiKey": "$NEURALWATT_API_KEY"` (pi interpolates env vars in `models.json`) — never commit a literal key. Model IDs, prices and supported reasoning efforts come from `GET https://api.neuralwatt.com/v1/models` (no auth); prefer the `nw-flash`/`nw-small`/`nw-large` tracking aliases over pinned IDs.
 
 **Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH and provider API keys. Local models are driven through `pi-qwen`, not Claude Code.
 

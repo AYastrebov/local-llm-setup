@@ -8,6 +8,8 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 |------|----------|---------|
 | `models-mac.json` | macOS (M2 Max, 64GB) | `~/.pi/agent/models.json` |
 | `models-fedora.json` | Fedora (RX 9060 XT, ROCm) | `~/.pi/agent/models.json` |
+| `settings-mac.json` | macOS | `~/.pi/agent/settings.json` |
+| `settings-fedora.json` | Fedora | `~/.pi/agent/settings.json` |
 
 ## Setup
 
@@ -16,31 +18,31 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 cp pi-dev/models-mac.json ~/.pi/agent/models.json
 
 # Fedora
-cp pi-dev/models-fedora.json ~/.pi/agent/models.json
+cp pi-dev/models-fedora.json   ~/.pi/agent/models.json
+cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 ```
 
-Then edit `~/.pi/agent/models.json`:
-1. Replace `sk-your-neuralwatt-key-here` with your NeuralWatt API key
+No editing needed: the NeuralWatt entry uses `"apiKey": "$NEURALWATT_API_KEY"`, which pi
+interpolates from the environment at request time. Export the key from your shell (see
+[neuralwatt/setup.md](../neuralwatt/setup.md#api-key)).
 
-pi.dev does not support env var substitution in JSON, so secrets must be hardcoded in the live file.
-The repo templates use placeholders to avoid committing real credentials.
-
-**Never commit `~/.pi/agent/models.json` to this repo** — it contains real secrets. Only edit the template files (`models-mac.json`, `models-fedora.json`), which use `sk-your-neuralwatt-key-here` as a placeholder.
+**Never put a literal key in the templates.** If you hardcode one in `~/.pi/agent/models.json`,
+do not copy that file back into the repo.
 
 ## Providers
 
 | Provider | Models | Notes |
 |----------|--------|-------|
-| `neuralwatt` | Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B | Requires NeuralWatt API key |
+| `neuralwatt` | `nw-flash`, `nw-small`, `nw-large`, GLM 5.3 (+ Flash), Kimi K2.7 Code, Qwen3.6 35B — see [neuralwatt/setup.md](../neuralwatt/setup.md#models) | Requires `NEURALWATT_API_KEY` in the environment |
 | `llama-cpp` | mac: Qwen3.8-27B — fedora: Qwen3.8-27B, Gemma 4 26B-A4B | Local llama.cpp at `localhost:8080` — start `qwen` (mac) or `qwen`/`gemma-moe` (fedora) first |
 
 ## What differs between mac and fedora
 
-Only the `llama-cpp` models section changes:
-- **mac**: Gemma 4 (Q8_K_XL) + Qwen3.6 27B dense (Q6_K_XL)
-- **fedora**: Gemma 4 (Q3_K_XL) + Qwen3.6 35B-A3B MoE (IQ3_XXS)
+- **`llama-cpp` models**: mac has Qwen3.8-27B only; fedora has Qwen3.8-27B + Gemma 4 26B-A4B.
+- **Default model** (`settings-*.json`): mac uses `moonshotai` / `kimi-k3`; fedora uses
+  `neuralwatt` / `nw-flash`.
 
-All cloud provider sections are identical.
+The `neuralwatt` block is identical in both files — change it in both.
 
 ## Vendor providers
 

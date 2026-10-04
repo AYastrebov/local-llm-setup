@@ -173,7 +173,7 @@ costs nothing in throughput.
 
 ### NeuralWatt
 
-OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral Small 2. See [neuralwatt/setup.md](neuralwatt/setup.md) for API key setup and the `nw-usage` script.
+OpenAI-compatible API. pi is configured with the `nw-flash` / `nw-small` / `nw-large` tracking aliases plus GLM 5.3, Kimi K2.7 Code and Qwen3.6 35B. See [neuralwatt/setup.md](neuralwatt/setup.md) for API key setup and the `nw-usage` script.
 
 ## Quick start (Fedora)
 
@@ -208,8 +208,8 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
 
 5. **Configure coding agents:**
    ```bash
-   cp pi-dev/models-fedora.json ~/.pi/agent/models.json
-   # Edit: fill in the placeholder API keys
+   cp pi-dev/models-fedora.json   ~/.pi/agent/models.json     # reads $NEURALWATT_API_KEY
+   cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json   # default: neuralwatt/nw-flash
    ```
 
 6. **Run** (one at a time — all default to port 8080):
@@ -254,7 +254,7 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
 
 4. **Configure coding agents:**
    ```bash
-   cp pi-dev/models-mac.json   ~/.pi/agent/models.json     # fill in the placeholder keys
+   cp pi-dev/models-mac.json   ~/.pi/agent/models.json     # reads $NEURALWATT_API_KEY
    cp pi-dev/settings-mac.json ~/.pi/agent/settings.json
    cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
    ```
@@ -276,22 +276,23 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `pi-dev/models-fedora.json`
 - macOS: `pi-dev/models-mac.json`
 
-Both configs register NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B) and local llama.cpp
-(Qwen3.8-27B on Mac; Qwen3.8-27B + Gemma 4 on Fedora); `models-fedora.json` adds a few
-direct vendor endpoints. Set your NeuralWatt key.
+Both configs register NeuralWatt (`nw-flash`, `nw-small`, `nw-large`, GLM 5.3, Kimi K2.7 Code,
+Qwen3.6 35B — see [neuralwatt/setup.md](neuralwatt/setup.md#models)) and local llama.cpp
+(Qwen3.8-27B on Mac; Qwen3.8-27B + Gemma 4 on Fedora). The NeuralWatt key is read from
+`$NEURALWATT_API_KEY`; nothing to fill in.
 
 > The local provider **must be named `llama-cpp`** in `models.json` — `pi-qwen` hardcodes
 > `PROVIDER="llama-cpp"`. `models-fedora.json` used to call it `local-fedora`, which meant
 > `pi-qwen` failed on Fedora with an unknown-provider error while working fine on Mac. Fixed
 > 2026-09-10; if you have an older `~/.pi/agent/models.json`, rename that key.
 
-macOS also copies `pi-dev/settings-mac.json` to `~/.pi/agent/settings.json`:
+Each platform also copies `pi-dev/settings-<platform>.json` to `~/.pi/agent/settings.json`:
 
-| Setting | Value |
-|---------|-------|
-| `defaultProvider` / `defaultModel` | `moonshotai` / `kimi-k3` (needs `MOONSHOT_API_KEY`) |
-| `defaultThinkingLevel` | `high` |
-| `enabledModels` | **not set** — see below |
+| Setting | macOS | Fedora |
+|---------|-------|--------|
+| `defaultProvider` / `defaultModel` | `moonshotai` / `kimi-k3` (needs `MOONSHOT_API_KEY`) | `neuralwatt` / `nw-flash` |
+| `defaultThinkingLevel` | `high` | `medium` |
+| `enabledModels` | **not set** — see below | **not set** |
 
 ### Provider discovery
 
