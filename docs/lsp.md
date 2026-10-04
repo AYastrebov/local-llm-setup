@@ -4,12 +4,12 @@ LSP (Language Server Protocol) servers give coding agents real code intelligence
 symbol search, completion context, and live diagnostics. Without them an agent can still read files,
 but it loses the structured signal ("this symbol is unused", "the type doesn't match here").
 
-pi gets LSP from the `pi-lsp-extension` package, listed in both `pi-dev/settings-*.json`. Besides the
+pi gets LSP from `pi-lsp-extension` (our fork, see the status below), listed in both `pi-dev/settings-*.json`. Besides the
 `lsp_*` tools it appends compile errors to every `edit`/`write` result once the server for that
 language is running (errors only, max 10 lines). For Go, pi additionally uses gopls's official MCP
 server (see [mcp.md](mcp.md)) and the `go` skill. Go, Rust,
-TypeScript and JavaScript have built-in defaults (but see the status table: diagnostics do not work for
-them through pi today). Anything else goes in a
+TypeScript and JavaScript have built-in defaults (TypeScript 7 is detected automatically). Anything
+else goes in a
 per-project `.pi-lsp.json` - see `pi-dev/pi-lsp.json` for a template, which currently adds Kotlin:
 
 ```json
@@ -34,30 +34,30 @@ scratch. Point it somewhere stable and the index survives restarts.
 > stop working with no warning.
 
 
-## Verified status (pi 1.0.2 + pi-lsp-extension 1.4.0, 2026-10-04)
+## Verified status (pi 1.0.2 + pi-lsp-extension fork, 2026-10-05)
 
-Tested by planting a type error per language and calling `lsp_diagnostics` through pi:
+pi uses **[AYastrebov/pi-lsp-extension](https://github.com/AYastrebov/pi-lsp-extension)**, a fork of
+`samfoy/pi-lsp-extension` 1.4.0 (`pi install git:github.com/AYastrebov/pi-lsp-extension`). Upstream
+1.4.0 never opened documents before LSP requests and answered `lsp_diagnostics` from an empty cache,
+so servers that only analyze opened files (typescript-language-server, kotlin-lsp) always looked
+"clean". The fork opens the file first, uses pull diagnostics when offered or waits for the first
+push, and runs TypeScript 7's native `tsc --lsp --stdio` automatically. Planted-type-error results:
 
-| Language | Result | Notes |
-|---|---|---|
-| Go (gopls) | ✅ reports the error | after warm-up; pi also has gopls's own MCP server (`docs/mcp.md`) |
-| Rust (rust-analyzer) | ✅ reports the error | after warm-up (indexing takes ~20-30 s on first use) |
-| TypeScript / JavaScript | ❌ reports "clean" | The server is fine — a direct probe (`docs/lsp-probe.cjs`) receives the error via push — but pi-lsp-extension 1.4.0 never surfaces it, even after pi reads the file (TS 6). TypeScript 7 dropped `lib/tsserver.js`, so it cannot work there at all; TS 7's own `tsc --lsp --stdio` also returned "clean" (it uses pull diagnostics) |
-| Vue / Svelte | ❌ / not mapped | `.vue` → "clean" with both Vue setups tried; `.svelte` has no mapping |
-| Kotlin | ❌ reports "clean" | `kotlin-lsp` 263.6379.0 (installed 2026-10-04) is healthy: the direct probe gets "Return type mismatch" via both push and pull diagnostics, in a Gradle project. pi-lsp-extension 1.4.0 does not surface it. The previous build `LS-262.7569.0` had expired ("This build of intellij-server has expired") |
+| Language | Upstream 1.4.0 | Fork | Notes |
+|---|---|---|---|
+| Go (gopls) | ✅ | ✅ | plus gopls's own MCP server (`docs/mcp.md`) |
+| Rust (rust-analyzer) | ✅ | ✅ | indexing takes ~20-30 s on first use |
+| TypeScript 6 / JavaScript | ❌ "clean" | ✅ | `typescript-language-server` |
+| TypeScript 7 | ❌ "clean" | ✅ | auto-detected: project has no `lib/tsserver.js` → project's `tsc --lsp --stdio` |
+| Kotlin | ❌ "clean" | ✅ | `kotlin-lsp` 263.6379.0, Gradle project |
+| Vue | ❌ "clean" | ❌ "clean" | `@vue/typescript-plugin` hybrid still does not report; use `vue-tsc` |
+| Svelte | not mapped | not mapped | use `svelte-check` |
 
-**Warm-up trap:** the first `lsp_*` call for a language *starts* its server and answers from the
-tree-sitter fallback (`[tree-sitter — syntax only, no type checking]`), which looks final. Wait and
-call again. Auto-diagnostics after `edit`/`write` only appear once the server is running.
+**Warm-up:** the first `lsp_*` call for a language starts its server; until it is up the tools answer
+from tree-sitter and (in the fork) say the server is starting. Call again after a few seconds.
 
-Go and Rust work because gopls and rust-analyzer analyze the whole workspace; TypeScript and Kotlin
-report diagnostics for opened documents, which is the path that does not reach pi. To check a server
-independently of pi: `FILE=<file> LANG_ID=<lang> node docs/lsp-probe.cjs <server> [args]` prints
-pushed and pulled diagnostics.
-
-**So:** for TS/JS/Vue/Svelte the type-check commands (`tsc --noEmit`, `vue-tsc`, `svelte-check`) are
-the source of truth — the `frontend-checks` skill runs them. The language servers below are still
-worth installing for editors.
+`docs/lsp-probe.cjs` checks a server outside pi: `FILE=<file> LANG_ID=<lang> node docs/lsp-probe.cjs
+<server> [args]` prints pushed and pulled diagnostics.
 
 ## Install commands
 
@@ -70,7 +70,7 @@ go install golang.org/x/tools/gopls@latest
 # Rust — system Rust is installed via dnf, so rust-analyzer goes through dnf too
 sudo dnf install rust-analyzer
 
-# TypeScript / JavaScript / Vue — for editors; not usable for diagnostics in pi (see status above)
+# TypeScript / JavaScript (TS 6 projects); Vue server is for editors only
 npm install -g typescript-language-server typescript @vue/language-server
 
 # Kotlin — standalone archive from https://github.com/Kotlin/kotlin-lsp/releases (see "builds expire")
@@ -97,7 +97,7 @@ go install golang.org/x/tools/gopls@latest
 # Rust
 brew install rust-analyzer
 
-# TypeScript / JavaScript / Vue — for editors; not usable for diagnostics in pi (see status above)
+# TypeScript / JavaScript (TS 6 projects); Vue server is for editors only
 npm install -g typescript-language-server typescript @vue/language-server
 
 # Kotlin — see "Kotlin LSP builds expire" below FIRST; brew may hand you a dead binary

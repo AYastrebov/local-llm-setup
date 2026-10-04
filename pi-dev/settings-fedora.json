@@ -17,6 +17,6 @@
     "openrouter/nvidia/nemotron-3.5-lightning:free"
   ],
   "packages": [
-    "npm:pi-lsp-extension"
+    "git:github.com/AYastrebov/pi-lsp-extension"
   ]
 }

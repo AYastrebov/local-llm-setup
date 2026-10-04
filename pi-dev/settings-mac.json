@@ -4,7 +4,7 @@
   "defaultThinkingLevel": "high",
   "theme": "dark",
   "packages": [
-    "npm:pi-lsp-extension",
+    "git:github.com/AYastrebov/pi-lsp-extension",
     "npm:pi-antigravity",
     "npm:pi-web-access",
     "npm:pi-subagents"

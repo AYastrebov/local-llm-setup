@@ -29,7 +29,7 @@ cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 cp pi-dev/mcp.json ~/.pi/agent/mcp.json && chmod 600 ~/.pi/agent/mcp.json
 mkdir -p ~/.pi/agent/extensions
 cp pi-dev/extensions/router.ts pi-dev/extensions/neuralwatt.ts ~/.pi/agent/extensions/
-pi install npm:pi-lsp-extension   # LSP tools + compile errors after every edit
+pi install git:github.com/AYastrebov/pi-lsp-extension   # fork: LSP tools + compile errors after edits
 pi-dev/install-skills.sh   # workflow skills + vetted upstream skills
 ```
 
@@ -137,13 +137,13 @@ endpoints (`llama-cpp`, `neuralwatt`) do.
 
 ## LSP (pi-lsp-extension)
 
-`npm:pi-lsp-extension` is installed globally (`pi list`). It gives agents `lsp_diagnostics`, `lsp_hover`, `lsp_definition`, `lsp_references`, and other IDE-grade tools.
+Our fork `git:github.com/AYastrebov/pi-lsp-extension` is installed globally (`pi list`); see [docs/lsp.md](../docs/lsp.md) for why. It gives agents `lsp_diagnostics`, `lsp_hover`, `lsp_definition`, `lsp_references`, and other IDE-grade tools.
 
 Built-in defaults (work automatically, no config needed):
 
 | Language | Server |
 |----------|--------|
-| TypeScript / JavaScript | `typescript-language-server` — **diagnostics do not reach pi**; see [docs/lsp.md](../docs/lsp.md#verified-status-pi-102--pi-lsp-extension-140-2026-10-04) |
+| TypeScript / JavaScript | `typescript-language-server`; TypeScript 7 projects use their own `tsc --lsp --stdio` (auto-detected) |
 | Go | `gopls serve` |
 | Rust | `rust-analyzer` |
 | Python | `pyright-langserver` |

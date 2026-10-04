@@ -203,7 +203,7 @@ The `llama-cpp` `compat` block is set from what this llama.cpp build actually ac
 
 ## LSP
 
-LSP is provided by the `pi-lsp-extension` package listed in `pi-dev/settings-mac.json`. See
+LSP is provided by our `pi-lsp-extension` fork listed in `pi-dev/settings-mac.json`. See
 [docs/lsp.md](../../docs/lsp.md) for macOS install commands (`brew install rust-analyzer`, npm for
 the JS-based servers) and `pi-dev/pi-lsp.json` for the server map.
 
