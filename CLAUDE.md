@@ -44,6 +44,8 @@ pi-dev/             pi.dev model + settings configs per platform
   models-fedora.json
   settings-mac.json
   settings-fedora.json
+  extensions/router.ts   router/auto virtual model (NeuralWatt qualifier picks glm-5.3 vs glm-5.3-flash)
+  skills/plan, skills/implement   lean plan -> implement workflow (explicit /skill: commands only)
 
 docs/               misc docs not tied to a specific topic
   lsp.md

@@ -298,6 +298,9 @@ GPT-6.1 Sol, Gemini 3.8 Flash, GPT-6 Luna, MiMo V2.6 Pro, and the free Qwen3.8 2
 Lightning). Patterns are matched against the model ID too, so use exact IDs for Moonshot:
 `moonshotai/*` also matches `openrouter/moonshotai/kimi-*`.
 
+`pi-dev/` also ships a `router/auto` virtual model and a lean `/skill:plan` → `/skill:implement`
+workflow — see [pi-dev/README.md](pi-dev/README.md#plan--implement-workflow).
+
 NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). LSP setup for Go, TypeScript, Rust, Vue, and Kotlin is in [docs/lsp.md](docs/lsp.md).
 
 ### Local models through pi

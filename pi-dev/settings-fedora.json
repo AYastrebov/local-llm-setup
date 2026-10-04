@@ -4,6 +4,7 @@
   "defaultThinkingLevel": "medium",
   "theme": "dark",
   "enabledModels": [
+    "router/auto",
     "neuralwatt/*",
     "llama-cpp/*",
     "moonshotai/kimi-k3",

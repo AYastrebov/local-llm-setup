@@ -10,6 +10,8 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 | `models-fedora.json` | Fedora (RX 9060 XT, ROCm) | `~/.pi/agent/models.json` |
 | `settings-mac.json` | macOS | `~/.pi/agent/settings.json` |
 | `settings-fedora.json` | Fedora | `~/.pi/agent/settings.json` |
+| `extensions/router.ts` | both | `~/.pi/agent/extensions/router.ts` |
+| `skills/plan/`, `skills/implement/` | both | `~/.pi/agent/skills/` |
 
 ## Setup
 
@@ -20,6 +22,11 @@ cp pi-dev/models-mac.json ~/.pi/agent/models.json
 # Fedora
 cp pi-dev/models-fedora.json   ~/.pi/agent/models.json
 cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
+
+# Both: router virtual model + plan/implement skills
+mkdir -p ~/.pi/agent/extensions ~/.pi/agent/skills
+cp pi-dev/extensions/router.ts ~/.pi/agent/extensions/
+cp -r pi-dev/skills/plan pi-dev/skills/implement ~/.pi/agent/skills/
 ```
 
 No editing needed: the NeuralWatt entry uses `"apiKey": "$NEURALWATT_API_KEY"`, which pi
@@ -28,6 +35,24 @@ interpolates from the environment at request time. Export the key from your shel
 
 **Never put a literal key in the templates.** If you hardcode one in `~/.pi/agent/models.json`,
 do not copy that file back into the repo.
+
+## Plan → implement workflow
+
+A lean take on Superpowers' spec → plan → subagent flow, built from pi primitives. Nothing loads
+until you call it (both skills set `disable-model-invocation: true`), so it costs no tokens per turn.
+
+| Piece | What it does |
+|---|---|
+| `router/auto` (`extensions/router.ts`) | Virtual model. A qualifier (`neuralwatt/nw-flash`, reasoning off, 8 s deadline) rates the first message once per session: **complex** → plans on `glm-5.3`, then switches to `glm-5.3-flash` after the first edit; **standard** → `glm-5.3-flash` throughout. One switch per session = one prompt-cache miss. Qualifier failure → standard. |
+| `/skill:plan <request>` | Writes one short doc, `docs/plans/<topic>.md`: Goal, key Decisions, a task checklist (Files / Change / Verify command per task), Done-when. No full code in the plan. Asks at most 3 questions, in one message. |
+| `/skill:implement docs/plans/<topic>.md` | Coordinator. Each task goes to a fresh `pi -p --no-skills --model router/auto` worker that sees only that task and the Decisions; the coordinator runs the Verify command itself, ticks the box, retries once on failure. One final read-only review of `git diff <base>` on `neuralwatt/glm-5.3:high`; high/medium findings become fix tasks. Never commits. |
+
+Workers run sequentially on purpose: parallel implementers on one checkout degrade quality, and
+NeuralWatt's trial tier allows 2 concurrent requests. Models are named at the top of each file.
+
+Why not a router extension from npm: the ones that exist (`pi-model-router`, `pi-smart-router`)
+re-route every turn (each switch drops the prompt cache) and have little adoption. Routing once per
+session, as pi's own `jev-router.ts` example does, keeps the cache.
 
 ## Providers
 
