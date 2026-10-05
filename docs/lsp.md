@@ -4,8 +4,12 @@ LSP (Language Server Protocol) servers give coding agents real code intelligence
 symbol search, completion context, and live diagnostics. Without them an agent can still read files,
 but it loses the structured signal ("this symbol is unused", "the type doesn't match here").
 
-pi gets LSP from the `pi-lsp-extension` package listed in `pi-dev/settings-mac.json`. Go, Rust,
-TypeScript and JavaScript have built-in defaults and need no configuration. Anything else goes in a
+pi gets LSP from `pi-lsp-extension` (our fork, see the status below), listed in both `pi-dev/settings-*.json`. Besides the
+`lsp_*` tools it appends compile errors to every `edit`/`write` result once the server for that
+language is running (errors only, max 10 lines). For Go, pi additionally uses gopls's official MCP
+server (see [mcp.md](mcp.md)) and the `go` skill. Go, Rust,
+TypeScript and JavaScript have built-in defaults (TypeScript 7 is detected automatically). Anything
+else goes in a
 per-project `.pi-lsp.json` - see `pi-dev/pi-lsp.json` for a template, which currently adds Kotlin:
 
 ```json
@@ -30,6 +34,31 @@ scratch. Point it somewhere stable and the index survives restarts.
 > stop working with no warning.
 
 
+## Verified status (pi 1.0.2 + pi-lsp-extension fork, 2026-10-05)
+
+pi uses **[AYastrebov/pi-lsp-extension](https://github.com/AYastrebov/pi-lsp-extension)**, a fork of
+`samfoy/pi-lsp-extension` 1.4.0 (`pi install git:github.com/AYastrebov/pi-lsp-extension`). Upstream
+1.4.0 never opened documents before LSP requests and answered `lsp_diagnostics` from an empty cache,
+so servers that only analyze opened files (typescript-language-server, kotlin-lsp) always looked
+"clean". The fork opens the file first, uses pull diagnostics when offered or waits for the first
+push, and runs TypeScript 7's native `tsc --lsp --stdio` automatically. Planted-type-error results:
+
+| Language | Upstream 1.4.0 | Fork | Notes |
+|---|---|---|---|
+| Go (gopls) | ✅ | ✅ | plus gopls's own MCP server (`docs/mcp.md`) |
+| Rust (rust-analyzer) | ✅ | ✅ | indexing takes ~20-30 s on first use |
+| TypeScript 6 / JavaScript | ❌ "clean" | ✅ | `typescript-language-server` |
+| TypeScript 7 | ❌ "clean" | ✅ | auto-detected: project has no `lib/tsserver.js` → project's `tsc --lsp --stdio` |
+| Kotlin | ❌ "clean" | ✅ | `kotlin-lsp` 263.6379.0, Gradle project |
+| Vue | ❌ "clean" | ❌ "clean" | `@vue/typescript-plugin` hybrid still does not report; use `vue-tsc` |
+| Svelte | not mapped | not mapped | use `svelte-check` |
+
+**Warm-up:** the first `lsp_*` call for a language starts its server; until it is up the tools answer
+from tree-sitter and (in the fork) say the server is starting. Call again after a few seconds.
+
+`docs/lsp-probe.cjs` checks a server outside pi: `FILE=<file> LANG_ID=<lang> node docs/lsp-probe.cjs
+<server> [args]` prints pushed and pulled diagnostics.
+
 ## Install commands
 
 ### Fedora
@@ -41,14 +70,17 @@ go install golang.org/x/tools/gopls@latest
 # Rust — system Rust is installed via dnf, so rust-analyzer goes through dnf too
 sudo dnf install rust-analyzer
 
-# TypeScript / JavaScript / Vue
+# TypeScript / JavaScript (TS 6 projects); Vue server is for editors only
 npm install -g typescript-language-server typescript @vue/language-server
 
-# Kotlin — see "Kotlin LSP builds expire" below; the GitHub releases page lags the current build
-# https://github.com/Kotlin/kotlin-lsp/releases
-KOTLIN_LSP_DIR=~/tools/kotlin-lsp   # or wherever you extract it
-chmod +x $KOTLIN_LSP_DIR/bin/intellij-server
-ln -s $KOTLIN_LSP_DIR/bin/intellij-server ~/.local/bin/kotlin-lsp
+# Kotlin — standalone archive from https://github.com/Kotlin/kotlin-lsp/releases (see "builds expire")
+V=263.6379.0   # latest as of 2026-10-03
+U=https://download.jetbrains.com/language-server/kotlin-server/$V
+curl -fLO $U/kotlin-server-$V.tar.gz && curl -fLO $U/kotlin-server-$V.tar.gz.sha256
+echo "$(cut -d' ' -f1 kotlin-server-$V.tar.gz.sha256)  kotlin-server-$V.tar.gz" | sha256sum -c
+mkdir -p ~/VibeProjects/LSP && tar -xzf kotlin-server-$V.tar.gz -C ~/VibeProjects/LSP
+ln -sfn ~/VibeProjects/LSP/kotlin-server-$V/bin/intellij-server ~/.local/bin/kotlin-lsp
+kotlin-lsp --stdio </dev/null; echo "exit=$?"   # 0 = good, 7 = expired
 ```
 
 Note `kotlin-lsp.sh` is deprecated as of the 263 builds - it prints a warning and just execs
@@ -65,7 +97,7 @@ go install golang.org/x/tools/gopls@latest
 # Rust
 brew install rust-analyzer
 
-# TypeScript / JavaScript / Vue
+# TypeScript / JavaScript (TS 6 projects); Vue server is for editors only
 npm install -g typescript-language-server typescript @vue/language-server
 
 # Kotlin — see "Kotlin LSP builds expire" below FIRST; brew may hand you a dead binary

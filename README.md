@@ -11,16 +11,10 @@ not intent.
 |---|---|---|
 | llama.cpp | `41fc7584f`, build 10895, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) |
 | Qwen3.8-27B | **served, 19.3 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) |
-| Mellum2 12B-A2.5B | **removed 2026-09-10** | launcher installed, **not yet benchmarked** |
-| Gemma 4 26B-A4B | - | launcher installed, not re-benchmarked |
 | Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) |
 
 Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
-
-macOS now runs **Qwen3.8-27B only**. Mellum2 was removed from the Mac on 2026-09-10 — weights
-deleted, launcher uninstalled, pi model entry dropped. It remains a Fedora model. Its last measured
-macOS figure was 79-80 t/s on 2026-09-09, kept here only as history.
 
 opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
 configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
@@ -38,25 +32,16 @@ pi.
 | Model | Type | Params | Use case | Platform |
 |-------|------|--------|----------|----------|
 | [Qwen3.8-27B](https://huggingface.co/collections/unsloth/qwen38) | 27B dense | 27B | General + reasoning + vision | Mac, Fedora |
-| [Mellum2 12B-A2.5B](https://huggingface.co/collections/JetBrains/mellum-2) | 12B MoE | 2.5B active | Coding | Fedora* |
-| [Gemma 4 26B-A4B](https://unsloth.ai/docs/models/gemma-4) | 26B MoE | 3.8B active | General + multimodal | Fedora |
 
-macOS runs **only Qwen3.8-27B**; Mellum2 and Gemma 4 are Fedora-only. Qwen3.6 has been retired from
+Both machines run **only Qwen3.8-27B**. Qwen3.6 has been retired from
 both machines — the `unsloth/qwen38` collection ships only the 27B dense model and a 2.4T-A95B MoE
 far too large for either box, so both platforms run the 27B at different quants.
-
-\* Mellum2 is *installed* on Fedora (the `mellum` launcher is Fedora-only since the Mac dropped it), but it
-has **not been benchmarked or run there yet**. Its Q8_0 weights are 12.9 GB, so it should fit the
-16 GB card, and the `q4_0` KV finding below may or may not transfer — it is a different
-architecture and deserves its own sweep before anyone trusts a number.
 
 ### Quantization per platform
 
 | Model | Mac (64GB) | Fedora (16GB VRAM) |
 |-------|------------|--------------------|
 | Qwen3.8-27B (dense, VL) | UD-Q6_K_XL (25.9 GB) | UD-IQ3_XXS (10.93 GB) |
-| Mellum2 12B-A2.5B Thinking | -- | Q8_0 (12.9 GB) |
-| Gemma 4 26B-A4B | -- | Q3_K_XL (13 GB) |
 
 ### MTP (Multi-Token Prediction)
 
@@ -109,8 +94,6 @@ Fedora IQ3_XXS, so no extra download is involved.
 |-------|------|-------|-------|-------|----------|
 | Qwen3.8-27B (thinking) | 1.0 | 0.95 | 20 | 0.0 | 0.0 |
 | Qwen3.8-27B (instruct) | 0.7 | 0.80 | 20 | 0.0 | 1.5 |
-| Mellum2 12B-A2.5B | 0.6 | 0.95 | 20 | -- | -- |
-| Gemma 4 26B-A4B | 1.0 | 0.95 | 64 | -- | -- |
 
 `repetition_penalty` is 1.0 for Qwen3.8 in both modes, which is already llama.cpp's default
 (`--repeat-penalty` default: 1.00), so no launcher passes it.
@@ -180,7 +163,7 @@ costs nothing in throughput.
 
 ### NeuralWatt
 
-OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral Small 2. See [neuralwatt/setup.md](neuralwatt/setup.md) for API key setup and the `nw-usage` script.
+OpenAI-compatible API. pi is configured with GLM 5.3 Flash (the Fedora default), GLM 5.3, MiMo V2.6 Pro and the `nw-flash` / `nw-small` / `nw-large` tracking aliases. See [neuralwatt/setup.md](neuralwatt/setup.md) for API key setup and the `nw-usage` script.
 
 ## Quick start (Fedora)
 
@@ -199,9 +182,8 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
 
 3. **Install launcher scripts**:
    ```bash
-   cp llama-cpp/scripts/{qwen,gemma-moe,mellum,pi-qwen} ~/.local/bin/
-   chmod +x ~/.local/bin/{qwen,gemma-moe,mellum,pi-qwen}
-   # Edit gemma-moe: set MODEL to UD-Q3_K_XL and uncomment KV_CACHE line
+   cp llama-cpp/scripts/{qwen,pi-qwen} ~/.local/bin/
+   chmod +x ~/.local/bin/{qwen,pi-qwen}
    # qwen auto-detects the platform — on Linux it picks Qwen3.8-27B UD-IQ3_XXS,
    # --no-mmproj, q4_0 KV, --fit-target 2560 and MTP at --spec-draft-n-max 4
    ```
@@ -215,17 +197,15 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
 
 5. **Configure coding agents:**
    ```bash
-   cp pi-dev/models-fedora.json ~/.pi/agent/models.json
-   # Edit: fill in the placeholder API keys
+   cp pi-dev/models-fedora.json   ~/.pi/agent/models.json     # reads $NEURALWATT_API_KEY
+   cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json   # default: neuralwatt/glm-5.3-flash
    ```
 
-6. **Run** (one at a time — all default to port 8080):
+6. **Run** (all default to port 8080):
    ```bash
    qwen               # Qwen3.8-27B server + web UI at localhost:8080
    qwen chat          # interactive chat, thinking on
    qwen chat-fast     # interactive chat, thinking off (--reasoning off)
-   gemma-moe          # Gemma 4 server
-   gemma-moe chat     # Gemma 4 interactive chat with thinking
    pi-qwen            # start Qwen3.8-27B if needed, then run pi against it
    ```
 
@@ -248,9 +228,8 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
    cp llama-cpp/scripts/qwen ~/.local/bin/
    chmod +x ~/.local/bin/qwen
    ```
-   `qwen` runs Qwen3.8-27B (UD-Q6_K_XL) and is the only local model on macOS.
-   `mellum` and `gemma-moe` are Fedora-only — do not install them on macOS. `qwen` is shared: it
-   picks the right quant and flags from `uname`.
+   `qwen` runs Qwen3.8-27B (UD-Q6_K_XL) and is the only local model. It is shared
+   with Fedora: it picks the right quant and flags from `uname`.
 
 3. **Add shell config**:
    ```bash
@@ -261,7 +240,7 @@ OpenAI-compatible API with Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B A3B, and Devstral
 
 4. **Configure coding agents:**
    ```bash
-   cp pi-dev/models-mac.json   ~/.pi/agent/models.json     # fill in the placeholder keys
+   cp pi-dev/models-mac.json   ~/.pi/agent/models.json     # reads $NEURALWATT_API_KEY
    cp pi-dev/settings-mac.json ~/.pi/agent/settings.json
    cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
    ```
@@ -283,22 +262,23 @@ Copy the appropriate config to `~/.pi/agent/models.json`:
 - Fedora: `pi-dev/models-fedora.json`
 - macOS: `pi-dev/models-mac.json`
 
-Both configs register NeuralWatt (Kimi K2.6, GLM 5.1 FP8, Qwen3.6 35B) and local llama.cpp
-(Qwen3.8-27B on Mac; Qwen3.8-27B + Mellum2 + Gemma 4 on Fedora); `models-fedora.json` adds a few
-direct vendor endpoints. Set your NeuralWatt key.
+Both configs register NeuralWatt (GLM 5.3 Flash, GLM 5.3, MiMo V2.6 Pro, `nw-flash`, `nw-small`,
+`nw-large` — see [neuralwatt/setup.md](neuralwatt/setup.md#models)) and local llama.cpp
+(Qwen3.8-27B on both machines). The NeuralWatt key is read from
+`$NEURALWATT_API_KEY`; nothing to fill in.
 
 > The local provider **must be named `llama-cpp`** in `models.json` — `pi-qwen` hardcodes
 > `PROVIDER="llama-cpp"`. `models-fedora.json` used to call it `local-fedora`, which meant
 > `pi-qwen` failed on Fedora with an unknown-provider error while working fine on Mac. Fixed
 > 2026-09-10; if you have an older `~/.pi/agent/models.json`, rename that key.
 
-macOS also copies `pi-dev/settings-mac.json` to `~/.pi/agent/settings.json`:
+Each platform also copies `pi-dev/settings-<platform>.json` to `~/.pi/agent/settings.json`:
 
-| Setting | Value |
-|---------|-------|
-| `defaultProvider` / `defaultModel` | `moonshotai` / `kimi-k3` (needs `MOONSHOT_API_KEY`) |
-| `defaultThinkingLevel` | `high` |
-| `enabledModels` | **not set** — see below |
+| Setting | macOS | Fedora |
+|---------|-------|--------|
+| `defaultProvider` / `defaultModel` | `moonshotai` / `kimi-k3` (needs `MOONSHOT_API_KEY`) | `neuralwatt` / `glm-5.3-flash` |
+| `defaultThinkingLevel` | `high` | `medium` |
+| `enabledModels` | 17-model short list — see below | same |
 
 ### Provider discovery
 
@@ -307,14 +287,19 @@ environment: `MOONSHOT_API_KEY` -> `moonshotai`, `OPENROUTER_API_KEY` -> `openro
 `DEEPSEEK_API_KEY` -> `deepseek`, and so on (`pi --help` lists them all). Those providers are **not**
 listed in `models.json`. Only custom endpoints go there: `llama-cpp` and `neuralwatt`.
 
-`enabledModels` is an **allowlist**, so setting it defeats that discovery — a provider whose key you
-later export stays invisible until you also add it to the list. It was dropped on 2026-09-10 for
-exactly that reason. Verified: with no allowlist, exporting `DEEPSEEK_API_KEY` makes `deepseek`
-appear in `pi --list-models` with no config change at all.
+`enabledModels` is a **default view, not an allowlist** (verified on pi 1.0.2). It sets the
+startup/`Ctrl+P` scope, and `/model` opens on that list labelled "scoped" — **Tab** switches to
+"all", so every discovered provider stays reachable. A newly exported key still works; its models
+just aren't in the short list until you add them (or pick them with `/scoped-models`).
 
-The cost is a long Ctrl+P list (~485 models here, most of them OpenRouter's). If that gets
-unwieldy, re-add `enabledModels` with narrow patterns — but then remember to extend it whenever you
-add a provider key.
+Without it the list is ~417 models, 400 of them OpenRouter's. Both settings files scope it to
+`neuralwatt/*`, `llama-cpp/*`, `moonshotai/kimi-k3` and seven OpenRouter models (Claude Sonnet 5.5,
+GPT-6.1 Sol, Gemini 3.8 Flash, GPT-6 Luna, MiMo V2.6 Pro, and the free Qwen3.8 27B and Nemotron 3.5
+Lightning). Patterns are matched against the model ID too, so use exact IDs for Moonshot:
+`moonshotai/*` also matches `openrouter/moonshotai/kimi-*`.
+
+MCP servers: [docs/mcp.md](docs/mcp.md). `pi-dev/` also ships a `router/auto` virtual model and a lean `/skill:plan` → `/skill:implement`
+workflow — see [pi-dev/README.md](pi-dev/README.md#plan--implement-workflow).
 
 NeuralWatt needs `NEURALWATT_API_KEY` (see [neuralwatt/setup.md](neuralwatt/setup.md)). LSP setup for Go, TypeScript, Rust, Vue, and Kotlin is in [docs/lsp.md](docs/lsp.md).
 
@@ -326,8 +311,8 @@ pi-qwen stop       # stop the background server (frees ~26 GB mac, ~14 GB Fedora
 pi-qwen status     # show what is on the port
 ```
 
-`pi-qwen` is the only local shorthand on macOS. Fedora additionally has the `pi-mellum` alias in
-[zshrc-snippet.sh](zshrc-snippet.sh).
+`pi-qwen` is the only local shorthand on either machine. Its launcher, model alias and port are
+env-overridable through `PI_LOCAL_LAUNCHER`, `PI_LOCAL_MODEL` and `PI_LOCAL_PORT`.
 
 See [llama-cpp/mac/setup.md](llama-cpp/mac/setup.md) for how `pi-qwen` reuses an already-loaded
 model and what it refuses to do.

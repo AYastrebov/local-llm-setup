@@ -1,43 +1,34 @@
 # NeuralWatt
 
-[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as a pi provider with Kimi, GLM, Qwen, and Devstral models, plus the `nw-usage` energy reporting script.
+[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as a pi provider, plus the `nw-usage` energy reporting script.
 
-## Model comparison
+## Models
 
-Live snapshot from [portal.neuralwatt.com/models](https://portal.neuralwatt.com/models), May 2026. Prices per million tokens. Energy/req is the maximum a single request can be billed under the server's attribution cap — actual usage under concurrent load is lower.
+Snapshot of `GET https://api.neuralwatt.com/v1/models`, 2026-10-04 (same data as
+[portal.neuralwatt.com/models](https://portal.neuralwatt.com/models)). Prices per million tokens.
+These are the models in `pi-dev/models-*.json`:
 
-| Model | Reasoning | Context | $ in | $ out | Energy/req | Agent | Best for |
-|-------|-----------|---------|------|-------|------------|-------|----------|
-| `moonshotai/Kimi-K2.6` | ✅ | 262K | $0.69 | $3.22 | 1.46 Wh | `kimi` | Coding, agentic — Sonnet/Codex-tier |
-| `zai-org/GLM-5.1-FP8` | ✅ | 200K | $1.10 | $3.60 | 923 mWh | `glm` | Complex reasoning |
-| `mistralai/Devstral-Small-2-24B` | ❌ | 262K | $0.12 | $0.35 | 332 mWh | `code` | Coding implementation — purpose-built |
-| `Qwen/Qwen3.6-35B-A3B` | ✅ | 131K | $0.29 | $1.15 | 192 mWh | `qwen-fast` + `small_model` | Cheap utility tasks |
-| `moonshotai/Kimi-K2.5` | ✅ | 262K | $0.52 | $2.59 | 1.23 Wh | — | Coding, previous gen |
-| `Qwen/Qwen3.5-397B-A17B-FP8` | ✅ | 262K | $0.69 | $4.14 | 234 mWh | — | Large reasoning, long context |
-| `MiniMaxAI/MiniMax-M2.5` | ✅ | 196K | $0.35 | $1.38 | 296 mWh | — | General tasks, good value |
-| `kimi-k2.6-fast` | ❌ | 262K | $0.69 | $3.22 | 1.42 Wh | — | Kimi without thinking |
-| `kimi-k2.5-fast` | ❌ | 262K | $0.52 | $2.59 | 1.68 Wh | — | K2.5 without thinking |
-| `qwen3.6-35b-fast` | ❌ | 131K | $0.29 | $1.15 | 196 mWh | — | Qwen 35B without thinking |
-| `qwen3.5-397b-fast` | ❌ | 262K | $0.69 | $4.14 | 215 mWh | — | Qwen 397B without thinking |
-| `glm-5.1-fast` | ❌ | 200K | $1.10 | $3.60 | 712 mWh | — | GLM without thinking |
-| `glm-5-fast` | ❌ | 200K | $1.10 | $3.60 | 923 mWh | — | GLM-5 previous gen |
-| `openai/gpt-oss-20b` | ✅ | 16K | $0.03 | $0.16 | 53 mWh | — | Dirt-cheap, tiny context |
+| Model ID | Currently runs | Context | $ in | $ out | Images | Notes |
+|----------|----------------|---------|------|-------|--------|-------|
+| `nw-flash` | DeepSeek V4.1 Flash | 1M | $0.15 | $0.60 | ✅ | Cheap and fast |
+| `nw-small` | Qwen3.8 27B | 262K | $0.45 | $3.20 | ✅ | |
+| `nw-large` | Kimi K3 | 1M | $3.00 | $15.00 | ✅ | Hardest tasks |
+| `glm-5.3` | GLM 5.3 | 1M | $1.45 | $4.50 | ❌ | Always reasons — no "off" |
+| `glm-5.3-flash` | GLM 5.3 Flash | 1M | $0.15 | $0.50 | ✅ | **pi default (Fedora)** — best quality per dollar, lowest energy; always reasons |
+| `mimo-v2.6-pro` | MiMo V2.6 Pro | 1M | $0.87 | $1.74 | ✅ | Thinking on/off only; ~2x OpenRouter's price for the same model |
 
-**Configured agents** use the full-precision reasoning variants. The `-fast` aliases run the same weights but skip the thinking phase — lower latency, same cost.
+**`nw-flash` / `nw-small` / `nw-large` are tracking aliases.** NeuralWatt re-points them at newer
+models as the catalog changes (with notice), at the target's price. Use them when you want "the cheap
+one" or "the big one" without editing config every time a model is retired. The pinned IDs behind them
+(`deepseek-v4.1-flash`, `qwen-3.8-27b`, `kimi-k3`) are also served but not listed in the templates.
 
-### Coming soon (portal roadmap)
+**Variants not in the templates:** `-flex` (~35% cheaper, lower scheduling priority), `-fast`
+(skips the thinking phase), `-speed`. `GET /v1/models` lists them all with prices, limits and
+supported reasoning efforts — it needs no API key.
 
-Devstral 2 123B ($0.24/$0.48, 131K), Devstral Small ($0.15/$0.19, 131K), Gemma 4 31B (Google, 256K), GPT-OSS 120B, NVIDIA Nemotron 3 Super 120B / Ultra (1M context), Qwen3.5 122B, Qwen3.5 27B FP8.
-
-## Plan → implement workflow
-
-
-- **`/plan`** → GLM 5.1 FP8 ($1.10/M in) — read-only mode for architecture decisions and step-by-step plans
-- **exit plan + execute** → Devstral Small 2 24B ($0.12/M in) — coding-specialized, cheap, fast
-
-Devstral is purpose-built for code generation and instruction following. It won't reason through ambiguous requirements as well as GLM, but with a detailed plan in hand it's faster and ~10× cheaper for the mechanical implementation work.
-
-The standalone `/agent kimi`, `/agent glm`, and `/agent qwen-fast` agents are still available when you want to override the default flow for a specific request.
+**ID scheme changed in 2026.** The old Hugging Face-style IDs (`zai-org/GLM-5.1-FP8`,
+`Qwen/Qwen3.6-35B-A3B`) are unlisted; Devstral is gone. `zai-org/GLM-5.1-FP8` still answered on
+2026-10-04 but should be treated as retired.
 
 ## API key
 
@@ -65,111 +56,51 @@ If you don't have `secret-tool` (libsecret), install it (`sudo dnf install libse
 ## Wiring it into pi
 
 NeuralWatt is a custom endpoint, so it needs an entry in `~/.pi/agent/models.json` (unlike the
-providers in pi's built-in catalog, which only need an env var). The macOS template
-`pi-dev/models-mac.json` already contains it:
+providers in pi's built-in catalog, which only need an env var). Both `pi-dev/models-*.json`
+templates contain the same block:
 
 ```json
 "neuralwatt": {
   "api": "openai-completions",
-  "apiKey": "sk-your-neuralwatt-key-here",
+  "apiKey": "$NEURALWATT_API_KEY",
   "baseUrl": "https://api.neuralwatt.com/v1",
-  "models": [ { "id": "kimi-k3", "name": "Kimi K3", "reasoning": true }, "..." ]
+  "compat": {
+    "supportsDeveloperRole": false,
+    "supportsReasoningEffort": true,
+    "supportsUsageInStreaming": true
+  },
+  "models": [
+    {
+      "id": "nw-flash",
+      "reasoning": true,
+      "contextWindow": 1048560,
+      "maxTokens": 65536,
+      "cost": { "input": 0.15, "output": 0.6, "cacheRead": 0.015, "cacheWrite": 0 },
+      "thinkingLevelMap": { "off": "none", "minimal": "low", "medium": "high" }
+    },
+    "..."
+  ]
 }
 ```
 
-Then enable it in `~/.pi/agent/settings.json`:
+- **`apiKey: "$NEURALWATT_API_KEY"`** — pi interpolates `$NAME` / `${NAME}` in `models.json`, so the
+  key comes from the environment (see [API key](#api-key)) and the file holds no secret.
+- **`compat`** — verified against the live API: `developer` role is rejected on every model;
+  `reasoning_effort` is honoured; streamed responses include a final usage chunk, so pi's cost
+  footer works (each model carries its `cost`).
+- **`thinkingLevelMap`** — translates pi's levels to the efforts each model supports (from
+  `reasoning.supported_efforts` in `/v1/models`). `null` marks a level as unsupported, e.g. `off`
+  for GLM 5.3, which always reasons.
 
-```json
-"enabledModels": ["neuralwatt/*"]
-```
-
-Note pi stores the key literally in `models.json` for custom providers - it does not read
-`NEURALWATT_API_KEY` for them. Keep the real key out of git; the committed file is a placeholder.
+On Fedora, `pi-dev/settings-fedora.json` makes `neuralwatt` / `glm-5.3-flash` the default and scopes
+the model picker with `enabledModels` (`neuralwatt/*` is included, so new entries here show up
+automatically).
 
 Select a model at runtime with `pi --provider neuralwatt --model <id>`, or `/model` in a session.
 
 
-## GitHub MCP
-
-The official GitHub MCP server provides agents with direct access to repos, issues, PRs, Actions, and code search. Uses the remote HTTP server hosted by GitHub (the npm package `@modelcontextprotocol/server-github` was deprecated April 2025).
-
-### Install
-
-MCP servers are configured through pi's `pi-mcp-adapter` package (see `pi list`):
-
-```jsonc
-"github": {
-  "type": "remote",
-  "url": "https://api.githubcopilot.com/mcp/",
-  "headers": {
-    "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-  },
-  "enabled": true
-}
-```
-
-Add the token to `~/.zshrc`:
-
-```bash
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...
-```
-
-The PAT needs at least `repo` scope.
-
-## Playwright CLI
-
-[Playwright CLI](https://github.com/microsoft/playwright-cli) provides browser automation as a skill rather than an MCP server. For coding agents, CLI + SKILLS is more token-efficient than MCP — it avoids loading large tool schemas and accessibility trees into context.
-
-### Install
-
-```bash
-npm install -g @playwright/cli@latest
-playwright-cli install --skills
-```
-
-`install --skills` installs the skill files into `.claude/skills/playwright-cli/` in the current project. For global availability across all projects, run it from `~/.claude/skills/`.
-
-### Usage
-
-Agents pick up the skill automatically. For explicit invocation:
-
-```
-Test the login flow on https://example.com using playwright-cli.
-```
-
-To monitor running browser sessions:
-
-```bash
-playwright-cli show
-```
-
-## Context7 MCP
-
-[Context7](https://context7.com) is an MCP server that injects up-to-date library documentation directly into agent context. When an agent needs to know an API, it resolves the latest docs rather than relying on training data.
-
-### Install
-
-MCP servers are configured through pi's `pi-mcp-adapter` package (see `pi list`):
-
-```jsonc
-"context7": {
-  "type": "local",
-  "command": ["npx", "-y", "@upstash/context7-mcp"],
-  "enabled": true
-}
-```
-
-No API key required. The server starts on demand via `npx` and communicates over stdio.
-
-### Usage
-
-Once enabled, agents can call Context7 tools automatically. You can also prompt explicitly:
-
-```
-use context7 — how do I configure retry logic in Ktor?
-```
-
-Context7 resolves the library, fetches current docs, and injects them into the response.
+MCP servers (GitHub, Context7, Tavily, Playwright, JetBrains) are configured in pi directly — see
+[docs/mcp.md](../docs/mcp.md).
 
 ## nw-usage script
 
@@ -193,8 +124,27 @@ Statusline-style callers (tmux, conky) often run outside an interactive shell wh
 ### Usage
 
 ```bash
-nw-usage            # human-readable: date, requests, Wh
-nw-usage --tmux     # compact for statusline (cached 5 min): ↗42 ⚡17Wh
-nw-usage --json     # raw JSON from API
+nw-usage            # balance + runway, today / 7 days / 30 days, cache-hit rate
+nw-usage --tmux     # compact for statusline (cached): $3.97 ↗234 ⚡18Wh
+nw-usage --json     # {"balance", "energy", "summary"} raw API responses
 ```
+
+```
+Neuralwatt usage (UTC 2026-10-04)
+  Balance:  $3.97  (~249 days at $0.02/day, 7-day avg)
+  Today:    234 req, 1.5M tokens, $0.06, 18Wh, 5.7g CO2
+  7 days:   285 req, 3M tokens, $0.11, 30Wh
+  30 days:  1354 req, 60.2M tokens, $1.31, 330Wh, 45g CO2
+  Cache:    91% of 30-day tokens were prompt-cache hits
+```
+
+Sources: `GET /v1/billing/balance`, `GET /v1/usage/summary` (cost, tokens, cached tokens, consumed
+vs charged kWh), `GET /v1/usage/energy` (energy, CO2 per day) — see
+[docs.neuralwatt.com/api/usage](https://docs.neuralwatt.com/api/usage). Dates are UTC.
+
+### Inside pi
+
+`pi-dev/extensions/neuralwatt.ts` shows `NW $<balance>` in pi's footer (refreshed at session start
+and after each run, at most once a minute) and adds `/nw`, which prints the same report as
+`nw-usage`. It reads `NEURALWATT_API_KEY` from the environment.
 

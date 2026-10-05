@@ -1,14 +1,8 @@
 {
-  "defaultProvider": "moonshotai",
-  "defaultModel": "kimi-k3",
-  "defaultThinkingLevel": "high",
+  "defaultProvider": "neuralwatt",
+  "defaultModel": "glm-5.3-flash",
+  "defaultThinkingLevel": "medium",
   "theme": "dark",
-  "packages": [
-    "git:github.com/AYastrebov/pi-lsp-extension",
-    "npm:pi-antigravity",
-    "npm:pi-web-access",
-    "npm:pi-subagents"
-  ],
   "enabledModels": [
     "router/auto",
     "neuralwatt/*",
@@ -21,5 +15,8 @@
     "openrouter/xiaomi/mimo-v2.6-pro",
     "openrouter/qwen/qwen3.8-27b:free",
     "openrouter/nvidia/nemotron-3.5-lightning:free"
+  ],
+  "packages": [
+    "git:github.com/AYastrebov/pi-lsp-extension"
   ]
 }

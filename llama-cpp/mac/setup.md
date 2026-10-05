@@ -2,12 +2,8 @@
 
 Setup guide for running local LLM inference on Apple Silicon Macs with Metal GPU acceleration.
 
-This Mac runs exactly one local model: **Qwen3.8-27B** (general + reasoning + vision). Mellum2,
-Gemma 4 and the Qwen3.6 MTP builds are Fedora-only — see [../fedora/setup.md](../fedora/setup.md).
-
-> Mellum2 12B-A2.5B was removed from this Mac on 2026-09-10 — weights deleted, `mellum` launcher
-> uninstalled, pi model entry dropped. It was faster (79 t/s vs Qwen3.8's 19.9) but the setup is
-> deliberately single-model now. The `mellum` launcher lives on for Fedora.
+This Mac runs exactly one local model: **Qwen3.8-27B** (general + reasoning + vision), the same as
+Fedora — see [../fedora/setup.md](../fedora/setup.md).
 
 ## Hardware tested
 
@@ -138,9 +134,7 @@ The cache stays small because only **17 of 65 layers are attention** (4 KV heads
 | | Mac (M2 Max, 64 GB) | Fedora (RX 9060 XT, 16 GB VRAM) |
 |---|---|---|
 | GPU backend | Metal | HIP/ROCm |
-| General model | Qwen3.8-27B dense, UD-Q6_K_XL (25.9 GB) | Qwen3.6 35B-A3B MoE MTP, IQ3_XXS (~14 GB) |
-| Coding model | — (Qwen3.8 does both) | Mellum2 12B-A2.5B Thinking, Q8_0 (12.9 GB) |
-| Multimodal | Gemma 4 26B-A4B (Fedora only) | Gemma 4 26B-A4B, Q3_K_XL (13 GB) |
+| General model | Qwen3.8-27B dense, UD-Q6_K_XL (25.9 GB) | Qwen3.8-27B dense, UD-IQ3_XXS (10.93 GB) |
 | Speculative decoding | `--spec-type draft-mtp --spec-draft-n-max 4` | `--spec-type draft-mtp --spec-draft-n-max 4` |
 | KV cache quantization | q8_0 | q8_0 |
 | Build flags | `-DGGML_METAL=ON -DGGML_NATIVE=ON` | `-DGGML_HIP=ON -DGGML_HIP_ROCWMMA_FATTN=ON` |
@@ -150,7 +144,7 @@ The cache stays small because only **17 of 65 layers are attention** (4 KV heads
 macOS drives local models through **pi** only. opencode is no longer installed here.
 
 ```bash
-cp pi-dev/models-mac.json    ~/.pi/agent/models.json     # then fill in the placeholder keys
+cp pi-dev/models-mac.json    ~/.pi/agent/models.json     # reads $NEURALWATT_API_KEY
 cp pi-dev/settings-mac.json  ~/.pi/agent/settings.json
 cp llama-cpp/scripts/pi-qwen ~/.local/bin/ && chmod +x ~/.local/bin/pi-qwen
 ```
@@ -173,9 +167,8 @@ It resolves `~/.local/bin`, `~/llama.cpp/build/bin` and the fnm node dir interna
 from a non-login shell (cron, Raycast, scripts). It refuses to run if the port is serving a
 different model, rather than silently talking to the wrong one.
 
-`pi-qwen` is the only local shorthand on macOS. Its vars are env-overridable
-(`PI_LOCAL_LAUNCHER`, `PI_LOCAL_MODEL`, `PI_LOCAL_PORT`), which is how Fedora builds its
-`pi-mellum` alias — see [zshrc-snippet.sh](../../zshrc-snippet.sh).
+`pi-qwen` is the only local shorthand on either machine. Its vars are env-overridable
+(`PI_LOCAL_LAUNCHER`, `PI_LOCAL_MODEL`, `PI_LOCAL_PORT`) — see [zshrc-snippet.sh](../../zshrc-snippet.sh).
 
 ### pi provider settings
 
@@ -184,16 +177,16 @@ different model, rather than silently talking to the wrong one.
 `minimax`, `xiaomi`, ...) that needs only the matching API key in the environment - those do not
 appear in `models.json` at all.
 
-`settings-mac.json` deliberately sets **no `enabledModels`**. That key is an allowlist, and any
-provider you enable later by exporting its key would stay hidden until you also added it there.
-Without it, discovery is automatic. Measured on this Mac with `MOONSHOT_API_KEY`,
+`settings-mac.json` sets an `enabledModels` short list. In pi 1.0.2 it is a default view, not an
+allowlist: `/model` opens on the scoped list and **Tab** switches to every discovered model, so a
+newly exported key still works. Without the scope the picker is dominated by OpenRouter. Measured on this Mac with `MOONSHOT_API_KEY`,
 `OPENROUTER_API_KEY` and `NEURALWATT_API_KEY` exported:
 
 | Provider | Models | Source |
 |---|---|---|
 | openrouter | 372 | env key |
 | huggingface | 71 | env key |
-| neuralwatt | 20 | `models.json` |
+| neuralwatt | 6 | `models.json` |
 | moonshotai (+ `-cn`) | 20 | env key |
 | llama-cpp | 1 | `models.json` |
 
@@ -210,7 +203,7 @@ The `llama-cpp` `compat` block is set from what this llama.cpp build actually ac
 
 ## LSP
 
-LSP is provided by the `pi-lsp-extension` package listed in `pi-dev/settings-mac.json`. See
+LSP is provided by our `pi-lsp-extension` fork listed in `pi-dev/settings-mac.json`. See
 [docs/lsp.md](../../docs/lsp.md) for macOS install commands (`brew install rust-analyzer`, npm for
 the JS-based servers) and `pi-dev/pi-lsp.json` for the server map.
 
@@ -229,9 +222,8 @@ The MTP row was measured 2026-09-10 at ctx 8192 with q8_0 KV over a 160-token ge
 11.3 t/s off, 19.0 at depth 3, **19.1 at depth 4**, 17.2 at depth 6 — the same optimum Fedora found,
 though the Metal curve is flatter than ROCm's.
 
-This is a dense 27B, so every token activates all 27B params — the retired Mellum2 managed 79 t/s
-on the same box off 2.5B active. That speed is the cost of running one model that also reasons,
-handles 262K context, and sees images.
+This is a dense 27B, so every token activates all 27B params. That speed is the cost of running one
+model that also reasons, handles 262K context, and sees images.
 
 **KV cache type does not matter on Metal.** Fedora's dramatic `q4_0` result is a ROCm/RDNA4
 flash-attention quirk. Measured here at ctx 8192, MTP `-n-max 4`, medians of 3: f16/f16 20.0,

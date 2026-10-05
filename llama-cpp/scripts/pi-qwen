@@ -10,7 +10,8 @@
 # (loading the model costs ~1 min and ~25 GB of RAM). Use `pi-qwen stop`
 # to reclaim it.
 #
-# To make a Mellum2 twin: copy this file and change the three vars below.
+# To drive another local model, set the three PI_LOCAL_* vars below
+# (launcher script, model alias, port).
 
 set -uo pipefail
 

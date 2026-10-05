@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      },
+      "description": "GitHub: repos, issues, pull requests, code search, Actions"
+    },
+    "jetbrains": {
+      "url": "http://127.0.0.1:64342/stream",
+      "description": "Running JetBrains IDE: project files, inspections, run configurations, refactorings"
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      },
+      "description": "Up-to-date library and framework documentation"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "description": "Browser automation: navigate, click, fill forms, snapshot and screenshot pages"
+    },
+    "tavily": {
+      "url": "https://mcp.tavily.com/mcp/",
+      "description": "Web search and page extraction (Tavily): current information, docs, news, reading URLs"
+    },
+    "gopls": {
+      "command": "gopls",
+      "args": [
+        "mcp"
+      ],
+      "exposure": "direct",
+      "description": "Go workspace intelligence from gopls (official): workspace layout, symbol search, file context, package API, references, diagnostics, vulncheck"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--headless",
+        "--isolated"
+      ],
+      "description": "Chrome DevTools (official): console, network requests, performance traces, Lighthouse-style audits, screenshots of a page"
+    }
+  }
+}

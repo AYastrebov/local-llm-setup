@@ -67,12 +67,10 @@ Models are stored as plain GGUF files in `~/models/`.
 
 | Model | Quant | Size | VRAM fit? |
 |-------|-------|------|-----------|
-| Gemma 4 26B-A4B (MoE) | UD-Q3_K_XL | 12.9 GB | Yes (~2 GB for KV cache) |
 | Qwen3.8-27B (dense, VL) | UD-IQ3_XXS | 10.93 GB | Yes — 14269/16304 MiB used, ~2.0 GiB free at tuned settings |
 
 Download models:
 ```bash
-llama-cli -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL -n 0 -p ""
 llama-cli -hf unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS -n 0 -p ""
 ```
 
@@ -127,20 +125,6 @@ backend that HIP compiles from, and is only disabled on MUSA.
 ## Launcher Scripts
 
 Located in `~/.local/bin/`. All default to server mode on port 8080.
-
-### gemma-moe (Gemma 4 26B-A4B)
-
-```bash
-gemma-moe              # server on port 8080
-gemma-moe server 9090  # server on custom port
-gemma-moe chat         # interactive CLI, thinking enabled
-```
-
-Configure for Fedora by editing the MODEL line in the script:
-```bash
-MODEL="unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q3_K_XL"
-KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
-```
 
 ### qwen (Qwen3.8-27B dense)
 
@@ -202,18 +186,6 @@ and you land back at a login screen. 2560 MiB costs nothing in throughput and le
 | 6 | 21.5 | 55% |
 | 8 | 15.8 | 43% |
 
-### mellum (Mellum2 12B-A2.5B)
-
-```bash
-mellum              # server on port 8080
-mellum server 8081  # second port, alongside qwen
-mellum chat         # interactive coding chat
-```
-
-Installed on Fedora as of 2026-09-10 so the box matches the macOS setup, but **not yet run or
-benchmarked here** — Q8_0 is 12.9 GB and should fit the 16 GB card, but that is an expectation, not
-a measurement. It also still uses `q8_0` KV; whether the `q4_0` fast path above transfers to this
-architecture has not been tested.
 
 ### pi-qwen (run pi against a local model)
 
@@ -222,7 +194,9 @@ pi-qwen             # start Qwen3.8-27B if needed, then run pi on it
 pi-qwen stop        # stop the background server (frees ~14 GB)
 pi-qwen status      # show what is on the port
 pi-qwen logs        # follow the server log
-pi-mellum           # same for Mellum2 on port 8081 (alias in zshrc-snippet.sh)
+
+# Launcher, model alias and port are env-overridable:
+#   PI_LOCAL_LAUNCHER, PI_LOCAL_MODEL, PI_LOCAL_PORT
 ```
 
 The server is left running after pi exits, so the next launch is instant. Measured on Fedora: **~14 s
@@ -235,15 +209,13 @@ passes `--provider llama-cpp` to pi.
 
 | Model | Mode | temp | top-p | top-k | min-p | presence |
 |-------|------|------|-------|-------|-------|----------|
-| Gemma 4 26B-A4B | all | 1.0 | 0.95 | 64 | — | — |
 | Qwen3.8-27B | Thinking (chat) | 1.0 | 0.95 | 20 | 0.0 | 0.0 |
 | Qwen3.8-27B | Instruct (chat-fast) | 0.7 | 0.80 | 20 | 0.0 | 1.5 |
 
 `repetition_penalty` is 1.0 for Qwen3.8 in both modes, which is llama.cpp's default, so it is not
 passed explicitly.
 
-Context window: 65536 tokens. Qwen3.8 uses `q4_0` KV (see the performance section above); Gemma 4
-still uses `q8_0` and has not been re-benchmarked against `q4_0`.
+Context window: 65536 tokens. Qwen3.8 uses `q4_0` KV (see the performance section above).
 
 ### Reasoning effort
 
@@ -260,29 +232,27 @@ True non-thinking comes from `--reasoning off`, which `qwen chat-fast` uses — 
 
 ## pi.dev Configuration
 
-Config file: `~/.pi/agent/models.json` (copy from `pi-dev/models-fedora.json`)
+Config files: `~/.pi/agent/models.json` and `~/.pi/agent/settings.json`
 
 ```bash
-cp pi-dev/models-fedora.json ~/.pi/agent/models.json
+cp pi-dev/models-fedora.json   ~/.pi/agent/models.json
+cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 ```
 
-The config registers four providers. Select any model via `/model` inside pi.dev:
+`models.json` registers the two custom endpoints. Select any model via `/model` inside pi.dev:
 
 | Provider | Models | Notes |
 |---|---|---|
-| `minimax` | MiniMax M3 | Requires `MINIMAX_API_KEY` — replace placeholder key in file |
-| `mimo` | MiMo V2.5, V2.5 Pro | Requires `MIMO_API_KEY` — replace placeholder key in file |
-| `moonshot` | Kimi K2.6 | Requires `MOONSHOT_API_KEY` — replace placeholder key in file |
-| `deepseek` | V4 Flash, V4 Pro | Requires `DEEPSEEK_API_KEY` — replace placeholder key in file |
-| `neuralwatt` | Kimi K2.6, GLM 5.1, Devstral Small 2 | Requires `NEURALWATT_API_KEY` — replace placeholder key in file |
-| `llama-cpp` | Qwen3.8-27B, Mellum2 12B-A2.5B, Gemma 4 26B-A4B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
+| `neuralwatt` | GLM 5.3 Flash (default), GLM 5.3, MiMo V2.6 Pro, `nw-flash`, `nw-small`, `nw-large` | Reads `NEURALWATT_API_KEY` from the environment — see [neuralwatt/setup.md](../../neuralwatt/setup.md) |
+| `llama-cpp` | Qwen3.8-27B | llama.cpp at port 8080 — start a launcher first. Name must be `llama-cpp`: `pi-qwen` hardcodes it |
 
-`anthropic`, `openai` and `google` are not listed: pi's built-in catalog activates them from an
-exported API key alone.
+DeepSeek, Moonshot, MiniMax, MiMo, `anthropic`, `openai`, `google` and the rest are not listed:
+pi's built-in catalog activates them from an exported API key alone. (`models-fedora.json` used to
+carry hand-written blocks for the first four; they were dropped on 2026-10-04.)
 
 ## LSP Configuration
 
-LSP comes from pi's `pi-lsp-extension`. Go, Rust, TypeScript and JavaScript work out of the box;
+LSP comes from our fork of `pi-lsp-extension` (see docs/lsp.md). Go, Rust, TypeScript/JavaScript (incl. TS 7) and Kotlin work;
 anything else goes in a per-project `.pi-lsp.json` (see `pi-dev/pi-lsp.json`). A missing binary just
 means that language has no LSP, so install only the servers you use.
 
