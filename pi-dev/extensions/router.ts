@@ -86,7 +86,13 @@ async function choosePlanningModel(request: RouterRequest, ctx: ExtensionContext
 				systemPrompt: QUALIFIER_PROMPT,
 				messages: [{ role: "user", content: lastUserText(request.messages).slice(0, 8_000), timestamp: Date.now() }],
 			},
-			{ maxTokens: 10, signal: AbortSignal.any([request.signal, AbortSignal.timeout(QUALIFIER_TIMEOUT_MS)]) },
+			{
+				maxTokens: 10,
+				// request.signal can be undefined; AbortSignal.any() would throw and silently force STANDARD.
+				signal: request.signal
+					? AbortSignal.any([request.signal, AbortSignal.timeout(QUALIFIER_TIMEOUT_MS)])
+					: AbortSignal.timeout(QUALIFIER_TIMEOUT_MS),
+			},
 		);
 		const reply = await stream.result();
 		const text = reply.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join(" ");
