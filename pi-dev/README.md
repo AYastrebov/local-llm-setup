@@ -11,7 +11,7 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 | `settings-mac.json` | macOS | `~/.pi/agent/settings.json` |
 | `settings-fedora.json` | Fedora | `~/.pi/agent/settings.json` |
 | `mcp.json` | both | `~/.pi/agent/mcp.json` — see [docs/mcp.md](../docs/mcp.md) |
-| `extensions/neuralwatt.ts` | both | `~/.pi/agent/extensions/` — footer balance + `/nw` stats |
+| `extensions/neuralwatt/` | both | `~/.pi/agent/extensions/` — NeuralWatt provider (live catalog), session affinity, flex for background runs, footer + `/nw` |
 | `extensions/router.ts` | both | `~/.pi/agent/extensions/router.ts` |
 | `skills/` + `install-skills.sh` | both | `~/.pi/agent/skills/` (run the script) |
 
@@ -28,7 +28,7 @@ cp pi-dev/settings-fedora.json ~/.pi/agent/settings.json
 # Both: MCP servers, router virtual model, skills
 cp pi-dev/mcp.json ~/.pi/agent/mcp.json && chmod 600 ~/.pi/agent/mcp.json
 mkdir -p ~/.pi/agent/extensions
-cp pi-dev/extensions/router.ts pi-dev/extensions/neuralwatt.ts ~/.pi/agent/extensions/
+cp -r pi-dev/extensions/router.ts pi-dev/extensions/neuralwatt ~/.pi/agent/extensions/
 pi install git:github.com/AYastrebov/pi-lsp-extension   # fork: LSP tools + compile errors after edits
 pi-dev/install-skills.sh   # workflow skills + vetted upstream skills
 ```
@@ -141,7 +141,8 @@ from upstream rather than vendored:
 - **Default model** (`settings-*.json`): mac uses `moonshotai` / `kimi-k3`; fedora uses
   `neuralwatt` / `glm-5.3-flash`. Both share the same `enabledModels` short list.
 
-The `neuralwatt` block is identical in both files — change it in both.
+NeuralWatt is not in `models.json` any more; the `neuralwatt` extension registers it (see
+[neuralwatt/setup.md](../neuralwatt/setup.md#wiring-it-into-pi)).
 
 ## Vendor providers
 
