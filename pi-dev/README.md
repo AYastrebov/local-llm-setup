@@ -57,7 +57,7 @@ implement) on pi primitives. The three workflow skills are explicit-only
 | `grill-me` | mattpocock's `grilling`, adapted: looks facts up itself instead of dispatching a sub-agent. |
 | `plan` | Synthesizes (no re-interview after grilling). Agrees the **test seams** (highest seam possible, ideally one), then **vertical-slice tickets** with `Blocked by` edges and acceptance criteria; asks you to approve the breakdown. File paths are hints only. |
 | `implement` | Works the frontier (lowest-numbered unblocked ticket). Each worker: `pi -p --no-skills --model router/auto` given **pointers** (plan, ticket, `tdd` skill), never pasted text. Coordinator runs the ticket's `Verify` itself, ticks it, commits the code (never `.scratch/`), retries once. One read-only `glm-5.3:high` review of `base..HEAD` on two axes (spec fidelity, correctness); high/medium findings become new tickets. Never pushes. |
-| `router/auto` (`extensions/router.ts`) | A qualifier (`nw-flash`, reasoning off, 8 s) rates the first message once per session: **complex** → `glm-5.3` then `glm-5.3-flash` after the first edit; **standard** → `glm-5.3-flash`. One switch per session = one prompt-cache miss. |
+| `router/auto` (`extensions/router.ts`) | A qualifier (`nw-flash`, reasoning off, 8 s) rates the first message once per session: **complex** → `glm-5.3` then `glm-5.3-flash` after the first edit; **standard** → `glm-5.3-flash`. One switch per session = one prompt-cache miss. A target missing from the live catalog falls back to `glm-5.3-flash`, then `nw-flash`. |
 
 Skipped from mattpocock on purpose: parallel implementers in worktrees with a merger agent (pi's
 author calls parallel implementation an anti-pattern; NeuralWatt's trial tier allows 2 concurrent
