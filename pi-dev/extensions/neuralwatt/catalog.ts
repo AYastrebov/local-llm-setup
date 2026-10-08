@@ -25,7 +25,7 @@ interface CatalogModel {
 		display_name?: string;
 		huggingface_id?: string;
 		pricing?: { input_per_million?: number; output_per_million?: number; cached_input_per_million?: number | null };
-		capabilities?: { vision?: boolean; reasoning?: boolean; reasoning_effort?: boolean; task?: string; hosted_tools?: boolean };
+		capabilities?: { vision?: boolean; reasoning?: boolean; reasoning_effort?: boolean; task?: string };
 		reasoning?: { mandatory?: boolean; supported_efforts?: string[] };
 		limits?: { max_output_tokens?: number | null };
 		deprecated?: boolean;
@@ -43,9 +43,6 @@ export interface ModelDef {
 	cost: { input: number; output: number; cacheRead: number; cacheWrite: number };
 	thinkingLevelMap?: Record<string, string | null>;
 	compat?: Record<string, boolean>;
-	/** NeuralWatt-side only (stripped before registering): true when this key is enrolled in the hosted-tools
-	 * preview and the model offers them (capabilities.hosted_tools is about the account as well as the model). */
-	hostedTools?: boolean;
 }
 
 /** Last known-good definitions (2026-10-05), used when the API and the cache are both unavailable. */
@@ -71,7 +68,6 @@ function toDef(m: CatalogModel): ModelDef {
 		contextWindow: m.max_model_len,
 		maxTokens: Math.min(md.limits?.max_output_tokens ?? MAX_TOKENS_CAP, MAX_TOKENS_CAP),
 		cost: { input: p.input_per_million ?? 0, output: p.output_per_million ?? 0, cacheRead: p.cached_input_per_million ?? 0, cacheWrite: 0 },
-		hostedTools: md.capabilities?.hosted_tools === true,
 	};
 	// NeuralWatt accepts every pi level name and aliases it onto the model's efforts; only "off" needs care:
 	// "none" where the model can stop reasoning, unsupported where reasoning is mandatory.

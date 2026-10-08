@@ -11,7 +11,7 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 | `settings-mac.json` | macOS | `~/.pi/agent/settings.json` |
 | `settings-fedora.json` | Fedora | `~/.pi/agent/settings.json` |
 | `mcp.json` | both | `~/.pi/agent/mcp.json` — see [docs/mcp.md](../docs/mcp.md) |
-| `extensions/neuralwatt/` | both | `~/.pi/agent/extensions/` — NeuralWatt provider (live catalog), session affinity, flex for background runs, footer + `/nw` |
+| `extensions/neuralwatt/` | both | `~/.pi/agent/extensions/` — NeuralWatt provider (live catalog), session affinity, flex for background runs, hosted tools (web search, vision for text-only models), footer + `/nw` |
 | `extensions/router.ts` | both | `~/.pi/agent/extensions/router.ts` |
 | `skills/` + `install-skills.sh` | both | `~/.pi/agent/skills/` (run the script) |
 

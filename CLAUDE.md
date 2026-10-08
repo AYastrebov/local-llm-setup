@@ -49,7 +49,7 @@ pi-dev/             pi.dev model + settings configs per platform
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
   skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
   skills/frontend-checks   Vue/Svelte/Vite gate + browser check; framework skills come from upstream via install-skills.sh
-  extensions/neuralwatt/   NeuralWatt provider (live /v1/models catalog), user/flex request fields, footer + /nw
+  extensions/neuralwatt/   NeuralWatt provider (live /v1/models catalog), user/flex request fields, hosted tools, footer + /nw
   prompts/{review,simplify}.md   /review (fresh read-only reviewer) and /simplify (apply cleanups) commands
   install-skills.sh   installs those + prompts, + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 
