@@ -87,8 +87,13 @@ third of the same standard run.
 - **Hosted tools** (preview, [request access](https://portal.neuralwatt.com/enroll/hosted-tools-preview)):
   `nw_look` gives text-only models such as `glm-5.3` vision, `nw_web_search` has a monthly allowance,
   `nw_consult` asks a second model, `nw_check_budget` is free. Dashboard switches are account-wide
-  (Hermes too); a request can instead name a tool in its `tools` array. Not wired into the extension
-  until access is granted.
+  (Hermes too), so the extension instead **names the tools per request**: on models whose `/v1/models`
+  entry has `capabilities.hosted_tools: true` — true only once this key is enrolled *and* the model offers
+  them — requests that already declare tools get `PI_NW_HOSTED_TOOLS` appended (default
+  `nw_web_search,nw_look,nw_check_budget`; add `nw_consult` if wanted; `none` disables) plus
+  `metadata.hosted_tools_budget.max_cost_usd` (`PI_NW_HOSTED_TOOLS_BUDGET_USD`, default 0.25). Before
+  enrollment every flag is false and nothing is sent; leave the dashboard switches untouched. Gating on
+  the flag matters: a hosted name your key cannot use reaches the model as one of *your* tools.
 - `/v1/usage/sessions` (beta) shows per-session cache-hit fraction and flags (loops, retry storms,
   cache collapse) — useful to check a long pi session.
 

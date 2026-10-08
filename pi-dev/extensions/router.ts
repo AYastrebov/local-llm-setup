@@ -46,10 +46,15 @@ interface RouterState {
 
 type RouterRequest = ModelRouteRequest<RouterState>;
 
+/** Used when a target leaves the live catalog (e.g. a preview model is retired). */
+const FALLBACKS: Target[] = [IMPLEMENT, { provider: "neuralwatt", id: "nw-flash" }];
+
 function routeTo(request: RouterRequest, ctx: ExtensionContext, target: Target, state?: RouterState): ModelRoute<RouterState> {
-	const model = ctx.modelRegistry.find(target.provider, target.id);
-	if (!model) throw new Error(`Model ${target.provider}/${target.id} is not in the catalog`);
-	return { model, thinkingLevel: request.thinkingLevel, state };
+	for (const t of [target, ...FALLBACKS]) {
+		const model = ctx.modelRegistry.find(t.provider, t.id);
+		if (model) return { model, thinkingLevel: request.thinkingLevel, state };
+	}
+	throw new Error(`None of ${[target, ...FALLBACKS].map((t) => `${t.provider}/${t.id}`).join(", ")} is in the catalog`);
 }
 
 function lastUserText(messages: readonly Message[]): string {
