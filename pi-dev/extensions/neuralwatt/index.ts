@@ -10,12 +10,14 @@
  *   router/auto request goes to; the payload names the real model.
  * - PI_NW_FLEX=1 (set by /implement workers and /review): `service_tier: "flex"` on NeuralWatt
  *   requests — same model and cache, 35% cheaper, may wait for capacity before starting.
- * - Hosted tools (preview): on models whose catalog entry says `hosted_tools: true` for this key, requests
- *   that already declare tools also name PI_NW_HOSTED_TOOLS (default nw_web_search,nw_look,nw_check_budget;
+ * - Hosted tools (preview, account must be admitted): NeuralWatt requests that already declare tools also
+ *   name PI_NW_HOSTED_TOOLS (default nw_web_search,nw_look,nw_check_budget;
  *   "none" disables) — opt-in per request, so the account-wide dashboard switches can stay off and other
  *   clients on the account (Hermes) are unaffected. The gateway runs them inside the response; pi never sees
- *   the calls. Delegated work is capped per request by metadata.hosted_tools_budget.max_cost_usd
- *   (PI_NW_HOSTED_TOOLS_BUDGET_USD, default 0.25).
+ *   the calls; with nw_look on, text-only models are registered with image input so pi passes images
+ *   through for the gateway's vision delegate. Delegated work is capped per request by metadata.hosted_tools_budget.max_cost_usd
+ *   (PI_NW_HOSTED_TOOLS_BUDGET_USD, default 0.25). Not gated on the catalog's capabilities.hosted_tools:
+ *   that flag mirrors the dashboard defaults, and naming a tool per request works with it false.
  * - Footer balance and /nw report (stats.ts).
  */
 
@@ -25,10 +27,19 @@ import { registerStats } from "./stats.ts";
 
 const COMPAT = { supportsDeveloperRole: false, supportsReasoningEffort: true, supportsUsageInStreaming: true };
 
-const withCompat = (defs: ModelDef[]) => defs.map(({ hostedTools: _, ...d }) => ({ ...d, compat: { ...COMPAT, ...d.compat } }));
-
 const HOSTED_TOOLS = (process.env.PI_NW_HOSTED_TOOLS ?? "nw_web_search,nw_look,nw_check_budget")
 	.split(",").map((t) => t.trim()).filter((t) => t.startsWith("nw_"));
+
+/** With nw_look on, text-only models accept images too: pi would otherwise drop them before the request,
+ * and the gateway needs them to stash behind placeholders for the vision delegate. */
+const LOOK = HOSTED_TOOLS.includes("nw_look");
+
+const withCompat = (defs: ModelDef[]) =>
+	defs.map((d) => ({
+		...d,
+		input: LOOK && !d.input.includes("image") ? [...d.input, "image" as const] : d.input,
+		compat: { ...COMPAT, ...d.compat },
+	}));
 const HOSTED_BUDGET_USD = Number(process.env.PI_NW_HOSTED_TOOLS_BUDGET_USD ?? "0.25");
 
 type ChatTool = { type?: string; function?: { name?: string } };
@@ -45,7 +56,6 @@ function withHostedTools(tools: ChatTool[] | undefined): ChatTool[] | undefined 
 export default async function (pi: ExtensionAPI) {
 	const models = await loadModels();
 	const ids = new Set(models.map((m) => m.id));
-	const hosted = new Set(models.filter((m) => m.hostedTools).map((m) => m.id));
 
 	pi.registerProvider("neuralwatt", {
 		name: "NeuralWatt",
@@ -56,11 +66,7 @@ export default async function (pi: ExtensionAPI) {
 		async refreshModels(context) {
 			const fresh = await loadModels(context.signal, true);
 			ids.clear();
-			hosted.clear();
-			for (const m of fresh) {
-				ids.add(m.id);
-				if (m.hostedTools) hosted.add(m.id);
-			}
+			for (const m of fresh) ids.add(m.id);
 			return withCompat(fresh);
 		},
 	});
@@ -74,7 +80,7 @@ export default async function (pi: ExtensionAPI) {
 		const id = ctx.sessionManager.getSessionId();
 		const metadata: Record<string, unknown> = { ...payload.metadata };
 		if (id) metadata.conversation_id = `pi-${id}`.slice(0, 256);
-		const tools = hosted.has(payload.model) ? withHostedTools(payload.tools) : undefined;
+		const tools = withHostedTools(payload.tools);
 		if (tools && HOSTED_BUDGET_USD > 0) metadata.hosted_tools_budget = { max_cost_usd: HOSTED_BUDGET_USD };
 		return {
 			...payload,
