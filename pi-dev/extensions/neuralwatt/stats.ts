@@ -1,38 +1,43 @@
 /**
- * NeuralWatt stats for pi.
- *
- * - Footer: current balance, refreshed at session start and after each agent run (at most once a minute).
- * - /nw: balance, today / 7 days / 30 days (requests, tokens, cache-hit rate, cost, energy, CO2),
- *   and how long the balance lasts at the 7-day average spend.
- *
- * Reads NEURALWATT_API_KEY from the environment. Endpoints: /v1/billing/balance,
- * /v1/usage/summary (cost, tokens), /v1/usage/energy (energy, carbon). Errors never break a session.
+ * NeuralWatt account stats: footer balance and the /nw report.
+ * Endpoints: /v1/quota (balance, tier; 1 req/s limit), /v1/usage/summary (cost, tokens), /v1/usage/energy (energy, CO2).
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { API } from "./catalog.ts";
 
-const API = "https://api.neuralwatt.com/v1";
 const STATUS_KEY = "neuralwatt";
 const REFRESH_MS = 60_000;
 
-interface Balance { dollar_balance: number }
+interface Quota {
+	balance: { credits_remaining_usd: number; total_credits_usd?: number; credits_used_usd?: number };
+	limits?: { rate_limit_tier?: string };
+}
 interface SummaryDay { date: string; requests: number; cost_usd: number; total_tokens: number }
 interface Summary {
-	totals: { requests: number; total_tokens: number; cached_tokens?: number; total_cost_usd: number; energy_kwh_consumed?: number };
+	totals: { requests: number; total_tokens: number; cached_tokens?: number; total_cost_usd: number };
 	time_series: SummaryDay[];
 }
-interface EnergyDay { date: string; requests: number; energy_kwh: number; carbon_g_co2eq?: number }
+interface EnergyDay { date: string; energy_kwh: number; carbon_g_co2eq?: number }
 interface Energy { totals: { energy_kwh: number; carbon_g_co2eq?: number }; daily: EnergyDay[] }
 
-async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
+async function get<T>(path: string): Promise<T> {
 	const key = process.env.NEURALWATT_API_KEY;
 	if (!key) throw new Error("NEURALWATT_API_KEY is not set");
-	const res = await fetch(`${API}${path}`, {
-		headers: { Authorization: `Bearer ${key}` },
-		signal: signal ?? AbortSignal.timeout(10_000),
-	});
+	const res = await fetch(`${API}${path}`, { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(10_000) });
 	if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
 	return (await res.json()) as T;
+}
+
+/** /v1/quota allows 1 request per second per customer: share one recent result between footer and /nw. */
+const QUOTA_REUSE_MS = 5_000;
+let quotaCache: { at: number; value: Promise<Quota> } | null = null;
+function getQuota(): Promise<Quota> {
+	if (quotaCache && Date.now() - quotaCache.at < QUOTA_REUSE_MS) return quotaCache.value;
+	const value = get<Quota>("/quota");
+	quotaCache = { at: Date.now(), value };
+	value.catch(() => { quotaCache = null; });
+	return value;
 }
 
 const usd = (n: number) => `$${n < 0.01 && n > 0 ? n.toFixed(4) : n.toFixed(2)}`;
@@ -53,24 +58,26 @@ function window(days: SummaryDay[], energy: EnergyDay[], from: string) {
 }
 
 async function report(): Promise<string> {
-	const [balance, summary, energy] = await Promise.all([
-		get<Balance>("/billing/balance"),
+	const [quota, summary, energy] = await Promise.all([
+		getQuota(),
 		get<Summary>("/usage/summary"),
 		get<Energy>("/usage/energy"),
 	]);
 	const now = new Date();
-	const today = isoDay(now);
-	const week = isoDay(new Date(now.getTime() - 6 * 86_400_000));
-	const t = window(summary.time_series, energy.daily, today);
-	const w = window(summary.time_series, energy.daily, week);
+	const t = window(summary.time_series, energy.daily, isoDay(now));
+	const w = window(summary.time_series, energy.daily, isoDay(new Date(now.getTime() - 6 * 86_400_000)));
 	const m = summary.totals;
 	const cacheRate = m.total_tokens ? ((m.cached_tokens ?? 0) / m.total_tokens) * 100 : 0;
 	const perDay = w.cost / 7;
-	const runway = perDay > 0 ? `${Math.floor(balance.dollar_balance / perDay)} days at ${usd(perDay)}/day (7-day avg)` : "n/a";
+	const left = quota.balance.credits_remaining_usd;
+	const runway = perDay > 0 ? `${Math.floor(left / perDay)} days at ${usd(perDay)}/day (7-day avg)` : "n/a";
+	const q = quota.balance.total_credits_usd
+		? `   (${usd(quota.balance.credits_used_usd ?? 0)} of ${usd(quota.balance.total_credits_usd)} credits used, tier ${quota.limits?.rate_limit_tier ?? "?"})`
+		: "";
 	const line = (label: string, x: ReturnType<typeof window>) =>
 		`${label.padEnd(8)} ${String(x.requests).padStart(5)} req  ${tokens(x.tokens).padStart(6)} tok  ${usd(x.cost).padStart(7)}  ${wh(x.kwh).padStart(9)}  ${x.co2.toFixed(1)} g CO2`;
 	return [
-		`NeuralWatt balance: ${usd(balance.dollar_balance)}   runway: ${runway}`,
+		`NeuralWatt balance: ${usd(left)}   runway: ${runway}${q}`,
 		line("Today", t),
 		line("7 days", w),
 		`${"30 days".padEnd(8)} ${String(m.requests).padStart(5)} req  ${tokens(m.total_tokens).padStart(6)} tok  ${usd(m.total_cost_usd).padStart(7)}  ${wh(energy.totals.energy_kwh).padStart(9)}  ${(energy.totals.carbon_g_co2eq ?? 0).toFixed(1)} g CO2`,
@@ -78,24 +85,21 @@ async function report(): Promise<string> {
 	].join("\n");
 }
 
-export default function (pi: ExtensionAPI) {
+export function registerStats(pi: ExtensionAPI): void {
 	let last = 0;
-
 	async function refresh(ctx: ExtensionContext, force = false) {
 		if (!process.env.NEURALWATT_API_KEY) return;
 		if (!force && Date.now() - last < REFRESH_MS) return;
 		last = Date.now();
 		try {
-			const b = await get<Balance>("/billing/balance");
-			ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg("dim", `NW ${usd(b.dollar_balance)}`));
+			const q = await getQuota();
+			ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg("dim", `NW ${usd(q.balance.credits_remaining_usd)}`));
 		} catch {
 			// Network or auth trouble must not disturb the session; keep the last value.
 		}
 	}
-
 	pi.on("session_start", async (_event, ctx) => refresh(ctx, true));
 	pi.on("agent_end", async (_event, ctx) => refresh(ctx));
-
 	pi.registerCommand("nw", {
 		description: "NeuralWatt balance, spend, tokens, cache hits and energy",
 		handler: async (_args, ctx) => {

@@ -12,7 +12,7 @@ Review a change set without editing anything.
 3. Run the review in a fresh read-only pi so it is not biased by this session, and wait for it:
 
    ```
-   pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "<prompt>" < /dev/null
+   PI_NW_FLEX=1 pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "<prompt>" < /dev/null
    ```
 
    with this prompt (fill in the diff command, spec path or "none", standards files, focus):
