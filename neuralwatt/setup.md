@@ -1,6 +1,6 @@
 # NeuralWatt
 
-[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers adding it as a pi provider, plus the `nw-usage` energy reporting script.
+[NeuralWatt](https://portal.neuralwatt.com) is an energy-aware OpenAI-compatible API. This doc covers the pi extension, plus the `nw-usage` energy reporting script.
 
 ## Models
 
@@ -55,49 +55,50 @@ If you don't have `secret-tool` (libsecret), install it (`sudo dnf install libse
 
 ## Wiring it into pi
 
-NeuralWatt is a custom endpoint, so it needs an entry in `~/.pi/agent/models.json` (unlike the
-providers in pi's built-in catalog, which only need an env var). Both `pi-dev/models-*.json`
-templates contain the same block:
+NeuralWatt is a pi **extension**, not a `models.json` block: `pi-dev/extensions/neuralwatt/`
+(copy the directory to `~/.pi/agent/extensions/`). It needs only `NEURALWATT_API_KEY` in the
+environment.
 
-```json
-"neuralwatt": {
-  "api": "openai-completions",
-  "apiKey": "$NEURALWATT_API_KEY",
-  "baseUrl": "https://api.neuralwatt.com/v1",
-  "compat": {
-    "supportsDeveloperRole": false,
-    "supportsReasoningEffort": true,
-    "supportsUsageInStreaming": true
-  },
-  "models": [
-    {
-      "id": "nw-flash",
-      "reasoning": true,
-      "contextWindow": 1048560,
-      "maxTokens": 65536,
-      "cost": { "input": 0.15, "output": 0.6, "cacheRead": 0.015, "cacheWrite": 0 },
-      "thinkingLevelMap": { "off": "none", "minimal": "low", "medium": "high" }
-    },
-    "..."
-  ]
-}
-```
+| File | What it does |
+|---|---|
+| `catalog.ts` | Builds the model list from authenticated `GET /v1/models` (checks `scope == "customer"`, so granted preview models are included; skips deprecated and non-chat `capabilities.task` entries): prices, context/output limits, vision, and `off` → `none`/unsupported from `reasoning.supported_efforts`. Cached 1 h in `~/.cache/pi-neuralwatt/`, then stale cache, then a built-in snapshot. Edit `MODEL_IDS` to change the offered models. |
+| `index.ts` | Registers provider `neuralwatt` (`openai-completions`; `system` role, `reasoning_effort`, streamed usage — verified against the API). Adds to every NeuralWatt request body `user = pi-<session id>` — the documented cache-affinity routing key, one value per conversation — and the same value as `metadata.conversation_id`. With `PI_NW_FLEX=1`, adds `service_tier: "flex"`. |
+| `stats.ts` | `NW $<balance>` in the footer and `/nw` (balance and runway, credits used and rate-limit tier from `/v1/quota`, today / 7 / 30 days, cache-hit rate). `/v1/quota` allows 1 request/s, so footer and `/nw` share one result. |
 
-- **`apiKey: "$NEURALWATT_API_KEY"`** — pi interpolates `$NAME` / `${NAME}` in `models.json`, so the
-  key comes from the environment (see [API key](#api-key)) and the file holds no secret.
-- **`compat`** — verified against the live API: `developer` role is rejected on every model;
-  `reasoning_effort` is honoured; streamed responses include a final usage chunk, so pi's cost
-  footer works (each model carries its `cost`).
-- **`thinkingLevelMap`** — translates pi's levels to the efforts each model supports (from
-  `reasoning.supported_efforts` in `/v1/models`). `null` marks a level as unsupported, e.g. `off`
-  for GLM 5.3, which always reasons.
+Body fields rather than headers: `before_provider_headers` runs before pi knows which provider a
+`router/auto` request goes to (and its header map is empty), while `before_provider_request` sees the
+wire model id.
 
-On Fedora, `pi-dev/settings-fedora.json` makes `neuralwatt` / `glm-5.3-flash` the default and scopes
-the model picker with `enabledModels` (`neuralwatt/*` is included, so new entries here show up
-automatically).
+**Flex tier** (`service_tier: "flex"`, 35% off, same model and prompt cache, may wait for capacity):
+`/skill:implement` workers and reviewer and `/review` start their `pi -p` with `PI_NW_FLEX=1`;
+interactive sessions stay on standard. Prefer the field over `-flex` model names (keeps cache
+affinity). The response echoes the `service_tier` actually used — flex falls back silently.
 
-Select a model at runtime with `pi --provider neuralwatt --model <id>`, or `/model` in a session.
+Verified 2026-10-08: sessions appear in Dashboard → Sessions / `GET /v1/usage/sessions` as
+`pi-<uuid>` with `fp_scheme: explicit_user` (also for `router/auto`), and a flex run billed about a
+third of the same standard run.
 
+### Worth knowing from the docs
+
+- `glm-5.3-flash` (the pi default) and Qwen3.8 (`nw-small`) are **preview** models: lower rate
+  limits, possible retirement.
+- Tracking aliases (`nw-flash/small/large`) move with notice in Discord; detect a move by
+  `metadata.huggingface_id` changing. A conversation that crosses a move restarts its cache.
+- **Hosted tools** (preview, [request access](https://portal.neuralwatt.com/enroll/hosted-tools-preview)):
+  `nw_look` gives text-only models such as `glm-5.3` vision, `nw_web_search` has a monthly allowance,
+  `nw_consult` asks a second model, `nw_check_budget` is free. Dashboard switches are account-wide
+  (Hermes too), so the extension instead **names the tools per request**: NeuralWatt requests that
+  already declare tools get `PI_NW_HOSTED_TOOLS` appended (default `nw_web_search,nw_look,nw_check_budget`;
+  add `nw_consult` if wanted; `none` disables) plus `metadata.hosted_tools_budget.max_cost_usd`
+  (`PI_NW_HOSTED_TOOLS_BUDGET_USD`, default 0.25); leave the dashboard switches untouched. Requires an
+  admitted account, otherwise a hosted name reaches the model as one of *your* tools. Do not gate on
+  `capabilities.hosted_tools` in `/v1/models`: it mirrors the dashboard defaults and stays false after
+  enrollment, while per-request naming works. Tested on this key with all six models in `MODEL_IDS`,
+  including `mimo-v2.6-pro` and `nw-small`, which the docs do not list. With `nw_look` on, text-only models
+  are registered with image input so pi passes images through; the gateway hands them to its vision
+  delegate (a request without tools just drops them).
+- `/v1/usage/sessions` (beta) shows per-session cache-hit fraction and flags (loops, retry storms,
+  cache collapse) — useful to check a long pi session.
 
 MCP servers (GitHub, Context7, Tavily, Playwright, JetBrains) are configured in pi directly — see
 [docs/mcp.md](../docs/mcp.md).
@@ -144,7 +145,7 @@ vs charged kWh), `GET /v1/usage/energy` (energy, CO2 per day) — see
 
 ### Inside pi
 
-`pi-dev/extensions/neuralwatt.ts` shows `NW $<balance>` in pi's footer (refreshed at session start
+`pi-dev/extensions/neuralwatt/` shows `NW $<balance>` in pi's footer (refreshed at session start
 and after each run, at most once a minute) and adds `/nw`, which prints the same report as
 `nw-usage`. It reads `NEURALWATT_API_KEY` from the environment.
 

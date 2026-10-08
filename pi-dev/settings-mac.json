@@ -19,7 +19,6 @@
     "openrouter/google/gemini-3.8-flash",
     "openrouter/openai/gpt-6-luna",
     "openrouter/xiaomi/mimo-v2.6-pro",
-    "openrouter/qwen/qwen3.8-27b:free",
     "openrouter/nvidia/nemotron-3.5-lightning:free"
   ]
 }

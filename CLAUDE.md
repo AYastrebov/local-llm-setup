@@ -49,7 +49,7 @@ pi-dev/             pi.dev model + settings configs per platform
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
   skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
   skills/frontend-checks   Vue/Svelte/Vite gate + browser check; framework skills come from upstream via install-skills.sh
-  extensions/neuralwatt.ts   footer balance + /nw usage stats
+  extensions/neuralwatt/   NeuralWatt provider (live /v1/models catalog), user/flex request fields, hosted tools, footer + /nw
   prompts/{review,simplify}.md   /review (fresh read-only reviewer) and /simplify (apply cleanups) commands
   install-skills.sh   installs those + prompts, + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 
@@ -76,7 +76,7 @@ zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 
 **pi settings** (`pi-dev/settings-{mac,fedora}.json`) — Sets `defaultProvider`/`defaultModel` (mac: `moonshotai`/`kimi-k3`; fedora: `neuralwatt`/`glm-5.3-flash`). Both set the same `enabledModels` short list. In pi 1.0.2 that is a default *view*, not an allowlist: it scopes startup and `Ctrl+P`, and `/model` opens on it with Tab switching to all models, so env-key providers stay reachable. Use exact IDs for vendors whose names also prefix OpenRouter IDs (`moonshotai/*` matches `openrouter/moonshotai/...`). pi has a built-in provider catalog, so `moonshotai`, `openrouter`, `deepseek` and friends work from an exported API key alone and must NOT be added to `models.json`; only custom endpoints (`llama-cpp`, `neuralwatt`) belong there.
 
-**pi.dev configs** (`pi-dev/`) — The `neuralwatt` block is identical in both `models-*.json` files; only `llama-cpp` differs per platform. NeuralWatt uses `"apiKey": "$NEURALWATT_API_KEY"` (pi interpolates env vars in `models.json`) — never commit a literal key. Model IDs, prices and supported reasoning efforts come from `GET https://api.neuralwatt.com/v1/models` (no auth); prefer the `nw-flash`/`nw-small`/`nw-large` tracking aliases over pinned IDs.
+**pi.dev configs** (`pi-dev/`) — `models-*.json` hold only `llama-cpp` (differs per platform). NeuralWatt is registered by the `extensions/neuralwatt/` extension (key from `NEURALWATT_API_KEY`; never commit a literal key); edit `MODEL_IDS` in its `catalog.ts`. Model IDs, prices and supported reasoning efforts come from `GET https://api.neuralwatt.com/v1/models` (no auth); prefer the `nw-flash`/`nw-small`/`nw-large` tracking aliases over pinned IDs.
 
 **Shell snippet** (`zshrc-snippet.sh`) — Sets `LLAMA_CACHE`, PATH and provider API keys. Local models are driven through `pi-qwen`, not Claude Code.
 
