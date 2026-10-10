@@ -2,19 +2,24 @@
 
 Config files, launcher scripts, and coding agent settings for a self-hosted AI coding setup. Runs llama.cpp on AMD ROCm and Apple Silicon, with NeuralWatt as the cloud provider. Driven through pi.dev, plus Claude Code.
 
-## Status (2026-09-10)
+## Status
 
-Both **macOS and Fedora were verified 2026-09-10** — the numbers below are measured on those boxes,
-not intent.
+Fedora re-measured **2026-10-08** on build 11514. macOS numbers are still from **2026-09-10** on
+build 10895 and have not been re-run since.
 
 | | macOS (M2 Max, 64 GB) | Fedora (RX 9060 XT, 16 GB) |
 |---|---|---|
-| llama.cpp | `41fc7584f`, build 10895, ggml 0.23.0 | `434ddbbc0`, build 10884 (HIP + rocWMMA) |
-| Qwen3.8-27B | **served, 19.3 t/s gen with MTP** (11.3 without) | **served, 34.2 t/s gen with MTP** (14.8 without) |
+| llama.cpp | `41fc7584f`, build 10895, ggml 0.23.0 *(2026-09-10)* | `de7fa0a3c`, build 11514 (HIP + rocWMMA) *(2026-10-08)* |
+| Qwen3.8-27B | **served, 19.3 t/s gen with MTP** (11.3 without) | **served, 41.1 t/s gen with MTP** (20.6 without) |
 | Agent | pi (`pi-qwen` shorthand) | pi (`pi-qwen` shorthand) |
 
-Fedora VRAM at the tuned settings: **14269 / 16304 MiB used (13.9 / 15.9 GiB), ~2.0 GiB free.** See
+Fedora VRAM at the tuned settings: **14049 / 16304 MiB used, ~2.3 GiB free.** See
 [Fedora tuning](#fedora-tuning-rx-9060-xt-16-gb) — the defaults put it at 98% and crash the desktop.
+
+Between builds 10884 and 11514 the **non-MTP** decode path gained ~39% (14.8 → 20.6 t/s) from
+HIP/CUDA work upstream, while the MTP path did not move. That shifted the speculation economics
+enough to change the tuned defaults on Fedora — see the MTP section below. macOS keeps its own
+measured defaults; none of this was applied there sight-unseen.
 
 opencode was removed from this repo in September 2026 - macOS no longer has it installed, and its
 configs, provider blocks and the `neuralwatt-setup` skill are gone. Local models are driven through
@@ -46,11 +51,19 @@ far too large for either box, so both platforms run the 27B at different quants.
 ### MTP (Multi-Token Prediction)
 
 MTP enables speculative decoding, and is enabled by default in the `qwen` launcher on **both**
-platforms — a measured **2.3x on Fedora** and **1.7x on macOS**:
+platforms — a measured **2.0x on Fedora** and **1.7x on macOS**. The flags differ per platform
+because each was tuned on its own box:
 
 ```bash
---spec-type draft-mtp --spec-draft-n-max 4
+# Fedora / ROCm  (retuned 2026-10-08, build 11514)
+--spec-type draft-mtp --spec-draft-n-max 3 --spec-draft-sampling probabilistic
+# macOS / Metal  (measured 2026-09-10, build 10895)
+--spec-type draft-mtp --spec-draft-n-max 4 --spec-draft-sampling greedy
 ```
+
+Fedora's Qwen3.8 went 34.2 → 41.1 t/s (+20%) across those two changes. Note the *multiple* dropped
+from 2.3x to 2.0x even as absolute throughput rose, because the non-MTP baseline improved more than
+the MTP path did.
 
 **A separate `-MTP-` repo is not required.** This doc previously claimed no MTP GGUF exists for
 Qwen3.8-27B — that was wrong. `unsloth/Qwen3.8-27B-GGUF` ships the NextN/MTP block *inside the main
@@ -60,19 +73,34 @@ you run without `--spec-type`, those tensors show up in the log as
 (The repo also has a standalone `MTP/mtp-Qwen3.8-27B-Q4_0.gguf` sidecar, which is not needed for
 this setup.)
 
-Draft depth matters a lot. Measured on the RX 9060 XT, ctx 65536, q4_0 KV, median of 3-4 runs:
+Draft depth matters a lot, and **the optimum moves when llama.cpp's base decode speed changes.**
+On the RX 9060 XT, ctx 65536, q4_0 KV, `/completion`, same prompt both times:
 
-| `--spec-draft-n-max` | tok/s | draft acceptance |
+| `--spec-draft-n-max` | build 10884 (2026-09-10) | build 11514 (2026-10-08, probabilistic) |
 |---|---|---|
-| off (no MTP) | 14.8 | — |
-| 2 | 29.2 | 82% |
-| 3 | 33.1 | 76% |
-| **4** | **34.5** | **70%** |
-| 6 | 21.5 | 55% |
-| 8 | 15.8 | 43% |
+| off (no MTP) | 14.8 | 20.6 |
+| 2 | 29.2 | 35.8 |
+| **3** | 33.1 | **40.9** |
+| 4 | **34.5** | 36.7 |
+| 6 | 21.5 | 15.0 |
+| 8 | 15.8 | — |
 
-Acceptance collapses past 4, so deeper drafts cost more than they win — the old `-n-max 6` was
-leaving ~40% on the table. Disable MTP entirely with `QWEN_MTP=0`, or retune with `QWEN_MTP_NMAX=N`.
+Depth 4 won in September; depth 3 wins now. Deeper drafts still collapse — 6 is worse than no MTP
+at all on the newer build. Retune with `QWEN_MTP_NMAX=N` after any large llama.cpp jump rather than
+trusting a figure in this file; disable MTP entirely with `QWEN_MTP=0`.
+
+**`--spec-draft-sampling`** (new in llama.cpp #27694) makes the drafter sample and the target verify
+by rejection sampling, instead of greedy drafting. llama.cpp defaults to `greedy`. Measured on
+Fedora at n=10 per cell, with medians reproducible to <0.2 t/s across full reruns:
+
+| | greedy | probabilistic |
+|---|---|---|
+| n-max 4 | 35.9 (acc 66%) | 37.2 (acc 72%) |
+| **n-max 3** | 36.6 (acc 76%) | **41.1 (acc 89%)** |
+
+The two changes compound — +14% together against +2% and +3.6% alone. Probabilistic is also the
+distribution-preserving variant for temp > 0, so it is defensible on correctness grounds and not
+only on speed. It is **not** enabled on macOS, where it has not been measured.
 
 **`n-max 4` is now measured on macOS too, not inherited from Fedora.** M2 Max, UD-Q6_K_XL, ctx 8192,
 q8_0 KV, 160-token generation:
@@ -84,9 +112,12 @@ q8_0 KV, 160-token generation:
 | **4** | **19.1** |
 | 6 | 17.2 |
 
-The Metal speedup is smaller than ROCm's (1.7x vs 2.3x) and the curve is flatter, but the optimum
-sits at the same depth. The Mac's UD-Q6_K_XL GGUF carries the same `blk.64.nextn.*` block as the
-Fedora IQ3_XXS, so no extra download is involved.
+The Metal speedup is smaller than ROCm's and the curve is much flatter — 3 and 4 differ by 0.1 t/s
+there, where on Fedora's newer build they differ by 4. **The two platforms no longer agree on
+depth:** Fedora moved to 3 on build 11514, macOS is still 4 from build 10895. That is a difference
+in measurement date as much as in backend, so the Mac is worth re-running after its next rebuild.
+The Mac's UD-Q6_K_XL GGUF carries the same `blk.64.nextn.*` block as the Fedora IQ3_XXS, so no
+extra download is involved.
 
 ### Sampling parameters (quick reference)
 
@@ -124,15 +155,17 @@ Two settings matter more than anything else on this box, and neither is in Unslo
 **1. KV cache must be `q4_0`.** This is not only about VRAM — the ROCm/RDNA4 flash-attention kernel
 has a fast path for `q4_0`. Measured at a fixed 2560 MiB fit margin, ctx 65536, MTP on:
 
-| `--cache-type-k` / `-v` | tok/s |
-|---|---|
-| **q4_0 / q4_0** | **34.2** |
-| q5_1 / q4_0 | 18.7 |
-| q8_0 / q4_0 | 16.7 |
-| q8_0 / q8_0 | 13.4 |
+| `--cache-type-k` / `-v` | build 10884 | build 11514 |
+|---|---|---|
+| **q4_0 / q4_0** | **34.2** | **41.1** |
+| q5_1 / q4_0 | 18.7 | — |
+| q8_0 / q4_0 | 16.7 | — |
+| q8_0 / q8_0 | 13.4 | 14.4 |
 
 `q8_0` also forces `--fit` to spill layers to host RAM at a safe margin, which is most of that
-collapse. Output quality at `q4_0` was spot-checked and is fine.
+collapse. Output quality at `q4_0` was spot-checked and is fine. **Re-verified on build 11514**
+after the flash-attention kernels changed upstream — the gap is still ~2.9x, so this is not an
+artifact of one llama.cpp version.
 
 **KV cache type does not matter on Metal.** The `q4_0` result above is a ROCm/RDNA4
 flash-attention quirk and does not transfer. Measured on the M2 Max, UD-Q6_K_XL, ctx 8192, MTP
@@ -185,7 +218,8 @@ OpenAI-compatible API. pi is configured with GLM 5.3 Flash (the Fedora default),
    cp llama-cpp/scripts/{qwen,pi-qwen} ~/.local/bin/
    chmod +x ~/.local/bin/{qwen,pi-qwen}
    # qwen auto-detects the platform — on Linux it picks Qwen3.8-27B UD-IQ3_XXS,
-   # --no-mmproj, q4_0 KV, --fit-target 2560 and MTP at --spec-draft-n-max 4
+   # --no-mmproj, q4_0 KV, --fit-target 2560, and MTP at --spec-draft-n-max 3
+   # with --spec-draft-sampling probabilistic
    ```
 
 4. **Add shell config** (append to `~/.zshrc` or `~/.bashrc`):
