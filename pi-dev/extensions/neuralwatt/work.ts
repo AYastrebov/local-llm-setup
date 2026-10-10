@@ -43,27 +43,36 @@ async function sessions(days: number): Promise<Session[]> {
 	return out;
 }
 
-/** First plan decision per session id (a resumed session can log again; the first one routed the work). */
-function routerPlans(): Map<string, RouterLogEntry> {
-	const plans = new Map<string, RouterLogEntry>();
-	if (!existsSync(ROUTER_LOG)) return plans;
+interface RouterTrace {
+	/** First plan decision (a resumed session can log again; the first one routed the work). */
+	plan?: RouterLogEntry;
+	escalate?: RouterLogEntry;
+}
+
+function routerTraces(): Map<string, RouterTrace> {
+	const traces = new Map<string, RouterTrace>();
+	if (!existsSync(ROUTER_LOG)) return traces;
 	for (const line of readFileSync(ROUTER_LOG, "utf8").split("\n")) {
 		if (!line.trim()) continue;
 		try {
 			const e = JSON.parse(line) as RouterLogEntry;
-			if (e.event === "plan" && !plans.has(e.user)) plans.set(e.user, e);
+			const t = traces.get(e.user) ?? {};
+			if (e.event === "plan" && !t.plan) t.plan = e;
+			if (e.event === "escalate" && !t.escalate) t.escalate = e;
+			traces.set(e.user, t);
 		} catch {}
 	}
-	return plans;
+	return traces;
 }
 
 interface Run {
 	session: Session;
 	plan?: RouterLogEntry;
+	escalate?: RouterLogEntry;
 }
 
 /** pi/<feature>/<ticket>/<id8> → runs grouped by "<feature>/<ticket>", oldest run first. */
-function ticketRuns(all: Session[], plans: Map<string, RouterLogEntry>, feature?: string): Map<string, Run[]> {
+function ticketRuns(all: Session[], traces: Map<string, RouterTrace>, feature?: string): Map<string, Run[]> {
 	const byTicket = new Map<string, Run[]>();
 	for (const s of all) {
 		const parts = s.session_id.split("/");
@@ -71,7 +80,7 @@ function ticketRuns(all: Session[], plans: Map<string, RouterLogEntry>, feature?
 		const key = parts.slice(1, -1).join("/");
 		if (feature && parts.slice(1, -2).join("/") !== feature) continue;
 		const runs = byTicket.get(key) ?? [];
-		runs.push({ session: s, plan: plans.get(s.session_id) });
+		runs.push({ session: s, ...traces.get(s.session_id) });
 		byTicket.set(key, runs);
 	}
 	for (const runs of byTicket.values()) runs.sort((a, b) => a.session.started_at.localeCompare(b.session.started_at));
@@ -94,7 +103,9 @@ function describe(run: Run): string {
 	if (!p) return run.session.models?.join("+") ?? "?";
 	const how =
 		p.source === "clef" ? `${p.verdict} ${p.pComplex?.toFixed(2)}` : p.source === "qualifier" ? p.verdict : `${p.verdict}(${p.source})`;
-	return `${how}→${p.model}`;
+	const level = p.level ? `:${p.level}` : "";
+	const up = run.escalate ? ` ⇒stuck ${run.escalate.pStuck?.toFixed(2)}→${run.escalate.model}:${run.escalate.level}` : "";
+	return `${how}→${p.model}${level}${up}`;
 }
 
 function ticketStatus(cwd: string, feature: string, ticket: string): string {
@@ -106,7 +117,7 @@ function ticketStatus(cwd: string, feature: string, ticket: string): string {
 }
 
 export async function featureReport(feature: string, cwd: string, days = 30): Promise<string> {
-	const byTicket = ticketRuns(await sessions(days), routerPlans(), feature);
+	const byTicket = ticketRuns(await sessions(days), routerTraces(), feature);
 	if (byTicket.size === 0) {
 		return `No NeuralWatt sessions tagged ${feature}/… in the last ${days} days (workers need PI_NW_TAG=${feature}/<ticket>).`;
 	}
@@ -127,8 +138,8 @@ export async function featureReport(feature: string, cwd: string, days = 30): Pr
 }
 
 export async function routerReport(days = 30): Promise<string> {
-	const byTicket = ticketRuns(await sessions(days), routerPlans());
-	const groups = new Map<string, { tickets: number; firstRun: number; cost: number; firstCost: number }>();
+	const byTicket = ticketRuns(await sessions(days), routerTraces());
+	const groups = new Map<string, { tickets: number; firstRun: number; cost: number; firstCost: number; escalated: number }>();
 	let untracked = 0;
 	for (const [key, runs] of byTicket) {
 		if (key.endsWith("/review")) continue;
@@ -138,8 +149,9 @@ export async function routerReport(days = 30): Promise<string> {
 			continue;
 		}
 		const label = first.source === "fallback" ? "standard (qualifier failed)" : first.verdict ?? "?";
-		const g = groups.get(label) ?? { tickets: 0, firstRun: 0, cost: 0, firstCost: 0 };
+		const g = groups.get(label) ?? { tickets: 0, firstRun: 0, cost: 0, firstCost: 0, escalated: 0 };
 		g.tickets++;
+		if (runs.some((r) => r.escalate)) g.escalated++;
 		if (runs.length === 1) g.firstRun++;
 		g.cost += sum(runs);
 		g.firstCost += runs[0].session.cost_usd;
@@ -150,14 +162,14 @@ export async function routerReport(days = 30): Promise<string> {
 	}
 	const rows = [...groups].map(
 		([label, g]) =>
-			`${label.padEnd(28)} ${String(g.tickets).padStart(4)}  ${`${g.firstRun}/${g.tickets} (${pct(g.firstRun / g.tickets)})`.padStart(13)}  ${usd(g.cost / g.tickets).padStart(8)}  ${usd(g.firstCost / g.tickets).padStart(8)}`,
+			`${label.padEnd(28)} ${String(g.tickets).padStart(4)}  ${`${g.firstRun}/${g.tickets} (${pct(g.firstRun / g.tickets)})`.padStart(13)}  ${usd(g.cost / g.tickets).padStart(8)}  ${usd(g.firstCost / g.tickets).padStart(8)}  ${String(g.escalated).padStart(5)}`,
 	);
 	return [
 		`router/auto, last ${days} days, by the first run's verdict`,
-		`${"verdict".padEnd(28)} ${"tix".padStart(4)}  ${"first-run ok".padStart(13)}  ${"$/ticket".padStart(8)}  ${"1st run".padStart(8)}`,
+		`${"verdict".padEnd(28)} ${"tix".padStart(4)}  ${"first-run ok".padStart(13)}  ${"$/ticket".padStart(8)}  ${"1st run".padStart(8)}  ${"stuck".padStart(5)}`,
 		...rows,
 		"A low first-run rate for standard means the qualifier under-rates; a high one for complex at a much",
-		"higher $/ticket means it over-rates. Retried runs are counted in $/ticket.",
+		"higher $/ticket means it over-rates. Retried runs are counted in $/ticket. stuck: tickets escalated mid-run.",
 		...(untracked ? [`(${untracked} tagged tickets ran without router/auto and are not counted)`] : []),
 	].join("\n");
 }

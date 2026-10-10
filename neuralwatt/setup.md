@@ -85,14 +85,15 @@ third of the same standard run.
 `/skill:implement` starts each worker with `PI_NW_TAG=<slug>/<NN>` and the reviewer with
 `<slug>/review`. NeuralWatt stores `user` verbatim as the session id, so every run of a ticket is
 findable by prefix; a retry is a second session under the same tag. `router/auto` appends its
-decision per session (verdict, whether the qualifier answered or failed, model, the switch after the
-first edit) to `~/.pi/agent/router-log.jsonl`.
+decision per session (verdict, clef-flash's `pComplex`, thinking level, model, the switch after the
+first edit, stuck checks with `pStuck` and any escalation) to `~/.pi/agent/router-log.jsonl`.
 
 - `/nw feature <slug>`: one line per ticket: status (from `.scratch/<slug>/issues/`), runs, cost,
   cost-weighted cache hits, and the router verdict → model for each run. The coordinator session is
   not included.
 - `/nw router [days]`: tickets grouped by the first run's verdict: count, first-run pass rate (one run
-  = passed first time, since `/implement` retries a failure once), and cost per ticket. Few first-run
+  = passed first time, since `/implement` retries a failure once), cost per ticket, and how many were
+  escalated as stuck mid-run. Few first-run
   passes for *standard* means the qualifier under-rates; *complex* passing nearly always at a much
   higher cost means it over-rates. The log keeps clef-flash's `pComplex`, so tune `PI_ROUTER_COMPLEX_MIN`
   (or the criteria in `router.ts`) from this, after 20-30 tickets.

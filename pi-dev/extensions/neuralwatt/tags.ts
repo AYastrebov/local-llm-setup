@@ -32,13 +32,19 @@ export interface RouterLogEntry {
 	ts: string;
 	user: string;
 	tag?: string;
-	/** plan: first routing of the session; switch: planning model handed over after the first edit. */
-	event: "plan" | "switch";
+	/** plan: first routing of the session; switch: planning model handed over after the first edit;
+	 * check: stuck check below the threshold; escalate: stuck, moved to the strong model. */
+	event: "plan" | "switch" | "check" | "escalate";
 	/** clef: clef-flash decided; qualifier: the nw-flash chat fallback answered; kept: session already on a
 	 * planning model; fallback: both failed, standard by default. */
 	source?: "clef" | "qualifier" | "kept" | "fallback";
 	verdict?: "complex" | "standard";
 	/** clef-flash's P(complex), when it decided. */
 	pComplex?: number;
+	/** clef-flash's P(stuck) and the failed tool calls this turn, for check/escalate. */
+	pStuck?: number;
+	failed?: number;
+	/** Thinking level the router chose. */
+	level?: string;
 	model: string;
 }

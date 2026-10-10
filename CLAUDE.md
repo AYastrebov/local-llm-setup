@@ -45,7 +45,7 @@ pi-dev/             pi.dev model + settings configs per platform
   settings-mac.json
   settings-fedora.json
   mcp.json            MCP servers (github, context7, tavily, playwright, jetbrains); env-var/OAuth auth, no secrets
-  extensions/router.ts   router/auto virtual model (clef-flash decision model picks glm-5.3 vs glm-5.3-flash; nw-flash fallback)
+  extensions/router.ts   router/auto virtual model (clef-flash picks glm-5.3 vs glm-5.3-flash and the thinking level, escalates stuck sessions; nw-flash fallback)
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
   skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
   skills/frontend-checks   Vue/Svelte/Vite gate + browser check; framework skills come from upstream via install-skills.sh
