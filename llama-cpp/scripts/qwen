@@ -10,7 +10,10 @@
 # MTP (multi-token prediction) is ON. The main GGUF already carries the NextN/MTP
 # block (blk.64.nextn.*), so llama.cpp builds the draft context from the target
 # model itself -- no separate -MTP- repo or sidecar download is needed.
-# Measured on the RX 9060 XT: 14.8 t/s without MTP -> 34.5 t/s with it (~2.3x).
+# RX 9060 XT, build 11514: 20.6 t/s without MTP -> 41.1 t/s with it (~2.0x).
+# The no-MTP figure was 14.8 on build 10884, so the base decode path gained
+# ~39% from HIP/CUDA work in between; the MTP path did not move. MTP is still
+# a 2x win, just a smaller multiple than the 2.3x first measured.
 #
 # Usage:
 #   qwen              -> start server (default, port 8080)
@@ -26,6 +29,14 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
   PLATFORM_FLAGS="--fit-target 4096"
   # 64 GB unified leaves room for the higher-quality KV cache.
   KV_CACHE="--cache-type-k q8_0 --cache-type-v q8_0"
+  # Depth 4 is the Metal optimum as measured 2026-09-10 (off 11.3 / n3 19.0 /
+  # n4 19.1 / n6 17.2). Fedora's retune to 3 is a ROCm result and is NOT
+  # applied here -- the Metal curve is flatter and was measured separately.
+  # --spec-draft-sampling is likewise left at llama.cpp's greedy default until
+  # someone measures probabilistic on this box; it is an algorithmic change,
+  # so it may well help, but that is a guess until it is run.
+  MTP_NMAX_DEFAULT=4
+  MTP_SAMPLING_DEFAULT=greedy
 else
   MODEL="${QWEN_MODEL:-unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS}"
   CTX_SIZE="${QWEN_CTX:-65536}"
@@ -40,17 +51,31 @@ else
   # q4_0 is not just a VRAM saving here: the ROCm/RDNA4 flash-attention kernel has
   # a fast path for it. Measured at fixed 2560 margin, ctx 65536, MTP on:
   #   q4_0/q4_0 34.2 t/s | q5_1/q4_0 18.7 | q8_0/q4_0 16.7 | q8_0/q8_0 13.4
+  # Re-checked on build 11514 and still true: q8_0/q8_0 14.4 vs q4_0/q4_0 41.1.
   KV_CACHE="--cache-type-k q4_0 --cache-type-v q4_0"
+  # Retuned 2026-10-08 on build 11514. The optimum moved 4 -> 3 because base
+  # decode got ~39% faster while the MTP path did not, which changes the
+  # speculation economics. Depth sweep (median t/s, probabilistic, n=6):
+  #   2->35.8  3->40.9  4->36.7  6->15.0
+  # And --spec-draft-sampling (new in #27694; llama.cpp defaults to greedy),
+  # n=10 per cell, medians reproducible to <0.2 t/s across reruns:
+  #   n4 greedy 35.9 | n4 prob 37.2 | n3 greedy 36.6 | n3 prob 41.1
+  # The two compound (+14% together vs +2% / +3.6% alone). Probabilistic makes
+  # the drafter sample and the target verify by rejection sampling, which is
+  # also the distribution-preserving variant for temp > 0.
+  MTP_NMAX_DEFAULT=3
+  MTP_SAMPLING_DEFAULT=probabilistic
 fi
 
-# MTP draft depth. Measured sweep (median t/s): 2->29.2, 3->33.1, 4->34.5,
-# 6->21.5, 8->15.8. Acceptance falls off past 4, so deeper drafts cost more than
-# they win. Set QWEN_MTP=0 to disable speculative decoding entirely.
-MTP_NMAX="${QWEN_MTP_NMAX:-4}"
+# Set QWEN_MTP=0 to disable speculative decoding entirely. Depth and draft
+# sampling default per platform above; override with QWEN_MTP_NMAX /
+# QWEN_MTP_SAMPLING.
+MTP_NMAX="${QWEN_MTP_NMAX:-$MTP_NMAX_DEFAULT}"
+MTP_SAMPLING="${QWEN_MTP_SAMPLING:-$MTP_SAMPLING_DEFAULT}"
 if [[ "${QWEN_MTP:-1}" == "0" ]]; then
   MTP=""
 else
-  MTP="--spec-type draft-mtp --spec-draft-n-max $MTP_NMAX"
+  MTP="--spec-type draft-mtp --spec-draft-n-max $MTP_NMAX --spec-draft-sampling $MTP_SAMPLING"
 fi
 
 # Per the Qwen3.8 model card (repetition_penalty 1.0 is llama.cpp's default):
@@ -127,7 +152,9 @@ case "$MODE" in
     echo ""
     echo "Env: QWEN_MODEL (override -hf ref), QWEN_CTX (context size),"
     echo "     QWEN_REASONING=xhigh|medium|low, QWEN_MTP=0 (disable MTP),"
-    echo "     QWEN_MTP_NMAX=N (draft depth, default 4)"
+    echo "     QWEN_MTP_NMAX=N (draft depth; default 3 on Linux, 4 on macOS),"
+    echo "     QWEN_MTP_SAMPLING=greedy|probabilistic (default: probabilistic on"
+    echo "       Linux, greedy on macOS)"
     exit 1
     ;;
 esac

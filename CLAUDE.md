@@ -70,7 +70,7 @@ zshrc-snippet.sh    shell environment (API keys, PATH, aliases)
 
 **`qwen` is the one cross-platform launcher** — it branches on `uname`: macOS gets `UD-Q6_K_XL` (25.9 GB) with vision, Linux gets `UD-IQ3_XXS` (10.93 GB) plus `--no-mmproj` to stay inside 16 GB VRAM. Override with `QWEN_MODEL` / `QWEN_CTX` rather than editing the script.
 
-**MTP is ON for Qwen3.8 on both platforms** — `--spec-type draft-mtp --spec-draft-n-max 4`, measured 2.3x on Fedora and 1.7x on macOS. No `-MTP-` repo is needed: the NextN block ships *inside* the main GGUF as `blk.64.nextn.*`. An earlier revision of this file said "No MTP anywhere" — that was wrong, and the `unused tensor blk.64.nextn.*` lines in the server log were the idle draft head, not a defect.
+**MTP is ON for Qwen3.8 on both platforms, with per-platform flags** — Fedora: depth 3 + `--spec-draft-sampling probabilistic` (2.0x, build 11514); macOS: depth 4 + greedy (1.7x, build 10895). These differ because each was measured on its own box and build, and the Fedora optimum moved from 4 to 3 when upstream HIP/CUDA work made base decode ~39% faster. Do not unify them without re-measuring, and re-run the depth sweep after any large llama.cpp jump. No `-MTP-` repo is needed: the NextN block ships *inside* the main GGUF as `blk.64.nextn.*`. An earlier revision of this file said "No MTP anywhere" — that was wrong, and the `unused tensor blk.64.nextn.*` lines in the server log were the idle draft head, not a defect.
 
 **Qwen3.8 is dense** — on Fedora it replaced a 35B-A3B MoE that activated ~3B params per token, so it is markedly slower there. That tradeoff is deliberate and documented in `llama-cpp/fedora/setup.md`; do not "fix" it by silently swapping back.
 

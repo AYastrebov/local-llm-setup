@@ -111,7 +111,7 @@ context for it: `QWEN_CTX=32768 qwen --mmproj-auto`.
 
 > **Tradeoff vs. the Qwen3.6 35B-A3B it replaces.** That was an MoE activating ~3B params per
 > token; Qwen3.8-27B is **dense** and activates all 27B, so raw per-token compute is much higher.
-> MTP claws most of that back: **34.2 t/s measured with MTP vs 14.8 t/s without** (see below). You
+> MTP claws most of that back: **41.1 t/s measured with MTP vs 20.6 t/s without** (see below). You
 > also gain a much stronger model generation and far flatter long-context scaling from the
 > linear-attention layers.
 >
@@ -137,33 +137,46 @@ qwen chat-fast    # interactive CLI, thinking off (temp 0.7, instruct params)
 
 The script auto-detects the platform — no MODEL line to edit. On Linux it selects
 `unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS`, `--no-mmproj`, `q4_0` KV, `--fit-target 2560` and MTP at
-`--spec-draft-n-max 4`; on macOS it selects `UD-Q6_K_XL` with vision and `q8_0` KV. Override with
-`QWEN_MODEL=`, `QWEN_CTX=`, `QWEN_REASONING=xhigh|medium|low`, `QWEN_MTP=0`, `QWEN_MTP_NMAX=N`.
+`--spec-draft-n-max 3 --spec-draft-sampling probabilistic`; on macOS it selects `UD-Q6_K_XL` with
+vision, `q8_0` KV and MTP at depth 4 with greedy drafting. The MTP defaults are **deliberately
+per-platform** — each was measured on its own box and on a different llama.cpp build. Override with
+`QWEN_MODEL=`, `QWEN_CTX=`, `QWEN_REASONING=xhigh|medium|low`, `QWEN_MTP=0`, `QWEN_MTP_NMAX=N`,
+`QWEN_MTP_SAMPLING=greedy|probabilistic`.
 
 This replaces the old `qwen-mtp` launcher. MTP is still on — it just no longer needs a dedicated
 `-MTP-` repo, since the draft head is embedded in the main GGUF.
 
-### Measured performance (2026-09-10, llama.cpp `434ddbbc0`)
+### Measured performance (2026-10-08, llama.cpp `de7fa0a3c` build 11514)
 
-Prompt: a short Python codegen request, `n_predict 300`, ctx 65536, median of 3-4 runs.
+Prompt: a short Python codegen request to `/completion`, `n_predict 300`, ctx 65536. Medians of
+6-10 runs; the n=10 cells reproduced to <0.2 t/s across full server restarts.
 
 | Config | tok/s | VRAM used / free (MiB, of 16304) |
 |---|---|---|
-| No MTP, q8_0 KV, default fit margin | 14.8 | 15994 / 310 |
-| **MTP n_max=4, q4_0 KV, `--fit-target 2560`** | **34.2** | **14269 / 2034** |
+| No MTP, q8_0 KV, default fit margin | 20.6 | 12897 / 3407 |
+| **MTP n=3 probabilistic, q4_0 KV, `--fit-target 2560`** | **41.1** | **14049 / 2255** |
 
-Two independent levers get you there, and the second one also stops the machine falling over:
+> **The baseline moved under us.** On build 10884 (2026-09-10) the same two rows were 14.8 and
+> 34.2 t/s. The no-MTP path gained ~39% from upstream HIP/CUDA work while the MTP path stayed flat,
+> so MTP's multiple fell from 2.3x to 2.0x even though absolute throughput rose 20%. The practical
+> lesson: **re-run the depth sweep after any large llama.cpp jump** instead of trusting a number
+> written down here — the optimum genuinely moved from 4 to 3.
+
+Three levers get you there, and the second one also stops the machine falling over:
 
 **KV cache `q4_0`, not `q8_0`.** The ROCm/RDNA4 flash-attention kernel has a fast path for `q4_0`,
 and `q8_0` additionally pushes `--fit` into spilling layers to host RAM once you ask for a safe
 margin. At fixed `--fit-target 2560`, ctx 65536, MTP on:
 
-| `-ctk` / `-ctv` | tok/s |
-|---|---|
-| **q4_0 / q4_0** | **34.2** |
-| q5_1 / q4_0 | 18.7 |
-| q8_0 / q4_0 | 16.7 |
-| q8_0 / q8_0 | 13.4 |
+| `-ctk` / `-ctv` | build 10884 | build 11514 |
+|---|---|---|
+| **q4_0 / q4_0** | **34.2** | **41.1** |
+| q5_1 / q4_0 | 18.7 | — |
+| q8_0 / q4_0 | 16.7 | — |
+| q8_0 / q8_0 | 13.4 | 14.4 |
+
+Re-verified on build 11514 after the flash-attention kernels changed upstream: still a ~2.9x gap,
+so it is a property of the backend rather than of one llama.cpp version.
 
 **`--fit-target 2560`, not the default 1024.** The desktop alone holds ~1919 MiB (1.9 GiB) of VRAM. At the
 default margin `--fit on` fills the card to 98%, leaving ~310 MiB, and the compositor then dies with:
@@ -175,16 +188,35 @@ amdgpu: [drm] *ERROR* Not enough memory for command submission!
 which takes the terminal emulator with it — any agent session running in that terminal is killed
 and you land back at a login screen. 2560 MiB costs nothing in throughput and leaves ~2.0 GiB free.
 
-**MTP draft depth.** Acceptance falls off past 4, so deeper drafts lose:
+**MTP draft depth — now 3, was 4.** Deeper drafts still lose badly; depth 6 is now worse than no
+MTP at all.
 
-| `--spec-draft-n-max` | tok/s | acceptance |
+| `--spec-draft-n-max` | build 10884 | build 11514 (probabilistic) |
 |---|---|---|
-| off | 14.8 | — |
-| 2 | 29.2 | 82% |
-| 3 | 33.1 | 76% |
-| **4** | **34.5** | **70%** |
-| 6 | 21.5 | 55% |
-| 8 | 15.8 | 43% |
+| off | 14.8 | 20.6 |
+| 2 | 29.2 | 35.8 |
+| **3** | 33.1 | **40.9** |
+| 4 | **34.5** | 36.7 |
+| 6 | 21.5 | 15.0 |
+| 8 | 15.8 | — |
+
+**`--spec-draft-sampling probabilistic`** (new in llama.cpp #27694; the upstream default is
+`greedy`). The drafter samples and the target verifies by rejection sampling, which is also the
+distribution-preserving variant for temp > 0. n=10 per cell:
+
+| | greedy | probabilistic |
+|---|---|---|
+| n=4 | 35.9 (acc 66%) | 37.2 (acc 72%) |
+| **n=3** | 36.6 (acc 76%) | **41.1 (acc 89%)** |
+
+Depth and sampling compound: +14% together against +2% and +3.6% alone.
+
+> **Caveat on these numbers.** The benchmark prompt is ~300 tokens. pi's real prompt is ~7,880
+> tokens with tool definitions, and behaves differently — on one real pi turn, acceptance went from
+> 34% (n=4 greedy) to 80% (n=3 probabilistic) and generation from 21.7 to 35.3 t/s, same direction
+> but a single short sample. More importantly, pi spends ~14 s on prompt eval for that 7,880-token
+> prompt, which dwarfs the generation gain on a short tool-call turn. This tuning pays off on long
+> generations; for pi responsiveness, prompt processing is the thing to attack.
 
 
 ### pi-qwen (run pi against a local model)
