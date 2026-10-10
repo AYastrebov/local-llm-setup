@@ -45,11 +45,11 @@ pi-dev/             pi.dev model + settings configs per platform
   settings-mac.json
   settings-fedora.json
   mcp.json            MCP servers (github, context7, tavily, playwright, jetbrains); env-var/OAuth auth, no secrets
-  extensions/router.ts   router/auto virtual model (NeuralWatt qualifier picks glm-5.3 vs glm-5.3-flash)
+  extensions/router.ts   router/auto virtual model (clef-flash picks glm-5.3 vs glm-5.3-flash and the thinking level, escalates stuck sessions; nw-flash fallback)
   skills/{grill-me,plan,implement}   lean grill -> plan -> implement workflow (explicit /skill: only)
   skills/{go,rust}    language skills: gopls MCP / rust-analyzer workflow + quality gates (auto)
   skills/frontend-checks   Vue/Svelte/Vite gate + browser check; framework skills come from upstream via install-skills.sh
-  extensions/neuralwatt/   NeuralWatt provider (live /v1/models catalog), user/flex request fields, hosted tools, footer + /nw
+  extensions/neuralwatt/   NeuralWatt provider (live /v1/models catalog), user/flex/tag request fields, hosted tools, footer + /nw (+ feature, router reports)
   prompts/{review,simplify}.md   /review (fresh read-only reviewer) and /simplify (apply cleanups) commands
   install-skills.sh   installs those + prompts, + vetted upstream skills (tdd, diagnosing-bugs, writing-for-agents, frontend-design, humanizer)
 

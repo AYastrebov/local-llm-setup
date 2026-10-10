@@ -15,6 +15,7 @@ Models (edit here to change):
 ## 0. Start
 
 - Argument: the feature directory (`.scratch/<feature-slug>`). Read `plan.md` and every file in `issues/`.
+  `<slug>` below is that directory's name.
 - The working tree must be clean apart from `.scratch/` (`git status --porcelain -- . ':!.scratch'` empty);
   otherwise ask the user first.
 - Record the base commit: `git rev-parse HEAD`.
@@ -28,7 +29,7 @@ Repeat until no ticket has `Status: ready`:
 2. Run a fresh worker with bash and wait (point to files, don't paste them):
 
    ```
-   PI_NW_FLEX=1 pi -p --no-skills --model router/auto "Implement ticket <ticket path> of the plan <plan path>.
+   PI_NW_TAG=<slug>/<NN> PI_NW_FLEX=1 pi -p --no-skills --model router/auto "Implement ticket <ticket path> of the plan <plan path>.
    Read both first; follow the plan's Decisions and test at its Test seams.
    Work test-first: read and follow ~/.pi/agent/skills/tdd/SKILL.md.
    Language rules: in a Go module read ~/.pi/agent/skills/go/SKILL.md, in a Cargo project read
@@ -41,7 +42,9 @@ Repeat until no ticket has `Status: ready`:
    End with: files changed, the Verify command, and its result." < /dev/null
    ```
 
-   `PI_NW_FLEX=1` puts the worker's NeuralWatt requests on the flex tier (same model, 35% cheaper,
+   `PI_NW_TAG` names the worker's NeuralWatt session `pi/<slug>/<NN>/…` (NN = the ticket number, e.g. `03`),
+   so `/nw feature <slug>` can total cost per ticket and `/nw router` can check the router's verdicts.
+   Use the same tag for a retry. `PI_NW_FLEX=1` puts the worker's NeuralWatt requests on the flex tier (same model, 35% cheaper,
    may start later); drop it if a run is time-critical.
    Always redirect stdin from `/dev/null`: `pi -p` prepends piped stdin to the prompt and otherwise
    waits for it to close, which hangs when stdin is an open pipe.
@@ -64,7 +67,7 @@ One line per ticket in your messages (`02/05 ✓ <title> (abc1234)`).
 After the last ticket, run the full test suite / checks from `Done when`, then a read-only reviewer:
 
 ```
-PI_NW_FLEX=1 pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "Review `git diff <base>..HEAD`
+PI_NW_TAG=<slug>/review PI_NW_FLEX=1 pi -p --no-skills --tools read,bash --model neuralwatt/glm-5.3:high "Review `git diff <base>..HEAD`
 (run it) against <plan path> and the tickets in <issues dir>. Two axes: (1) spec fidelity: missed
 acceptance criteria or Done-when items, Decisions not followed, tests not at the agreed seams;
 (2) correctness: bugs, security issues, missing tests for new behaviour. No style nits. For each:
@@ -80,3 +83,4 @@ say 'No findings'." < /dev/null
 
 Tickets done/blocked, retries used, commits (`git log --oneline <base>..HEAD`), review findings and
 what was fixed, and the result of the `Done when` checks. Do not push.
+End with: "Cost per ticket: `/nw feature <slug>`" (NeuralWatt may take a minute to show the last run).

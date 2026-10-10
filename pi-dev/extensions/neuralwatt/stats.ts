@@ -1,10 +1,12 @@
 /**
  * NeuralWatt account stats: footer balance and the /nw report.
  * Endpoints: /v1/quota (balance, tier; 1 req/s limit), /v1/usage/summary (cost, tokens), /v1/usage/energy (energy, CO2).
+ * /nw feature and /nw router live in work.ts.
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { API } from "./catalog.ts";
+import { featureReport, routerReport } from "./work.ts";
 
 const STATUS_KEY = "neuralwatt";
 const REFRESH_MS = 60_000;
@@ -101,9 +103,21 @@ export function registerStats(pi: ExtensionAPI): void {
 	pi.on("session_start", async (_event, ctx) => refresh(ctx, true));
 	pi.on("agent_end", async (_event, ctx) => refresh(ctx));
 	pi.registerCommand("nw", {
-		description: "NeuralWatt balance, spend, tokens, cache hits and energy",
-		handler: async (_args, ctx) => {
+		description: "NeuralWatt balance, spend, cache and energy; `feature <slug>` cost per ticket; `router [days]` router outcomes",
+		getArgumentCompletions: (prefix) =>
+			["feature ", "router "].filter((c) => c.startsWith(prefix)).map((c) => ({ value: c, label: c.trim() })),
+		handler: async (args, ctx) => {
+			const [sub, arg] = args.trim().split(/\s+/);
 			try {
+				if (sub === "feature") {
+					if (!arg) throw new Error("usage: /nw feature <slug>   (the .scratch/<slug> name)");
+					ctx.ui.notify(await featureReport(arg.replace(/^\.scratch\//, "").replace(/\/$/, ""), ctx.cwd), "info");
+					return;
+				}
+				if (sub === "router") {
+					ctx.ui.notify(await routerReport(arg ? Number(arg) || 30 : 30), "info");
+					return;
+				}
 				ctx.ui.notify(await report(), "info");
 				await refresh(ctx, true);
 			} catch (error) {
