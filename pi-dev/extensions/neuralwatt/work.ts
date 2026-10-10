@@ -92,7 +92,8 @@ function cache(runs: Run[]): number {
 function describe(run: Run): string {
 	const p = run.plan;
 	if (!p) return run.session.models?.join("+") ?? "?";
-	const how = p.source === "qualifier" ? p.verdict : `${p.verdict}(${p.source})`;
+	const how =
+		p.source === "clef" ? `${p.verdict} ${p.pComplex?.toFixed(2)}` : p.source === "qualifier" ? p.verdict : `${p.verdict}(${p.source})`;
 	return `${how}→${p.model}`;
 }
 

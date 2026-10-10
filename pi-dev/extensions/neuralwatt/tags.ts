@@ -34,8 +34,11 @@ export interface RouterLogEntry {
 	tag?: string;
 	/** plan: first routing of the session; switch: planning model handed over after the first edit. */
 	event: "plan" | "switch";
-	/** qualifier: the qualifier answered; kept: session already on a planning model; fallback: qualifier failed. */
-	source?: "qualifier" | "kept" | "fallback";
+	/** clef: clef-flash decided; qualifier: the nw-flash chat fallback answered; kept: session already on a
+	 * planning model; fallback: both failed, standard by default. */
+	source?: "clef" | "qualifier" | "kept" | "fallback";
 	verdict?: "complex" | "standard";
+	/** clef-flash's P(complex), when it decided. */
+	pComplex?: number;
 	model: string;
 }

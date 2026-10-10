@@ -94,7 +94,8 @@ first edit) to `~/.pi/agent/router-log.jsonl`.
 - `/nw router [days]`: tickets grouped by the first run's verdict: count, first-run pass rate (one run
   = passed first time, since `/implement` retries a failure once), and cost per ticket. Few first-run
   passes for *standard* means the qualifier under-rates; *complex* passing nearly always at a much
-  higher cost means it over-rates. Tune `QUALIFIER_PROMPT` in `router.ts` from this, after 20-30 tickets.
+  higher cost means it over-rates. The log keeps clef-flash's `pComplex`, so tune `PI_ROUTER_COMPLEX_MIN`
+  (or the criteria in `router.ts`) from this, after 20-30 tickets.
 
 Families (`/v1/usage/sessions/families`) are not used: they group sub-agents by start-time bursts,
 not by name. The sessions endpoints allow 20 requests/minute, so these are on-demand reports.
