@@ -8,6 +8,8 @@
  *   cache) and wins as the session id in Dashboard → Sessions. `metadata.conversation_id` carries the
  *   same value for grouping. Body fields, because header hooks cannot see which provider a
  *   router/auto request goes to; the payload names the real model.
+ * - PI_NW_TAG=<feature>/<ticket> (set by /implement): the session id becomes pi/<feature>/<ticket>/<id8>
+ *   instead, so /nw feature can total a feature's workers (tags.ts).
  * - PI_NW_FLEX=1 (set by /implement workers and /review): `service_tier: "flex"` on NeuralWatt
  *   requests — same model and cache, 35% cheaper, may wait for capacity before starting.
  * - Hosted tools (preview, account must be admitted): NeuralWatt requests that already declare tools also
@@ -24,6 +26,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { API, loadModels, type ModelDef } from "./catalog.ts";
 import { registerStats } from "./stats.ts";
+import { sessionUser } from "./tags.ts";
 
 const COMPAT = { supportsDeveloperRole: false, supportsReasoningEffort: true, supportsUsageInStreaming: true };
 
@@ -78,13 +81,14 @@ export default async function (pi: ExtensionAPI) {
 			| null;
 		if (!payload?.model || !ids.has(payload.model)) return payload;
 		const id = ctx.sessionManager.getSessionId();
+		const user = id ? sessionUser(id) : undefined;
 		const metadata: Record<string, unknown> = { ...payload.metadata };
-		if (id) metadata.conversation_id = `pi-${id}`.slice(0, 256);
+		if (user) metadata.conversation_id = user;
 		const tools = withHostedTools(payload.tools);
 		if (tools && HOSTED_BUDGET_USD > 0) metadata.hosted_tools_budget = { max_cost_usd: HOSTED_BUDGET_USD };
 		return {
 			...payload,
-			...(id ? { user: payload.user ?? `pi-${id}` } : {}),
+			...(user ? { user: payload.user ?? user } : {}),
 			metadata,
 			...(tools ? { tools } : {}),
 			...(flex && !payload.service_tier ? { service_tier: "flex" } : {}),

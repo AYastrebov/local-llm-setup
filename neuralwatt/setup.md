@@ -62,8 +62,10 @@ environment.
 | File | What it does |
 |---|---|
 | `catalog.ts` | Builds the model list from authenticated `GET /v1/models` (checks `scope == "customer"`, so granted preview models are included; skips deprecated and non-chat `capabilities.task` entries): prices, context/output limits, vision, and `off` → `none`/unsupported from `reasoning.supported_efforts`. Cached 1 h in `~/.cache/pi-neuralwatt/`, then stale cache, then a built-in snapshot. Edit `MODEL_IDS` to change the offered models. |
-| `index.ts` | Registers provider `neuralwatt` (`openai-completions`; `system` role, `reasoning_effort`, streamed usage — verified against the API). Adds to every NeuralWatt request body `user = pi-<session id>` — the documented cache-affinity routing key, one value per conversation — and the same value as `metadata.conversation_id`. With `PI_NW_FLEX=1`, adds `service_tier: "flex"`. |
+| `index.ts` | Registers provider `neuralwatt` (`openai-completions`; `system` role, `reasoning_effort`, streamed usage — verified against the API). Adds to every NeuralWatt request body `user = pi-<session id>` — the documented cache-affinity routing key, one value per conversation — and the same value as `metadata.conversation_id`. With `PI_NW_TAG=<feature>/<ticket>` the value is `pi/<feature>/<ticket>/<id8>` instead (see below). With `PI_NW_FLEX=1`, adds `service_tier: "flex"`. |
 | `stats.ts` | `NW $<balance>` in the footer and `/nw` (balance and runway, credits used and rate-limit tier from `/v1/quota`, today / 7 / 30 days, cache-hit rate). `/v1/quota` allows 1 request/s, so footer and `/nw` share one result. |
+| `tags.ts` | The tagged session-id format and the router log path (`~/.pi/agent/router-log.jsonl`), shared with `router.ts`. |
+| `work.ts` | `/nw feature <slug>` and `/nw router [days]` from `GET /v1/usage/sessions` (beta) joined with the router log. |
 
 Body fields rather than headers: `before_provider_headers` runs before pi knows which provider a
 `router/auto` request goes to (and its header map is empty), while `before_provider_request` sees the
@@ -77,6 +79,25 @@ affinity). The response echoes the `service_tier` actually used — flex falls b
 Verified 2026-10-08: sessions appear in Dashboard → Sessions / `GET /v1/usage/sessions` as
 `pi-<uuid>` with `fp_scheme: explicit_user` (also for `router/auto`), and a flex run billed about a
 third of the same standard run.
+
+### Cost per feature and router outcomes
+
+`/skill:implement` starts each worker with `PI_NW_TAG=<slug>/<NN>` and the reviewer with
+`<slug>/review`. NeuralWatt stores `user` verbatim as the session id, so every run of a ticket is
+findable by prefix; a retry is a second session under the same tag. `router/auto` appends its
+decision per session (verdict, whether the qualifier answered or failed, model, the switch after the
+first edit) to `~/.pi/agent/router-log.jsonl`.
+
+- `/nw feature <slug>`: one line per ticket: status (from `.scratch/<slug>/issues/`), runs, cost,
+  cost-weighted cache hits, and the router verdict → model for each run. The coordinator session is
+  not included.
+- `/nw router [days]`: tickets grouped by the first run's verdict: count, first-run pass rate (one run
+  = passed first time, since `/implement` retries a failure once), and cost per ticket. Few first-run
+  passes for *standard* means the qualifier under-rates; *complex* passing nearly always at a much
+  higher cost means it over-rates. Tune `QUALIFIER_PROMPT` in `router.ts` from this, after 20-30 tickets.
+
+Families (`/v1/usage/sessions/families`) are not used: they group sub-agents by start-time bursts,
+not by name. The sessions endpoints allow 20 requests/minute, so these are on-demand reports.
 
 ### Worth knowing from the docs
 

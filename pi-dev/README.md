@@ -11,7 +11,7 @@ pi.dev model configs (`~/.pi/agent/models.json`) for each platform.
 | `settings-mac.json` | macOS | `~/.pi/agent/settings.json` |
 | `settings-fedora.json` | Fedora | `~/.pi/agent/settings.json` |
 | `mcp.json` | both | `~/.pi/agent/mcp.json` — see [docs/mcp.md](../docs/mcp.md) |
-| `extensions/neuralwatt/` | both | `~/.pi/agent/extensions/` — NeuralWatt provider (live catalog), session affinity, flex for background runs, hosted tools (web search, vision for text-only models), footer + `/nw` |
+| `extensions/neuralwatt/` | both | `~/.pi/agent/extensions/` — NeuralWatt provider (live catalog), session affinity, flex for background runs, hosted tools (web search, vision for text-only models), footer + `/nw`, cost per feature (`/nw feature <slug>`) and router outcomes (`/nw router`) |
 | `extensions/router.ts` | both | `~/.pi/agent/extensions/router.ts` |
 | `skills/` + `install-skills.sh` | both | `~/.pi/agent/skills/` (run the script) |
 
@@ -56,8 +56,8 @@ implement) on pi primitives. The three workflow skills are explicit-only
 |---|---|
 | `grill-me` | mattpocock's `grilling`, adapted: looks facts up itself instead of dispatching a sub-agent. |
 | `plan` | Synthesizes (no re-interview after grilling). Agrees the **test seams** (highest seam possible, ideally one), then **vertical-slice tickets** with `Blocked by` edges and acceptance criteria; asks you to approve the breakdown. File paths are hints only. |
-| `implement` | Works the frontier (lowest-numbered unblocked ticket). Each worker: `pi -p --no-skills --model router/auto` given **pointers** (plan, ticket, `tdd` skill), never pasted text. Coordinator runs the ticket's `Verify` itself, ticks it, commits the code (never `.scratch/`), retries once. One read-only `glm-5.3:high` review of `base..HEAD` on two axes (spec fidelity, correctness); high/medium findings become new tickets. Never pushes. |
-| `router/auto` (`extensions/router.ts`) | A qualifier (`nw-flash`, reasoning off, 8 s) rates the first message once per session: **complex** → `glm-5.3` then `glm-5.3-flash` after the first edit; **standard** → `glm-5.3-flash`. One switch per session = one prompt-cache miss. A target missing from the live catalog falls back to `glm-5.3-flash`, then `nw-flash`. |
+| `implement` | Works the frontier (lowest-numbered unblocked ticket). Each worker: `pi -p --no-skills --model router/auto` given **pointers** (plan, ticket, `tdd` skill), never pasted text. Workers are tagged `PI_NW_TAG=<slug>/<NN>` for `/nw feature`. Coordinator runs the ticket's `Verify` itself, ticks it, commits the code (never `.scratch/`), retries once. One read-only `glm-5.3:high` review of `base..HEAD` on two axes (spec fidelity, correctness); high/medium findings become new tickets. Never pushes. |
+| `router/auto` (`extensions/router.ts`) | A qualifier (`nw-flash`, reasoning off, 8 s) rates the first message once per session: **complex** → `glm-5.3` then `glm-5.3-flash` after the first edit; **standard** → `glm-5.3-flash`. One switch per session = one prompt-cache miss. A target missing from the live catalog falls back to `glm-5.3-flash`, then `nw-flash`. Decisions are logged to `~/.pi/agent/router-log.jsonl` for `/nw router`. |
 
 Skipped from mattpocock on purpose: parallel implementers in worktrees with a merger agent (pi's
 author calls parallel implementation an anti-pattern; NeuralWatt's trial tier allows 2 concurrent

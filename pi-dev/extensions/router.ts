@@ -14,11 +14,16 @@
  * The phase is router state, so it follows the session tree and survives compaction.
  * To re-plan a new task on a strong model, start a new session or switch with /model.
  *
+ * Each decision is appended to ~/.pi/agent/router-log.jsonl; /nw router and /nw feature (neuralwatt
+ * extension) join it with session costs to check the qualifier against what tickets needed.
+ *
  * Usage: pi --model router/auto
  */
 
 import type { Message } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, ModelRoute, ModelRouteRequest } from "@earendil-works/pi-coding-agent";
+import { appendFileSync } from "node:fs";
+import { ROUTER_LOG, type RouterLogEntry, sessionUser, workTag } from "./neuralwatt/tags.ts";
 
 interface Target {
 	provider: string;
@@ -75,15 +80,20 @@ function sameTarget(model: { provider: string; id: string } | undefined, target:
 	return model?.provider === target.provider && model.id === target.id;
 }
 
+interface Choice {
+	target: Target;
+	source: NonNullable<RouterLogEntry["source"]>;
+}
+
 /** Planning model for a new session: COMPLEX for demanding work, STANDARD otherwise or when the qualifier fails. */
-async function choosePlanningModel(request: RouterRequest, ctx: ExtensionContext): Promise<Target> {
+async function choosePlanningModel(request: RouterRequest, ctx: ExtensionContext): Promise<Choice> {
 	// Keep a planning model the session already uses, so switching to router/auto costs no cache miss.
 	const previous = request.previous?.model;
-	if (sameTarget(previous, COMPLEX)) return COMPLEX;
-	if (sameTarget(previous, STANDARD)) return STANDARD;
+	if (sameTarget(previous, COMPLEX)) return { target: COMPLEX, source: "kept" };
+	if (sameTarget(previous, STANDARD)) return { target: STANDARD, source: "kept" };
 
 	const qualifier = ctx.modelRegistry.find(QUALIFIER.provider, QUALIFIER.id);
-	if (!qualifier) return STANDARD;
+	if (!qualifier) return { target: STANDARD, source: "fallback" };
 	try {
 		const stream = ctx.modelRegistry.streamSimple(
 			qualifier,
@@ -101,10 +111,20 @@ async function choosePlanningModel(request: RouterRequest, ctx: ExtensionContext
 		);
 		const reply = await stream.result();
 		const text = reply.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join(" ");
-		return /\bcomplex\b/i.test(text) ? COMPLEX : STANDARD;
+		return { target: /\bcomplex\b/i.test(text) ? COMPLEX : STANDARD, source: "qualifier" };
 	} catch {
-		return STANDARD;
+		return { target: STANDARD, source: "fallback" };
 	}
+}
+
+/** Best effort: a full disk or read-only home must not break routing. */
+function logDecision(ctx: ExtensionContext, entry: Omit<RouterLogEntry, "ts" | "user" | "tag">): void {
+	const id = ctx.sessionManager.getSessionId();
+	if (!id) return;
+	const line: RouterLogEntry = { ts: new Date().toISOString(), user: sessionUser(id), tag: workTag(), ...entry };
+	try {
+		appendFileSync(ROUTER_LOG, `${JSON.stringify(line)}\n`);
+	} catch {}
 }
 
 export default function (pi: ExtensionAPI) {
@@ -120,12 +140,16 @@ export default function (pi: ExtensionAPI) {
 			if (request.reason === "direct") return routeTo(request, ctx, IMPLEMENT);
 			const state = request.state;
 			if (!state) {
-				const target = await choosePlanningModel(request, ctx);
-				return routeTo(request, ctx, target, { phase: "planning", target });
+				const { target, source } = await choosePlanningModel(request, ctx);
+				const route = routeTo(request, ctx, target, { phase: "planning", target });
+				logDecision(ctx, { event: "plan", source, verdict: target === COMPLEX ? "complex" : "standard", model: route.model.id });
+				return route;
 			}
 			// The planning model made the first edit: hand the rest of the work to the cheap model.
 			if (state.phase === "planning" && editedThisTurn(request.messages)) {
-				return routeTo(request, ctx, IMPLEMENT, { phase: "implementation", target: IMPLEMENT });
+				const route = routeTo(request, ctx, IMPLEMENT, { phase: "implementation", target: IMPLEMENT });
+				if (!sameTarget(state.target, IMPLEMENT)) logDecision(ctx, { event: "switch", model: route.model.id });
+				return route;
 			}
 			return routeTo(request, ctx, state.target);
 		},
